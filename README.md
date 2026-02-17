@@ -1,3 +1,8 @@
 # Luxor-Project
 
-# Documento Colaborativo: https://uvggt-my.sharepoint.com/:w:/g/personal/cha23132_uvg_edu_gt/IQDEOHP45WRAQqOQfS0dir2fAW04alWfdHDQ3tcGTq64qP4
+Avances1 contiene los avances del primer corte.
+Corte1 contiene la entrega final del primer corte.
+Avances2 contiene los avances del segundo corte.
+Corte 2 contendra la entrega final del segundo corte.
+Scrum es una carpeta que sera utilizada mas adelante.
+Formularios_LOGT contiene los formularios llenos y subidos por cada integrante del grupo por corte.
