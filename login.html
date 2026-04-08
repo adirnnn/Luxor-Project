@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #000000;
+            color: #CEBEBE;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background: #000000;
+            border-bottom: 1px solid #333;
+        }
+
+        /* LOGO CON GLOW */
+        .navbar img {
+            height: 40px;
+            filter: drop-shadow(0 0 2px #C0F5FA)
+                    drop-shadow(0 0 10px #C0F5FA);
+            transition: 0.3s;
+        }
+
+        .navbar img:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 10px #C0F5FA)
+                    drop-shadow(0 0 20px #C0F5FA);
+        }
+
+        .menu {
+            display: flex;
+            gap: 30px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #CEBEBE;
+            transition: 0.3s;
+        }
+
+        .menu a:hover {
+            color: #88b6e5;
+            transform: scale(1.1);
+        }
+
+        .right-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 6px 30px 6px 10px;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            background: #2f3b4a;
+            color: #CEBEBE;
+        }
+
+        .search-box input::placeholder {
+            color: #888;
+        }
+
+        .search-box input:focus {
+            box-shadow: 0 0 8px rgba(192, 245, 250, 1);
+        }
+
+        .search-box span {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            color: #181925;
+        }
+
+        .icon {
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .icon:hover {
+            color: #C0F5FA;
+        }
+
+        .profile {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #555;
+        }
+
+        /* ===== LOGIN ===== */
+        .container {
+            height: calc(100vh - 70px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: #ffffff;
+            color: #111;
+            padding: 40px;
+            border-radius: 12px;
+            width: 320px;
+            text-align: center;
+
+            box-shadow: 0 0 25px rgba(192, 245, 250, 0.5);
+        }
+
+        .login-box h2 {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-group input:hover {
+            border-color:#2f3b4a;
+        }
+
+        .input-group input:focus {
+            border-color: #2f3b4a;
+            box-shadow: 0 0 8px rgba(192, 245, 250, 0.6);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #2f3b4a;
+            color: #CEBEBE;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #88b6e5;
+            color: #181925;
+        }
+
+        .register {
+            margin-top: 15px;
+        }
+
+        .register button {
+            background: none;
+            border: none;
+            color: #2f3b4a;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .register button:hover {
+            color: #88b6e5;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+
+        <img src="diamante.png" alt="Logo">
+
+        <div class="menu">
+            <a href="#">Inicio</a>
+            <a href="#">Joyería</a>
+            <a href="#">Perfumes</a>
+            <a href="#">Promociones</a>
+            
+        </div>
+
+        <div class="right-section">
+            <div class="search-box">
+                <input type="text" placeholder="Buscar...">
+                <span>🔍</span>
+            </div>
+
+            <div class="icon">🛒</div>
+
+            <div class="profile"></div>
+        </div>
+
+    </div>
+
+    <!-- LOGIN -->
+    <div class="container">
+        <div class="login-box">
+            <h2>Iniciar Sesión</h2>
+
+            <div class="input-group">
+                <input type="text" placeholder="Correo o Teléfono">
+            </div>
+
+            <div class="input-group">
+                <input type="password" placeholder="Contraseña">
+            </div>
+
+            <button class="login-btn">Entrar</button>
+
+            <div class="register">
+                <p>¿No tienes cuenta?</p>
+                <button>Registrarse</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
