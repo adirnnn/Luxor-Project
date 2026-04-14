@@ -18,9 +18,11 @@ export const CTASection = () => {
           </Text>
 
           <div className="pt-4">
+            <a href="#perfumes">
             <Button className="px-10 py-4 text-base">
               Explorar colección
             </Button>
+            </a>
           </div>
 
         </div>

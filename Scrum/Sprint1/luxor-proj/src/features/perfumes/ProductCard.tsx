@@ -30,7 +30,7 @@ export const ProductCard: FC<ProductCardProps> = ({
       >
         {/* Image */}
         <div className="relative overflow-hidden">
-          <div className="aspect-[4/5] w-full overflow-hidden bg-primary-nude shadow-soft">
+          <div className="aspect-[3/4] w-full overflow-hidden bg-primary-nude shadow-soft">
             <img
               src={image}
               alt={name}

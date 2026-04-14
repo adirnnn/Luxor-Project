@@ -5,7 +5,7 @@ import { Button } from "../ui/Button";
 
 const navLinks = [
   { label: "Inicio", href: "/" },
-  { label: "Perfumes", href: "#perfumes" },
+  { label: "Perfumes", href: "/perfumes" },
   { label: "Nosotros", href: "#brand" },
   { label: "Contacto", href: "#" },
 ];
@@ -47,7 +47,7 @@ export const Navbar = () => {
 
         {/* CTA */}
         <div className="hidden md:block">
-          <Link to="/">
+          <Link to="#perfumes">
             <Button>Explorar</Button>
           </Link>
         </div>

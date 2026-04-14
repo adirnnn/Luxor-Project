@@ -34,9 +34,11 @@ export default function HomePage() {
               </Text>
 
               <div className="pt-6">
+                <a href="#perfumes">
                 <Button className="px-10 py-4 text-base">
                   Descubrir fragancias
                 </Button>
+                </a>
               </div>
             </div>
 
