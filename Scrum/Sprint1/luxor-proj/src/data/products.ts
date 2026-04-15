@@ -11,7 +11,7 @@ export type Product = {
   };
 };
 
-import CDNIntense from "../assets/products/cdnintense.jpg";
+import CDNIntense from "../assets/products/cdnIntense.jpg";
 import Khamrah from "../assets/products/lattafaKhamrah.jpg";
 import Yara from "../assets/products/lattafaYara.jpg";
 import OudMood from "../assets/products/lattafaOudMood.jpg";
