@@ -11,3 +11,21 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: luxor-postgres
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: luxor_user
+      POSTGRES_PASSWORD: luxor_pass
+      POSTGRES_DB: luxor_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
