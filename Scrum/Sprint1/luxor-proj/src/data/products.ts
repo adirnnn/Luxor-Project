@@ -11,14 +11,14 @@ export type Product = {
   };
 };
 
-import CDNIntense from "../assets/products/cdnIntense.jpg";
-import Khamrah from "../assets/products/lattafaKhamrah.jpg";
-import Yara from "../assets/products/lattafaYara.jpg";
-import OudMood from "../assets/products/lattafaOudMood.jpg";
-import ninePM from "../assets/products/afnan9PM.jpg";
-import Rasawi from "../assets/products/rasawiHawas.jpg";
-import AmberOud from "../assets/products/amberOudHaramain.jpg";
-import Fakhar from "../assets/products/lattafaFakhar.jpg";
+import CDNIntense from "../assets/products/cdnIntense.png";
+import Khamrah from "../assets/products/lattafaKhamrah.png";
+import Yara from "../assets/products/lattafaYara.png";
+import OudMood from "../assets/products/lattafaOudMood.png";
+import ninePM from "../assets/products/afnan9PM.png";
+import Rasawi from "../assets/products/rasawiHawas.png";
+import AmberOud from "../assets/products/amberOudHaramain.png";
+import Fakhar from "../assets/products/lattafaFakhar.png";
 
 export const products: Product[] = [
   {
