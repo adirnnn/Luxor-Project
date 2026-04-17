@@ -17,12 +17,10 @@ export const Navbar = () => {
     <header className="sticky top-0 z-50 bg-primary-champagne/80 backdrop-blur-md border-b border-primary-beige">
       <Container className="flex items-center justify-between h-20">
 
-        {/* Logo */}
         <Link to="/" className="font-heading text-lg tracking-wide">
           Joyero Árabe
         </Link>
 
-        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) =>
             link.href.startsWith("#") ? (
@@ -45,33 +43,31 @@ export const Navbar = () => {
           )}
         </nav>
 
-        {/* CTA */}
         <div className="hidden md:block">
           <Link to="#perfumes">
             <Button>Explorar</Button>
           </Link>
         </div>
 
-        {/* Mobile Toggle */}
         <button
-          className="md:hidden text-primary-black"
+          className="md:hidden text-primary-black text-2xl w-10 h-10 flex items-center justify-center"
           onClick={() => setOpen(!open)}
+          aria-label="Abrir menú"
         >
-          ☰
+          {open ? "✕" : "☰"}
         </button>
       </Container>
 
-      {/* Mobile Menu */}
       {open && (
         <div className="md:hidden border-t border-primary-beige">
           <Container className="py-4 flex flex-col gap-4">
             {navLinks.map((link) =>
               link.href.startsWith("#") ? (
-                <a key={link.label} href={link.href}>
+                <a key={link.label} href={link.href} className="text-sm text-secondary-brown">
                   {link.label}
                 </a>
               ) : (
-                <Link key={link.label} to={link.href}>
+                <Link key={link.label} to={link.href} className="text-sm text-secondary-brown">
                   {link.label}
                 </Link>
               )

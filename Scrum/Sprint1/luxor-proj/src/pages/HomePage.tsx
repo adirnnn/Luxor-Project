@@ -14,7 +14,7 @@ export default function HomePage() {
       {/* Hero */}
       <Section size="lg">
         <Container>
-          <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-center">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-24 items-center">
 
             <div className="flex flex-col gap-8 max-w-xl md:translate-y-8">
 
@@ -22,7 +22,7 @@ export default function HomePage() {
                 Joyero Árabe
               </span>
 
-              <H1 className="text-[3.2rem] md:text-[4.3rem] leading-[1.02] tracking-tight text-primary-black">
+              <H1 className="leading-[1.02] tracking-tight text-primary-black">
                 No es solo aroma.
                 <br />
                 Es cómo te recuerdan.
@@ -35,9 +35,9 @@ export default function HomePage() {
 
               <div className="pt-6">
                 <a href="#perfumes">
-                <Button className="px-10 py-4 text-base">
-                  Descubrir fragancias
-                </Button>
+                  <Button className="px-10 py-4 text-base">
+                    Descubrir fragancias
+                  </Button>
                 </a>
               </div>
             </div>
@@ -51,7 +51,6 @@ export default function HomePage() {
                   alt="Perfume de lujo"
                   className="w-full h-full object-cover"
                 />
-
                 <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-primary-champagne/50" />
               </div>
             </div>

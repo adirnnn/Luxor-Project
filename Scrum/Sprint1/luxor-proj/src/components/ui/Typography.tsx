@@ -7,15 +7,21 @@ type Props = {
 };
 
 export const H1 = ({ children, className }: Props) => (
-  <h1 className={clsx("text-h1", className)}>{children}</h1>
+  <h1 className={clsx("text-[2rem] sm:text-[2.6rem] md:text-h1 font-heading", className)}>
+    {children}
+  </h1>
 );
 
 export const H2 = ({ children, className }: Props) => (
-  <h2 className={clsx("text-h2", className)}>{children}</h2>
+  <h2 className={clsx("text-[1.6rem] sm:text-[1.9rem] md:text-h2 font-heading", className)}>
+    {children}
+  </h2>
 );
 
 export const H3 = ({ children, className }: Props) => (
-  <h3 className={clsx("text-h3", className)}>{children}</h3>
+  <h3 className={clsx("text-[1.1rem] md:text-h3 font-heading", className)}>
+    {children}
+  </h3>
 );
 
 export const Text = ({ children, className }: Props) => (
