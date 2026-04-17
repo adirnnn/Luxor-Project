@@ -6,8 +6,8 @@ import { Button } from "../ui/Button";
 const navLinks = [
   { label: "Inicio", href: "/" },
   { label: "Perfumes", href: "/perfumes" },
-  { label: "Nosotros", href: "#brand" },
-  { label: "Contacto", href: "#" },
+  { label: "Nosotros", href: "/#brand" },
+  { label: "Contacto", href: "#contacto" },
 ];
 
 export const Navbar = () => {
@@ -25,14 +25,19 @@ export const Navbar = () => {
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) =>
-            link.href.startsWith("#") ? (
-              <a
+            link.href.includes("#") ? (
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
+                onClick={() => {
+                  if (link.label === "Inicio") {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
                 className="text-sm text-secondary-brown hover:text-primary-black"
               >
                 {link.label}
-              </a>
+              </Link>
             ) : (
               <Link
                 key={link.label}
@@ -66,7 +71,7 @@ export const Navbar = () => {
         <div className="md:hidden border-t border-primary-beige">
           <Container className="py-4 flex flex-col gap-4">
             {navLinks.map((link) =>
-              link.href.startsWith("#") ? (
+              link.href.includes("#") ? (
                 <a key={link.label} href={link.href}>
                   {link.label}
                 </a>

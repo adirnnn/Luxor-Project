@@ -10,9 +10,11 @@ export const MainLayout = ({ children }: Props) => {
     <div className="min-h-screen flex flex-col bg-primary-champagne">
       <Navbar />
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-16">{children}</main>
 
-      <footer className="border-t border-primary-beige bg-primary-champagne px-6 py-10 text-secondary-brown">
+      <footer 
+      id = "contacto"
+      className="border-t border-primary-beige bg-primary-champagne px-6 py-10 text-secondary-brown">
   <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-3 text-sm">
     
     {/* Marca */}
