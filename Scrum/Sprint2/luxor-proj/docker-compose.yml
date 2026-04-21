@@ -12,7 +12,7 @@ services:
     environment:
       - NODE_ENV=development
     depends_on:
-      - db
+      - db  # cambiar a backend cuando esté listo
 
   db:
     image: postgres:16
@@ -20,12 +20,21 @@ services:
     restart: always
     ports:
       - "5433:5432"
-    environment:
-      POSTGRES_USER: luxor_user
-      POSTGRES_PASSWORD: luxor_pass
-      POSTGRES_DB: luxor_db
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+# Quitar comentarios cuando backend esté listo
+#  backend: 
+#   build: ./backend
+#    container_name: luxor-backend
+#    ports:
+#      - "3000:3000"
+#    env_file:
+#      - .env
+#    depends_on:
+#      - db 
 
 volumes:
   postgres_data:
