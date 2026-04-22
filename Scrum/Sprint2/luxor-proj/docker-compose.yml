@@ -3,7 +3,7 @@ version: '3.8'
 services:
   frontend:
     build: .
-    container_name: luxor-compose
+    container_name: luxor-frontend
     ports:
       - "5173:5173"
     volumes:
@@ -12,7 +12,20 @@ services:
     environment:
       - NODE_ENV=development
     depends_on:
-      - db  # cambiar a backend cuando esté listo
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: luxor-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    # Espera que la DB esté lista y luego corre seed + server
+    command: sh -c "node seed.js && node server.js"
 
   db:
     image: postgres:16
@@ -24,17 +37,11 @@ services:
       - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-# Quitar comentarios cuando backend esté listo
-#  backend: 
-#   build: ./backend
-#    container_name: luxor-backend
-#    ports:
-#      - "3000:3000"
-#    env_file:
-#      - .env
-#    depends_on:
-#      - db 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import pool from './db.js';
 
 dotenv.config();
 
@@ -127,18 +128,21 @@ app.get("/products/:id", (req, res) => {
   res.json(product);
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  if (email === "admin@luxor.com" && password === "123456") {
-    return res.json({
-      success: true,
-      token: "luxor-token"
-    });
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND password = $2',
+      [email, password]
+    );
+    if (result.rows.length === 0) {
+      return res.status(401).json({ success: false, message: "Credenciales inválidas" });
+    }
+    const user = result.rows[0];
+    return res.json({ success: true, token: "luxor-token", user: { id: user.id, name: user.name, role: user.role } });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Error de servidor" });
   }
-  return res.status(401).json({
-    success: false,
-    message: "Credenciales inválidas"
-  });
 });
 
 app.listen(PORT, () => {
