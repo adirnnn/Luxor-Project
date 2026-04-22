@@ -14,39 +14,99 @@ app.use(express.json());
 
 const products = [
   {
-    id: "1",
-    name: "Club de Nuit Intense",
+    id: "club-de-nuit-intense",
+    name: "Club de Nuit Intense Man",
     price: 390,
     image: "/src/assets/products/cdnIntense.png",
-    description: "Una fragancia intensa y sofisticada inspirada en Creed Aventus.",
+    description: "Una fragancia intensa y elegante con carácter masculino.",
     notes: {
-      salida: "Piña, Abedul, Manzana",
-      corazon: "Rosa, Jazmín, Pachulí",
-      fondo: "Musgo, Ámbar, Almizcle"
+      salida: "Limón, piña",
+      corazon: "Abedul, jazmín",
+      fondo: "Almizcle, ámbar"
     }
   },
   {
-    id: "2",
+    id: "khamrah",
     name: "Lattafa Khamrah",
-    price: 420,
+    price: 390,
     image: "/src/assets/products/lattafaKhamrah.png",
-    description: "Una fragancia oriental dulce y envolvente con toques de vainilla.",
+    description: "Dulce, cálida y adictiva. Una de las más populares.",
     notes: {
-      salida: "Canela, Cardamomo",
-      corazon: "Rosa, Oud, Vainilla",
-      fondo: "Sándalo, Almizcle, Ámbar"
+      salida: "Canela, dátiles",
+      corazon: "Praliné, vainilla",
+      fondo: "Madera, ámbar"
     }
   },
   {
-    id: "3",
-    name: "Yara",
-    price: 350,
+    id: "yara",
+    name: "Lattafa Yara",
+    price: 330,
     image: "/src/assets/products/lattafaYara.png",
-    description: "Una fragancia floral frutal fresca y femenina.",
+    description: "Suave, femenina y moderna.",
     notes: {
-      salida: "Pera, Bergamota",
-      corazon: "Jazmín, Rosa",
-      fondo: "Almizcle, Cedro"
+      salida: "Frutas tropicales",
+      corazon: "Rosa, jazmín",
+      fondo: "Vainilla, almizcle"
+    }
+  },
+  {
+    id: "oud-mood",
+    name: "Lattafa Oud Mood",
+    price: 228,
+    image: "/src/assets/products/lattafaOudMood.png",
+    description: "Intenso y profundo con esencia oriental.",
+    notes: {
+      salida: "Especias",
+      corazon: "Oud",
+      fondo: "Ámbar"
+    }
+  },
+  {
+    id: "9pm",
+    name: "Afnan 9PM",
+    price: 420,
+    image: "/src/assets/products/afnan9PM.png",
+    description: "Dulce, nocturna y seductora.",
+    notes: {
+      salida: "Manzana, canela",
+      corazon: "Lavanda",
+      fondo: "Vainilla"
+    }
+  },
+  {
+    id: "hawas",
+    name: "Rasasi Hawas",
+    price: 390,
+    image: "/src/assets/products/rasawiHawas.png",
+    description: "Fresca y moderna con gran proyección.",
+    notes: {
+      salida: "Bergamota",
+      corazon: "Canela",
+      fondo: "Almizcle"
+    }
+  },
+  {
+    id: "amber-oud",
+    name: "Al Haramain Amber Oud",
+    price: 570,
+    image: "/src/assets/products/amberOudHaramain.png",
+    description: "Lujo puro con carácter fuerte.",
+    notes: {
+      salida: "Cítricos",
+      corazon: "Ámbar",
+      fondo: "Oud"
+    }
+  },
+  {
+    id: "fakhar",
+    name: "Lattafa Fakhar",
+    price: 390,
+    image: "/src/assets/products/lattafaFakhar.png",
+    description: "Elegancia moderna con toque oriental.",
+    notes: {
+      salida: "Manzana",
+      corazon: "Lavanda",
+      fondo: "Madera"
     }
   }
 ];
