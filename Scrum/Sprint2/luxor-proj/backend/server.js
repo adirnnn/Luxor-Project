@@ -17,7 +17,7 @@ const products = [
     id: "1",
     name: "Club de Nuit Intense",
     price: 390,
-    image: "https://via.placeholder.com/400x600",
+    image: "/src/assets/products/cdnIntense.png",
     description: "Una fragancia intensa y sofisticada inspirada en Creed Aventus.",
     notes: {
       salida: "Piña, Abedul, Manzana",
@@ -29,7 +29,7 @@ const products = [
     id: "2",
     name: "Lattafa Khamrah",
     price: 420,
-    image: "https://via.placeholder.com/400x600",
+    image: "/src/assets/products/lattafaKhamrah.png",
     description: "Una fragancia oriental dulce y envolvente con toques de vainilla.",
     notes: {
       salida: "Canela, Cardamomo",
@@ -41,7 +41,7 @@ const products = [
     id: "3",
     name: "Yara",
     price: 350,
-    image: "https://via.placeholder.com/400x600",
+    image: "/src/assets/products/lattafaYara.png",
     description: "Una fragancia floral frutal fresca y femenina.",
     notes: {
       salida: "Pera, Bergamota",
