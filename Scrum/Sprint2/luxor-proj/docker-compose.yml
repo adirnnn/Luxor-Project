@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: luxor-compose
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - db  # cambiar a backend cuando esté listo
+
+  db:
+    image: postgres:16
+    container_name: luxor-postgres
+    restart: always
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Quitar comentarios cuando backend esté listo
+#  backend: 
+#   build: ./backend
+#    container_name: luxor-backend
+#    ports:
+#      - "3000:3000"
+#    env_file:
+#      - .env
+#    depends_on:
+#      - db 
+
+volumes:
+  postgres_data:
