@@ -1,5 +1,3 @@
-
-
 export interface LoginCredentials {
     email: string;
     password: string;
@@ -35,18 +33,38 @@ export async function login(
         if (response.ok && data.success) {
             return {
                 success: true,
-                user: data.user,
-            };
-        } else {
-            return {
-                success: false,
-                error: data.message || "Correo o contraseña incorrectos.",
+                user: {
+                    id: data.user.id,
+                    name: data.user.name,
+                    role: data.user.role,
+                    email: credentials.email,
+                },
             };
         }
+
+        if (response.status === 401) {
+            return {
+                success: false,
+                error: "Correo o contraseña incorrectos. Verifica tus datos.",
+            };
+        }
+
+        if (response.status === 500) {
+            return {
+                success: false,
+                error: "Hubo un problema en el servidor. Intenta más tarde.",
+            };
+        }
+
+        return {
+            success: false,
+            error: data.message || "No se pudo iniciar sesión.",
+        };
+
     } catch (err) {
         return {
             success: false,
-            error: "No se pudo conectar con el servidor.",
+            error: "No se pudo conectar con el servidor. Verifica tu conexión.",
         };
     }
 }
