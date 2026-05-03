@@ -199,6 +199,36 @@ app.post("/cart/:userId", async (req, res) => {
   }
 });
 
+app.get("/report", async (req, res) => {
+  try {
+    const usersResult = await pool.query('SELECT COUNT(*) as total FROM users');
+    const totalUsers = parseInt(usersResult.rows[0].total);
+
+    const cartItemsResult = await pool.query(`
+      SELECT ci.product_id, SUM(ci.quantity) as total_quantity
+      FROM cart_items ci
+      GROUP BY ci.product_id
+      ORDER BY total_quantity DESC
+      LIMIT 5
+    `);
+
+    const totalItemsResult = await pool.query('SELECT SUM(quantity) as total FROM cart_items');
+    const totalItemsInCarts = parseInt(totalItemsResult.rows[0].total) || 0;
+
+    return res.json({
+      success: true,
+      data: {
+        totalUsers,
+        totalItemsInCarts,
+        topProducts: cartItemsResult.rows,
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Error al generar reporte" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });

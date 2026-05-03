@@ -7,6 +7,7 @@ import LoginPage from "../pages/LoginPage";
 import { ScrollToTop } from "./ScrollToTop";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
+import ReportPage from "../pages/ReportPage";
 
 export default function App() {
   return (
@@ -19,7 +20,8 @@ export default function App() {
             <Route path="/perfumes" element={<PerfumesPage />} />
             <Route path="/producto/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/login" element={<LoginPage />} />  
+            <Route path="/login" element={<LoginPage />} /> 
+            <Route path="/reporte" element={<ReportPage />} /> 
           </Routes>
         </BrowserRouter>
       </CartProvider>
