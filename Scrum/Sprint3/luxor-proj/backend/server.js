@@ -229,6 +229,45 @@ app.get("/report", async (req, res) => {
   }
 });
 
+// Endpoint para registrar nuevo usuario
+app.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, message: "Nombre, correo y contraseña son requeridos." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ success: false, message: "La contraseña debe tener al menos 6 caracteres." });
+  }
+
+  try {
+    const existing = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ success: false, message: "Ya existe una cuenta con ese correo." });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
+      [name, email, password, 'user']
+    );
+
+    const newUser = result.rows[0];
+    return res.status(201).json({
+      success: true,
+      user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role }
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Error al registrar usuario." });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
