@@ -155,7 +155,7 @@ return (
 // ─── Main form ────────────────────────────────────────────────────────────────
 
 type LoginFormProps = {
-    nSuccess: (user: AuthUser) => void;
+    onSuccess: (user: AuthUser) => void;
 };
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
