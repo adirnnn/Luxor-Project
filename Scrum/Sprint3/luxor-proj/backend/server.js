@@ -130,6 +130,21 @@ app.get("/products/:id", (req, res) => {
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
+
+  // Validaciones
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Correo y contraseña son requeridos." });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: "El formato del correo no es válido." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ success: false, message: "La contraseña debe tener al menos 6 caracteres." });
+  }
+
   try {
     const result = await pool.query(
       'SELECT * FROM users WHERE email = $1 AND password = $2',
