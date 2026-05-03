@@ -7,6 +7,7 @@ export default function LoginPage() {
     const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
+    // Si ya está autenticado, redirigir al inicio
     if (isAuthenticated) {
         return <Navigate to="/" replace />;
     }
@@ -18,6 +19,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-primary-champagne flex">
+            {/* ── Left panel: decorative image (hidden on mobile) ── */}
             <div className="hidden md:flex md:w-1/2 relative overflow-hidden">
                 <img
                     src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?q=80&w=1400&auto=format&fit=crop"
@@ -25,6 +27,8 @@ export default function LoginPage() {
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-black/60 to-primary-black/20" />
+
+                {/* Brand overlay */}
                 <div className="relative z-10 flex flex-col justify-between p-12 w-full">
                     <span className="font-heading text-white text-lg tracking-widest">
                         Joyero Árabe
@@ -42,13 +46,17 @@ export default function LoginPage() {
                 </div>
             </div>
 
+            {/* ── Right panel: form ── */}
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
+                {/* Mobile brand */}
                 <div className="md:hidden mb-10 text-center">
                     <span className="font-heading text-2xl tracking-wide text-primary-black">
                         Joyero Árabe
                     </span>
                 </div>
+
                 <div className="w-full max-w-sm">
+                    {/* Header */}
                     <div className="mb-10">
                         <h1 className="font-heading text-[2rem] leading-tight text-primary-black mb-2">
                             Bienvenido
@@ -57,6 +65,7 @@ export default function LoginPage() {
                             Inicia sesión para continuar
                         </p>
                     </div>
+
                     <LoginForm onSuccess={handleSuccess} />
                 </div>
             </div>
