@@ -147,7 +147,10 @@ app.post("/login", async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1 AND password = $2',
+      `SELECT u.id, u.name, u.email, r.nombre AS role
+      FROM users u
+      JOIN rol r ON u.role = r.id_rol
+      WHERE u.email = $1 AND u.password = $2`,
       [email, password]
     );
     if (result.rows.length === 0) {
@@ -268,7 +271,7 @@ app.post("/register", async (req, res) => {
 
     const result = await pool.query(
       'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-      [name, email, password, 'user']
+      [name, email, password, 3]
     );
 
     const newUser = result.rows[0];
