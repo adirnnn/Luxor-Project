@@ -2,6 +2,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LoginForm } from "../validation/LoginForm";
 import type { AuthUser } from "../validation/authService";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
     const { login, isAuthenticated } = useAuth();
@@ -29,12 +30,12 @@ export default function LoginPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-black/60 to-primary-black/20" />
 
                 {/* Brand overlay */}
-                <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+                <div className="relative z-10 flex flex-col justify-between p-10 lg:p-14 w-full">
                     <span className="font-heading text-white text-lg tracking-widest">
                         Joyero Árabe
                     </span>
                     <div>
-                        <p className="font-heading text-white text-3xl leading-tight mb-3">
+                        <p className="font-heading text-white text-2xl lg:text-3xl leading-tight mb-3">
                             "El aroma correcto
                             <br />
                             abre puertas."
@@ -46,16 +47,28 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* ── Right panel: form ── */}
-            <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-                {/* Mobile brand */}
-                <div className="md:hidden mb-10 text-center">
-                    <span className="font-heading text-2xl tracking-wide text-primary-black">
-                        Joyero Árabe
-                    </span>
-                </div>
+            {/* Form panel */}
+                <div className="flex flex-1 flex-col min-h-screen md:min-h-0">
 
-                <div className="w-full max-w-sm">
+                    {/* Mobile header */}
+                    <div className="md:hidden flex items-center justify-between px-4 py-4 border-b border-primary-beige bg-primary-champagne/95 backdrop-blur-sm">
+                    <Link
+                        to="/"
+                        className="font-heading text-lg tracking-wide text-primary-black"
+                    >
+                        Joyero Árabe
+                    </Link>
+                    <Link
+                        to="/"
+                        className="text-xs text-secondary-brown hover:text-primary-black transition-colors flex items-center gap-1.5"
+                        >
+                        Inicio
+                    </Link>
+                    </div>
+
+                    {/* Form content */}
+                    <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6">
+                    <div className="w-full max-w-sm">
                     {/* Header */}
                     <div className="mb-10">
                         <h1 className="font-heading text-[2rem] leading-tight text-primary-black mb-2">
@@ -67,8 +80,33 @@ export default function LoginPage() {
                     </div>
 
                     <LoginForm onSuccess={handleSuccess} />
+
+                    {/* Divider */}
+                    <div className="relative flex items-center gap-3 my-7">
+                    <div className="flex-1 h-px bg-primary-beige" />
+                    <span className="text-[10px] tracking-[0.2em] uppercase text-secondary-brown/50">o</span>
+                    <div className="flex-1 h-px bg-primary-beige" />
+                    </div>
+
+                    <div className="text-center">
+                    <p className="text-xs text-secondary-brown mb-3">
+                        ¿Aún no tienes cuenta?
+                    </p>
+                    <Link
+                        to="/perfumes"
+                        className="inline-block text-xs font-medium text-primary-black underline underline-offset-2 hover:text-secondary-brown transition-colors"
+                    >
+                        Explorar sin cuenta 
+                    </Link>
+                    </div>
                 </div>
+
+                {/* Bottom nav hint */}
+                <p className="mt-10 text-[10px] text-secondary-brown/50 text-center">
+                    Al continuar, aceptas nuestros términos de uso y política de privacidad.
+                </p>
             </div>
         </div>
+    </div>
     );
 }
