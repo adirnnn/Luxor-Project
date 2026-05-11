@@ -4,6 +4,7 @@ import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLocation } from "react-router-dom";
 
 const navLinks = [
   { label: "Inicio", href: "/" },
@@ -17,11 +18,18 @@ export const Navbar = () => {
   const { totalItems } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     setOpen(false);
     navigate("/");
+  };
+
+  const isActive = (path: string) => {
+    if (path === "/") return location.pathname === "/";
+    if (path.includes("#")) return false;
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -46,7 +54,16 @@ export const Navbar = () => {
               <Link
                 key={link.label}
                 to={link.href}
-                className="text-sm text-secondary-brown hover:text-primary-black"
+                className={`
+                  relative text-sm transition-colors duration-200 py-1
+                  after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:bg-primary-black
+                  after:transition-all after:duration-300
+                  ${isActive(link.href)
+                    ? "text-primary-black font-medium after:w-full"
+                    : "text-secondary-brown hover:text-primary-black after:w-0 hover:after:w-full"
+                  }
+                `}
+                aria-current={isActive(link.href) ? "page" : undefined}
               >
                 {link.label}
               </Link>
@@ -99,17 +116,56 @@ export const Navbar = () => {
         </div>
       </Container>
 
+      {/* Menu de movil */}
       {open && (
         <div className="md:hidden border-t border-primary-beige bg-primary-champagne">
           <Container className="py-4 flex flex-col gap-4">
             {navLinks.map((link) =>
               link.href.includes("#") ? (
-                <a key={link.label} href={link.href} className="text-sm text-secondary-brown" onClick={() => setOpen(false)}>
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className={`
+                    flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200
+                    text-secondary-brown hover:text-primary-black hover:bg-primary-beige/40
+                  `}
+                >
                   {link.label}
                 </a>
+
               ) : (
-                <Link key={link.label} to={link.href} className="text-sm text-secondary-brown" onClick={() => setOpen(false)}>
+
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  onClick={() => setOpen(false)}
+                  className={`
+                    flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200
+                    ${isActive(link.href)
+                      ? "bg-primary-black text-white shadow-sm"
+                      : "text-secondary-brown hover:text-primary-black hover:bg-primary-beige/40"
+                    }
+                  `}
+                  aria-current={isActive(link.href) ? "page" : undefined}
+                >
                   {link.label}
+
+                  {isActive(link.href) && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
                 </Link>
               )
             )}
