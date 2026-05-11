@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container } from "../ui/Container";
-import { Button } from "../ui/Button";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useLocation } from "react-router-dom";
@@ -98,10 +97,11 @@ export const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/login">
-                  <Button variant="primary" className="py-2 px-5 text-xs">
+                <Link 
+                to="/login"
+                className="text-xs font-semibold bg-primary-gold text-primary-black hover:opacity-85 active:scale-[0.97] transition-all duration-150 px-4 py-2.5 rounded-lg tracking-wide"
+                >
                     Ingresar
-                  </Button>
                 </Link>
               </>
             )}
@@ -181,10 +181,11 @@ export const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setOpen(false)}>
-                  <Button variant="secondary" className="w-full">
+                <Link to="/login" onClick={() => setOpen(false)}
+                className="mx-1 py-3.5 text-center text-sm font-semibold bg-primary-gold text-primary-black rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-150 tracking-wide"
+                >
                     Ingresar
-                  </Button>
+                  
                 </Link>
               </>
             )}
