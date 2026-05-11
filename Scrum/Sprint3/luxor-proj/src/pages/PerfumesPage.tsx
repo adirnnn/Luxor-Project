@@ -21,7 +21,7 @@ export default function PerfumesPage() {
 
   return (
     <MainLayout>
-      <Section size="md">
+      <Section size="sm">
         <Container>
           <div className="flex flex-col gap-12">
             <div className="max-w-xl flex flex-col gap-4">
