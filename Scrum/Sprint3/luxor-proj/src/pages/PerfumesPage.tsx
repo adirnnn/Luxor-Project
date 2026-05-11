@@ -21,7 +21,7 @@ export default function PerfumesPage() {
 
   return (
     <MainLayout>
-      <Section size="lg">
+      <Section size="md">
         <Container>
           <div className="flex flex-col gap-12">
             <div className="max-w-xl flex flex-col gap-4">
@@ -58,7 +58,7 @@ export default function PerfumesPage() {
             {error && <p className="text-center text-red-500">{error}</p>}
 
             {!loading && !error && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-12">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6 lg:gap-8">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}

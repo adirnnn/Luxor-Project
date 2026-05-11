@@ -12,7 +12,7 @@ export default function HomePage() {
     <MainLayout>
 
       {/* Hero */}
-      <Section size="lg">
+      <Section size="sm">
         <Container>
           <div className="grid md:grid-cols-2 gap-8 md:gap-24 items-center">
 

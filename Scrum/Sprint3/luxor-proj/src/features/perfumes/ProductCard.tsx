@@ -37,7 +37,11 @@ export const ProductCard: FC<ProductCardProps> = ({
   };
 
   return (
-    <div className={clsx("group relative flex flex-col gap-4 p-3 bg-white/50 rounded-2xl border border-transparent hover:border-primary-beige hover:bg-white hover:shadow-soft transition-all duration-300", className)}>
+    <div className={clsx(
+        "group relative flex flex-col gap-3 p-2.5 sm:p-3 rounded-2xl border border-transparent",
+        "bg-white/40 hover:bg-white hover:border-primary-beige hover:shadow-soft",
+        "transition-all duration-300 ease-out", className)}>
+          
       <Link to={`/producto/${id}`} className="flex flex-col gap-4">
         {/* Image */}
         <div className="relative overflow-hidden rounded-xl bg-primary-nude shadow-sm">
