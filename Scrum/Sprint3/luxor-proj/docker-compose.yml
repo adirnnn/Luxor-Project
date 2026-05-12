@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     build: .
@@ -15,7 +13,7 @@ services:
       - backend
 
   backend:
-    build: /backend
+    build: ./backend
     container_name: luxor-backend
     ports:
       - "3000:3000"

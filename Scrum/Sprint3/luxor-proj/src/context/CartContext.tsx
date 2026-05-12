@@ -21,6 +21,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -33,7 +35,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (user && !isNaN(numericUserId)) {
         try {
-          const res = await fetch(`http://localhost:3000/cart/${numericUserId}`);
+          const res = await fetch(`${API_URL}/cart/${numericUserId}`);
           if (res.ok) {
             const items = await res.json();
             const populatedCart = items.map((item: any) => {
@@ -73,7 +75,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             product_id: item.product.id,
             quantity: item.quantity
           }));
-          await fetch(`http://localhost:3000/cart/${numericUserId}`, {
+          await fetch(`${API_URL}/cart/${numericUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
