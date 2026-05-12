@@ -9,7 +9,7 @@ export const BrandSection = () => {
         <div className="flex flex-col items-center text-center gap-8">
 
           <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">
-            Joyero Árabe
+            Habibi Parfums
           </span>
 
           <div className="w-10 h-[1px] bg-primary-beige mx-auto" />
@@ -25,7 +25,7 @@ export const BrandSection = () => {
             </Text>
 
             <Text className="text-base">
-              Joyero Árabe no sigue tendencias.
+              Habibi Parfums no sigue tendencias.
               Define estándares para quienes entienden que el aroma también es identidad.
             </Text>
           </div>

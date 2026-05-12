@@ -19,7 +19,7 @@ export const MainLayout = ({ children }: Props) => {
     
     {/* Marca */}
     <div>
-      <h3 className="text-lg font-semibold mb-2">Joyero Árabe</h3>
+      <h3 className="text-lg font-semibold mb-2">Habibi Parfums</h3>
       <p>Perfumes árabes auténticos con esencia única.</p>
     </div>
 
@@ -62,7 +62,7 @@ export const MainLayout = ({ children }: Props) => {
 
   {/* Línea inferior */}
   <div className="mt-8 border-t border-primary-beige pt-4 text-center text-xs">
-    © {new Date().getFullYear()} Joyero Árabe. Todos los derechos reservados.
+    © {new Date().getFullYear()} Habibi Parfums. Todos los derechos reservados.
   </div>
 </footer>
     </div>

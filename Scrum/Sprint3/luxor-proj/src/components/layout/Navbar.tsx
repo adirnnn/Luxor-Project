@@ -36,7 +36,7 @@ export const Navbar = () => {
       <Container className="flex items-center justify-between h-20">
 
         <Link to="/" className="font-heading text-lg tracking-wide">
-          Joyero Árabe
+          Habibi Parfums
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">

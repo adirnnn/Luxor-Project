@@ -34,7 +34,7 @@ export const ProductDetail: FC<ProductDetailProps> = ({
         <div className="grid md:grid-cols-2 gap-8 md:gap-24 items-center">
 
           <div className="flex flex-col gap-8 max-w-xl md:order-2">
-            <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">Joyero Árabe</span>
+            <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">Habibi Parfums</span>
             <div className="flex flex-col gap-3">
               <H2 className="leading-[1.05] tracking-tight">{name}</H2>
               <span className="text-xl font-medium tracking-wide text-primary-black">Q{price}.00</span>
