@@ -121,6 +121,40 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// ── Usuario ───────────────────────────────────────────────────────────────────
+app.get("/user/:userId", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.id, u.name, u.email, r.nombre AS role
+       FROM users u JOIN rol r ON u.role = r.id_rol
+       WHERE u.id = $1`,
+      [req.params.userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ message: "Usuario no encontrado" });
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error al obtener usuario" });
+  }
+});
+
+app.get("/user/:userId/purchases", async (req, res) => {
+  try {
+    // Historial basado en cart_items como proxy de compras
+    const result = await pool.query(
+      `SELECT ci.product_id, ci.quantity, p.name, p.price, p.image
+       FROM carts c
+       JOIN cart_items ci ON c.id = ci.cart_id
+       JOIN products p ON ci.product_id = p.id
+       WHERE c.user_id = $1
+       ORDER BY ci.id DESC`,
+      [req.params.userId]
+    );
+    res.json({ success: true, purchases: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error al obtener historial" });
+  }
+});
+
 // ── Carrito ───────────────────────────────────────────────────────────────────
 app.get("/cart/:userId", async (req, res) => {
   try {
