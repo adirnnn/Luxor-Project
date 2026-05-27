@@ -116,9 +116,9 @@ export default function CartPage() {
             <div className="lg:col-span-1 order-first lg:order-none">
               <div className="glass-card p-6 md:p-10 lg:sticky lg:top-32 border-primary-gold/10 shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
 
-                <H2 className="text-primary-gold mb-6 text-base font-black uppercase tracking-[0.2em]">
+                <H3 className="text-primary-gold mb-6 text-lg lg:text-md font-black uppercase tracking-[0.2em]">
                   Resumen
-                </H2>
+                </H3>
 
                 <div className="flex flex-col gap-3 mb-6">
                   {cart.map((item) => (
