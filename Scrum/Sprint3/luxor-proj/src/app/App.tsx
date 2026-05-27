@@ -8,6 +8,8 @@ import { ScrollToTop } from "./ScrollToTop";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
 import ReportPage from "../pages/ReportPage";
+import AdminDashboard from "../pages/AdminDashboard";
+import AdminProductPage from "../pages/AdminProductPage";
 
 export default function App() {
   return (
@@ -22,6 +24,9 @@ export default function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/login" element={<LoginPage />} /> 
             <Route path="/reporte" element={<ReportPage />} /> 
+            <Route path="/admin" element={<AdminDashboard />} /> 
+            <Route path="/admin/nuevo" element={<AdminProductPage />} /> 
+            <Route path="/admin/editar/:id" element={<AdminProductPage />} /> 
           </Routes>
         </BrowserRouter>
       </CartProvider>

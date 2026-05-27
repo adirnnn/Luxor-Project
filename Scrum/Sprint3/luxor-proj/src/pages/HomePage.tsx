@@ -19,7 +19,7 @@ export default function HomePage() {
             <div className="flex flex-col gap-8 max-w-xl md:translate-y-8">
 
               <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">
-                Joyero Árabe
+                Habibi Parfums
               </span>
 
               <H1 className="leading-[1.02] tracking-tight text-primary-black">

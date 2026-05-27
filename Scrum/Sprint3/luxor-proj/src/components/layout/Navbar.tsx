@@ -36,7 +36,7 @@ export const Navbar = () => {
       <Container className="flex items-center justify-between h-20">
 
         <Link to="/" className="font-heading text-lg tracking-wide">
-          Joyero Árabe
+          Habibi Parfums
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -67,6 +67,38 @@ export const Navbar = () => {
                 {link.label}
               </Link>
             )
+          )}
+          {isAuthenticated && user?.role === 'ADMIN' && (
+            <>
+              <Link
+                to="/admin"
+                className={`
+                  relative text-sm transition-colors duration-200 py-1
+                  after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:bg-primary-black
+                  after:transition-all after:duration-300
+                  ${isActive("/admin")
+                    ? "text-primary-black font-medium after:w-full"
+                    : "text-secondary-brown hover:text-primary-black after:w-0 hover:after:w-full"
+                  }
+                `}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/reporte"
+                className={`
+                  relative text-sm transition-colors duration-200 py-1
+                  after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:bg-primary-black
+                  after:transition-all after:duration-300
+                  ${isActive("/reporte")
+                    ? "text-primary-black font-medium after:w-full"
+                    : "text-secondary-brown hover:text-primary-black after:w-0 hover:after:w-full"
+                  }
+                `}
+              >
+                Reporte
+              </Link>
+            </>
           )}
         </nav>
 

@@ -1,11 +1,17 @@
 import "./styles/globals.css";
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
 import App from "./app/App";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+console.log("Luxor Frontend Starting...");
+
+const rootEl = document.getElementById('root');
+if (!rootEl) {
+  console.error("Root element not found!");
+} else {
+  createRoot(rootEl).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+}

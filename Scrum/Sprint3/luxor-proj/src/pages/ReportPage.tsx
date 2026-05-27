@@ -15,26 +15,32 @@ interface ReportData {
 }
 
 export default function ReportPage() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [data, setData] = useState<ReportData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Solo usuarios autenticados pueden ver el reporte
+    useEffect(() => {
+        if (isAuthenticated && user?.role === 'ADMIN') {
+            fetch(`${API_URL}/report`)
+                .then((res) => {
+                    if (!res.ok) throw new Error("Error al cargar reporte");
+                    return res.json();
+                })
+                .then((res) => setData(res.data))
+                .catch(() => setError("No se pudo cargar el reporte. Intenta más tarde."))
+                .finally(() => setLoading(false));
+        }
+    }, [isAuthenticated, user]);
+
+    // Solo ADMINs pueden ver el reporte
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
-    useEffect(() => {
-        fetch(`${API_URL}/report`)
-            .then((res) => {
-                if (!res.ok) throw new Error("Error al cargar reporte");
-                return res.json();
-            })
-            .then((res) => setData(res.data))
-            .catch(() => setError("No se pudo cargar el reporte. Intenta más tarde."))
-            .finally(() => setLoading(false));
-    }, []);
+    if (user?.role !== 'ADMIN') {
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <MainLayout>

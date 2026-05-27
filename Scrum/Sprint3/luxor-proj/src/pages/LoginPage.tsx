@@ -32,7 +32,7 @@ export default function LoginPage() {
                 {/* Brand overlay */}
                 <div className="relative z-10 flex flex-col justify-between p-10 lg:p-14 w-full">
                     <span className="font-heading text-white text-lg tracking-widest">
-                        Joyero Árabe
+                        Habibi Parfums
                     </span>
                     <div>
                         <p className="font-heading text-white text-2xl lg:text-3xl leading-tight mb-3">
@@ -56,7 +56,7 @@ export default function LoginPage() {
                         to="/"
                         className="font-heading text-lg tracking-wide text-primary-black"
                     >
-                        Joyero Árabe
+                        Habibi Parfums
                     </Link>
                     <Link
                         to="/"
