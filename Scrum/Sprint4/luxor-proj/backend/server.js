@@ -28,6 +28,54 @@ app.get("/products", async (req, res) => {
   }
 });
 
+
+// buscar productos
+app.get("/products/search", async (req, res) => {
+  const { busqueda } = req.query;
+
+  if (!busqueda) {
+    return res.status(400).json({
+      success: false,
+      message: "Parámetro de búsqueda requerido."
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM products
+       WHERE name ILIKE $1
+          OR description ILIKE $1
+          OR salida ILIKE $1
+          OR corazon ILIKE $1
+          OR fondo ILIKE $1
+       ORDER BY created_at DESC`,
+      [`%${busqueda}%`]
+    );
+
+    const formatted = result.rows.map(p => ({
+      ...p,
+      notes: {
+        salida: p.salida,
+        corazon: p.corazon,
+        fondo: p.fondo
+      }
+    }));
+
+    res.json({
+      success: true,
+      products: formatted
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Error en búsqueda de productos."
+    });
+  }
+});
+
 app.get("/products/:id", async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
