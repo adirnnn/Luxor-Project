@@ -33,7 +33,7 @@ app.get("/products", async (req, res) => {
 app.get("/products/search", async (req, res) => {
   const { busqueda } = req.query;
 
-  if (!busqueda) {
+  if (!busqueda || !busqueda.trim()) {
     return res.status(400).json({
       success: false,
       message: "Parámetro de búsqueda requerido."
