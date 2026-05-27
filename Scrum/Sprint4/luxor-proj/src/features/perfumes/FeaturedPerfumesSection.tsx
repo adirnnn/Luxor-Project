@@ -14,20 +14,20 @@ export const FeaturedPerfumesSection = () => {
   }, []);
 
   return (
-    <Section size="lg" id="perfumes">
+    <Section size="lg" id="perfumes" className="bg-primary-black">
       <Container>
         <div className="flex flex-col gap-10">
 
           <div className="max-w-lg flex flex-col gap-4">
-            <H2 className="tracking-tight">Fragancias destacadas</H2>
-            <Text>
+            <H2 className="tracking-tight text-primary-champagne">Fragancias destacadas</H2>
+            <Text className="text-primary-champagne/80">
               Una selección curada para quienes entienden que el aroma es parte de su identidad.
             </Text>
           </div>
 
           <div className="mt-4">
             {loading ? (
-              <Text>Cargando fragancias...</Text>
+              <Text className="text-primary-champagne/80">Cargando fragancias...</Text>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-12">
                 {products.map((product) => (

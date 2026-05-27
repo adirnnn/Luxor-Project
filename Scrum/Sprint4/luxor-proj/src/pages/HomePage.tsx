@@ -6,67 +6,112 @@ import { Button } from "../components/ui/Button";
 import { FeaturedPerfumesSection } from "../features/perfumes/FeaturedPerfumesSection";
 import { BrandSection } from "../features/brand/BrandSection";
 import { CTASection } from "../features/cta/CTASection";
+import { motion } from "framer-motion";
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 }
+  }
+};
+
+const fadeUp: any = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
 
 export default function HomePage() {
   return (
     <MainLayout>
-
       {/* Hero */}
-      <Section size="sm">
-        <Container>
-          <div className="grid md:grid-cols-2 gap-8 md:gap-24 items-center">
+      <Section className="relative h-screen min-h-[640px] flex items-center justify-center overflow-hidden bg-primary-black p-0">
+        {/* Cinematic Backdrop: full screen video background with dark marble texture poster */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover opacity-25 mix-blend-color-dodge"
+            poster="/images/dark_marble_texture_1779488028451.png"
+          >
+            <source src="/videos/hero_sand.mp4" type="video/mp4" />
+          </video>
+          {/* Deep dark radial vignette overlay to center attention */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0.9)_100%)] z-10" />
+          {/* Subtle dark marble texture overlay */}
+          <div 
+            className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none z-10"
+            style={{ backgroundImage: "url('/images/dark_marble_texture_1779488028451.png')", backgroundSize: 'cover' }}
+          />
+        </div>
 
-            <div className="flex flex-col gap-8 max-w-xl md:translate-y-8">
+        <Container className="relative z-20 flex flex-col items-center justify-center">
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col items-center text-center gap-10 max-w-4xl"
+          >
+            <motion.span variants={fadeUp} className="text-[10px] tracking-[0.35em] uppercase text-primary-gold font-bold">
+              Habibi Parfums
+            </motion.span>
 
-              <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">
-                Habibi Parfums
-              </span>
-
-              <H1 className="leading-[1.02] tracking-tight text-primary-black">
+            <motion.div variants={fadeUp}>
+              <H1 className="leading-[1.1] tracking-normal text-primary-champagne text-5xl sm:text-6xl md:text-8xl font-heading font-black italic">
                 No es solo aroma.
                 <br />
-                Es cómo te recuerdan.
+                <span className="text-primary-gold">Es cómo te recuerdan.</span>
               </H1>
+            </motion.div>
 
-              <Text className="max-w-md">
-                Perfumes seleccionados para quienes entienden que la presencia
-                no se improvisa.
+            <motion.div variants={fadeUp}>
+              <Text className="max-w-xl text-primary-champagne/80 text-sm md:text-base leading-relaxed mx-auto font-medium">
+                Perfumes seleccionados con la precisión de un joyero. Diseñados para quienes entienden que la presencia no se improvisa.
               </Text>
+            </motion.div>
 
-              <div className="pt-6">
-                <a href="#perfumes">
-                  <Button className="px-10 py-4 text-base">
-                    Descubrir fragancias
-                  </Button>
-                </a>
-              </div>
-            </div>
-
-            <div className="relative md:-mr-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-nude/60 to-primary-beige/30" />
-
-              <div className="relative h-[480px] md:h-[640px] overflow-hidden shadow-soft md:rounded-none rounded-xl">
-                <img
-                  src="https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1600&auto=format&fit=crop"
-                  alt="Perfume de lujo"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-primary-champagne/50" />
-              </div>
-            </div>
-
-          </div>
+            <motion.div variants={fadeUp} className="pt-6">
+              <a href="#perfumes">
+                <Button className="px-12 py-4 bg-primary-gold text-primary-black font-black uppercase tracking-[0.25em] text-xs rounded-full hover:bg-primary-champagne hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                  Descubrir fragancias
+                </Button>
+              </a>
+            </motion.div>
+          </motion.div>
         </Container>
       </Section>
 
       {/* Featured Products */}
-      <FeaturedPerfumesSection />
+      <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 1 }}
+      >
+        <FeaturedPerfumesSection />
+      </motion.div>
 
       {/* Brand Section */}
-      <BrandSection />
+      <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 1 }}
+      >
+        <BrandSection />
+      </motion.div>
 
       {/* CTA */}
-      <CTASection />
+      <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 1 }}
+      >
+        <CTASection />
+      </motion.div>
 
     </MainLayout>
   );

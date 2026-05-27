@@ -75,7 +75,7 @@ export default function ReportPage() {
                                     <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
                                     <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
                                 </svg>
-                                <p className="text-sm text-secondary-brown tracking-wide">Cargando reporte...</p>
+                                <p className="text-sm text-primary-champagne/70 tracking-wide">Cargando reporte...</p>
                             </div>
                         )}
 

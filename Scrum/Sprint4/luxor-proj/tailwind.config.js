@@ -5,14 +5,14 @@ export default {
     extend: {
       colors: {
         primary: {
-          black: "#0F0F10",
-          gold: "#D6C3A3",
-          champagne: "#F2E8DC",
+          black: "#2A1610", // Deep Brown Background
+          gold: "#C5A059",  // Burnished Gold
+          champagne: "#F7F4EF", // Warm Ivory
           beige: "#D8C2A8",
           nude: "#EAD7C5",
         },
         secondary: {
-          brown: "#8B6A4E",
+          brown: "#8F5C38", // Liquid Brun / Amber
           rose: "#CFA18D",
           emerald: "#2F6B5F",
         },

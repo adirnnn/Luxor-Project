@@ -15,16 +15,16 @@ export const BrandSection = () => {
           <div className="w-10 h-[1px] bg-primary-beige mx-auto" />
 
           <div className="max-w-2xl flex flex-col gap-8">
-            <H2 className="text-[2rem] md:text-[2.4rem] leading-[1.2]">
+            <H2 className="text-[2rem] md:text-[2.4rem] leading-[1.2] text-primary-champagne">
               Elegir bien no es casualidad.
             </H2>
 
-            <Text className="text-base">
+            <Text className="text-base text-primary-champagne/80">
               Cada fragancia es seleccionada con criterio, experiencia y una visión clara:
               proyectar presencia sin decir una palabra.
             </Text>
 
-            <Text className="text-base">
+            <Text className="text-base text-primary-champagne/80">
               Habibi Parfums no sigue tendencias.
               Define estándares para quienes entienden que el aroma también es identidad.
             </Text>
