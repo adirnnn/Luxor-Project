@@ -1,6 +1,6 @@
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
-import { H1, H2, H3, Text } from "../components/ui/Typography";
+import { H1, H3, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
