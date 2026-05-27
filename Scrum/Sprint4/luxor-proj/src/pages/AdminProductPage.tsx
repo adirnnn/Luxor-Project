@@ -71,99 +71,103 @@ export default function AdminProductPage() {
 
     return (
         <MainLayout>
-            <Section size="lg">
+            <Section size="lg" className="min-h-screen pt-32 pb-20">
                 <Container>
-                    <div className="max-w-2xl mx-auto flex flex-col gap-8">
-                        <div>
-                            <H1>{isEditing ? "Editar Producto" : "Nuevo Producto"}</H1>
-                            <Text>Completa la información de la fragancia.</Text>
+                    <div className="max-w-4xl mx-auto flex flex-col gap-12">
+                        <div className="flex flex-col gap-2">
+                            <H1 className="text-primary-gold mb-2 font-light italic uppercase tracking-tighter">{isEditing ? "Perfeccionar Fragancia" : "Nueva Obra"}</H1>
+                            <Text className="text-primary-champagne/40 font-black uppercase tracking-[0.3em] text-xs italic">Detalles de la Colección Habibi</Text>
                         </div>
 
-                        {error && <Text className="text-red-500">{error}</Text>}
+                        {error && (
+                            <div className="p-4 glass-card border-red-500/20 text-red-500 text-center font-bold italic">
+                                {error}
+                            </div>
+                        )}
 
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">ID (slug)</label>
+                        <form onSubmit={handleSubmit} className="glass-card p-10 md:p-16 flex flex-col gap-10 border-white/5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Referencia ID</label>
                                     <input 
                                         type="text" name="id" value={formData.id} onChange={handleChange} disabled={isEditing}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300 disabled:opacity-30"
                                         placeholder="ej: club-de-nuit" required
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Nombre</label>
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Nombre del Elixir</label>
                                     <input 
                                         type="text" name="name" value={formData.name} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300"
                                         placeholder="Nombre del perfume" required
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Precio (Q)</label>
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Inversión (Q)</label>
                                     <input 
                                         type="number" name="price" value={formData.price} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300"
                                         placeholder="0.00" required
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">URL Imagen</label>
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Archivo de Imagen</label>
                                     <input 
                                         type="text" name="image" value={formData.image} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
-                                        placeholder="/src/assets/products/..." required
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300"
+                                        placeholder="/assets/products/..." required
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Stock</label>
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Existencias</label>
                                     <input 
                                         type="number" name="stock" value={formData.stock} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300"
                                         placeholder="0" required
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Descripción</label>
+                            <div className="flex flex-col gap-4">
+                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Descripción Artística</label>
                                 <textarea 
                                     name="description" value={formData.description} onChange={handleChange}
-                                    className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold min-h-[100px]"
-                                    placeholder="Breve descripción..." required
+                                    className="w-full px-6 py-4 rounded-[32px] border-none text-base text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300 min-h-[120px]"
+                                    placeholder="Describe la experiencia olfativa..." required
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Salida</label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 border-t border-white/5">
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Salida</label>
                                     <input 
                                         type="text" name="notes.salida" value={formData.notes.salida} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all"
                                         placeholder="Notas de salida"
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Corazón</label>
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Corazón</label>
                                     <input 
                                         type="text" name="notes.corazon" value={formData.notes.corazon} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all"
                                         placeholder="Notas de corazón"
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">Fondo</label>
+                                <div className="flex flex-col gap-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">Fondo</label>
                                     <input 
                                         type="text" name="notes.fondo" value={formData.notes.fondo} onChange={handleChange}
-                                        className="bg-white border border-primary-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold"
+                                        className="w-full px-6 py-4 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all"
                                         placeholder="Notas de fondo"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex gap-4 pt-4">
-                                <Button type="submit" className="flex-1">{isEditing ? "Guardar Cambios" : "Crear Producto"}</Button>
-                                <Button type="button" variant="outline" onClick={() => navigate("/admin")}>Cancelar</Button>
+                            <div className="flex flex-col sm:flex-row gap-6 pt-10">
+                                <Button type="submit" className="flex-1 py-6 shadow-[0_20px_50px_rgba(212,175,55,0.2)]">{isEditing ? "Guardar Cambios" : "Crear Perfume"}</Button>
+                                <Button type="button" variant="outline" onClick={() => navigate("/admin")} className="px-12 py-6">Cancelar</Button>
                             </div>
                         </form>
                     </div>

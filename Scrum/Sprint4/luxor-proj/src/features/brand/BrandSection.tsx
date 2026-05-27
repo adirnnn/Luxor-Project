@@ -1,36 +1,40 @@
 import { Section } from "../../components/ui/Section";
 import { Container } from "../../components/ui/Container";
 import { H2, Text } from "../../components/ui/Typography";
+import { motion } from "framer-motion";
 
 export const BrandSection = () => {
   return (
     <Section size="lg" id="brand" className="pt-24 md:pt-32">
       <Container>
-        <div className="flex flex-col items-center text-center gap-8">
-
-          <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">
-            Habibi Parfums
-          </span>
-
-          <div className="w-10 h-[1px] bg-primary-beige mx-auto" />
-
-          <div className="max-w-2xl flex flex-col gap-8">
-            <H2 className="text-[2rem] md:text-[2.4rem] leading-[1.2] text-primary-champagne">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="glass-card p-12 md:p-24 flex flex-col items-center text-center gap-12 max-w-5xl mx-auto border-white/5"
+        >
+          <div className="flex flex-col gap-2">
+            <span className="text-xs tracking-[0.5em] uppercase text-primary-gold font-black">Filosofía</span>
+            <H2 className="text-4xl md:text-6xl leading-tight text-primary-champagne italic uppercase font-black tracking-tighter">
               Elegir bien no es casualidad.
             </H2>
+          </div>
 
-            <Text className="text-base text-primary-champagne/80">
-              Cada fragancia es seleccionada con criterio, experiencia y una visión clara:
+          <div className="w-20 h-px bg-primary-gold/30" />
+
+          <div className="max-w-2xl flex flex-col gap-10">
+            <Text className="text-lg md:text-2xl text-primary-champagne/60 leading-relaxed font-medium italic">
+              Cada fragancia es una selección con criterio, experiencia y una visión clara:
               proyectar presencia sin decir una palabra.
             </Text>
 
-            <Text className="text-base text-primary-champagne/80">
+            <Text className="text-lg md:text-2xl text-primary-champagne/60 leading-relaxed font-medium italic">
               Habibi Parfums no sigue tendencias.
               Define estándares para quienes entienden que el aroma también es identidad.
             </Text>
           </div>
-
-        </div>
+        </motion.div>
       </Container>
     </Section>
   );

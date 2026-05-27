@@ -32,10 +32,10 @@ autoComplete,
 disabled,
 onChange,
 }: InputProps) => (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
     <label
         htmlFor={id}
-        className="text-xs font-medium tracking-widest uppercase text-secondary-brown"
+        className="text-xs font-black tracking-[0.2em] uppercase text-primary-gold"
     >
         {label}
     </label>
@@ -48,14 +48,10 @@ onChange,
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         className={clsx(
-        "w-full px-4 py-3 rounded-xl border text-sm text-primary-black bg-white/70",
-        "placeholder:text-secondary-brown/40",
-        "focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent",
-        "transition-all duration-200",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        error
-            ? "border-red-400 bg-red-50/30"
-            : "border-primary-beige hover:border-secondary-brown/40"
+        "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-secondary-charcoal/50",
+        "placeholder:text-white/20 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
+        "disabled:opacity-50 disabled:cursor-not-allowed font-medium",
+        error ? "ring-2 ring-red-500 bg-red-500/10" : ""
         )}
     />
     {error && (
@@ -229,10 +225,10 @@ const {
         type="submit"
         disabled={!isValid || isLoading || isSuccess}
         className={clsx(
-            "mt-2 w-full py-3.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200",
+            "mt-4 w-full py-5 rounded-button text-base font-black tracking-[0.2em] uppercase transition-all duration-500",
             isValid && !isLoading && !isSuccess
-            ? "bg-primary-gold text-primary-black hover:opacity-90 active:scale-[0.98]"
-            : "bg-primary-beige text-secondary-brown cursor-not-allowed opacity-60"
+            ? "bg-primary-gold text-primary-black hover:bg-primary-champagne hover:scale-105 shadow-2xl"
+            : "bg-white/5 text-white/20 cursor-not-allowed"
         )}
         >
         {isLoading ? (

@@ -29,37 +29,48 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   const { addToCart } = useCart();
 
   return (
-    <Section size="lg">
+    <Section size="lg" className="py-24">
       <Container>
-        <div className="grid md:grid-cols-2 gap-8 md:gap-24 items-center">
+        <div className="grid md:grid-cols-2 gap-16 md:gap-32 items-center">
 
-          <div className="flex flex-col gap-8 max-w-xl md:order-2">
-            <span className="text-xs tracking-[0.25em] uppercase text-secondary-brown">Habibi Parfums</span>
-            <div className="flex flex-col gap-3">
-              <H2 className="leading-[1.05] tracking-tight">{name}</H2>
-              <span className="text-xl font-medium tracking-wide text-primary-black">Q{price}.00</span>
+          <div className="flex flex-col gap-10 max-w-2xl md:order-2">
+            <span className="text-sm tracking-[0.4em] uppercase text-primary-gold font-black">Habibi Exclusive</span>
+            <div className="flex flex-col gap-4">
+              <H1 className="leading-none tracking-tighter uppercase italic">{name}</H1>
+              <span className="text-4xl font-black tracking-tight text-primary-gold">Q{price}.00</span>
             </div>
-            <Text className="max-w-sm leading-relaxed">{description}</Text>
             
-            <div className="flex flex-col gap-3 text-sm text-secondary-brown">
-              <div className="flex gap-2"><span className="font-medium text-primary-black">Salida:</span><span>{notes.salida}</span></div>
-              <div className="flex gap-2"><span className="font-medium text-primary-black">Corazón:</span><span>{notes.corazon}</span></div>
-              <div className="flex gap-2"><span className="font-medium text-primary-black">Fondo:</span><span>{notes.fondo}</span></div>
+            <Text className="max-w-xl text-xl md:text-2xl leading-tight text-primary-champagne/60 font-medium">{description}</Text>
+            
+            <div className="flex flex-col gap-6 py-8 border-y border-white/5">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">Salida</span>
+                <span className="text-lg text-primary-champagne font-bold">{notes.salida}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">Corazón</span>
+                <span className="text-lg text-primary-champagne font-bold">{notes.corazon}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">Fondo</span>
+                <span className="text-lg text-primary-champagne font-bold">{notes.fondo}</span>
+              </div>
             </div>
 
-            <div className="pt-6 md:pt-8">
+            <div className="pt-8">
               <Button 
                 onClick={() => addToCart({ id, name, price, image, description, notes })}
-                className="px-10 py-4 text-base"
+                className="w-full md:w-auto px-20 py-6 shadow-[0_20px_60px_rgba(224,179,84,0.3)]"
               >
-                Agregar al Carrito
+                AGREGAR AL CARRITO
               </Button>
             </div>
           </div>
 
-          <div className="relative md:order-1 md:-ml-12">
-            <div className="relative h-[320px] sm:h-[420px] md:h-[620px] overflow-hidden shadow-soft md:rounded-none rounded-xl">
-              <img src={image} alt={name} className="w-full h-full object-cover" />
+          <div className="relative md:order-1">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] border border-white/5 bg-primary-black group">
+              <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+              <div className="absolute inset-0 cinematic-overlay opacity-30 pointer-events-none" />
             </div>
           </div>
 

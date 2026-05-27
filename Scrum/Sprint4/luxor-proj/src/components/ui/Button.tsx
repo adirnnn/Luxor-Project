@@ -8,11 +8,11 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary-gold text-primary-black hover:opacity-90",
+  primary: "bg-primary-gold text-primary-black hover:bg-primary-champagne hover:scale-105 shadow-[0_10px_40px_rgba(224,179,84,0.3)] font-bold tracking-widest uppercase",
   secondary:
-    "border border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-primary-black",
-  ghost: "text-primary-black hover:text-primary-gold",
-  outline: "border border-primary-beige text-secondary-brown hover:border-secondary-brown/40 hover:text-primary-black",
+    "border-2 border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-primary-black hover:scale-105 font-bold uppercase",
+  ghost: "text-primary-champagne/80 hover:text-primary-gold hover:scale-110",
+  outline: "border border-white/10 text-primary-champagne hover:bg-white hover:text-primary-black hover:scale-105",
 };
 
 export const Button = ({
@@ -23,7 +23,7 @@ export const Button = ({
   return (
     <button
       className={clsx(
-        "px-6 py-3 rounded-xl transition-all duration-200 text-sm tracking-wide",
+        "px-10 py-5 rounded-button transition-all duration-500 ease-out text-base md:text-lg",
         variants[variant],
         className
       )}

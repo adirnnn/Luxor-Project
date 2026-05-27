@@ -52,30 +52,26 @@ export default function HomePage() {
             variants={staggerContainer}
             initial="hidden"
             animate="show"
-            className="flex flex-col items-center text-center gap-10 max-w-4xl"
+            className="flex flex-col items-center text-center gap-12 max-w-5xl"
           >
-            <motion.span variants={fadeUp} className="text-[10px] tracking-[0.35em] uppercase text-primary-gold font-bold">
-              Habibi Parfums
-            </motion.span>
-
             <motion.div variants={fadeUp}>
-              <H1 className="leading-[1.1] tracking-normal text-primary-champagne text-5xl sm:text-6xl md:text-8xl font-heading font-black italic">
-                No es solo aroma.
+              <H1 className="leading-[0.85] tracking-tight text-primary-champagne text-7xl sm:text-8xl md:text-[10rem] font-heading font-light uppercase">
+                El Aroma
                 <br />
-                <span className="text-primary-gold">Es cómo te recuerdan.</span>
+                <span className="text-primary-gold italic font-light">es Poder.</span>
               </H1>
             </motion.div>
 
-            <motion.div variants={fadeUp}>
-              <Text className="max-w-xl text-primary-champagne/80 text-sm md:text-base leading-relaxed mx-auto font-medium">
-                Perfumes seleccionados con la precisión de un joyero. Diseñados para quienes entienden que la presencia no se improvisa.
+            <motion.div variants={fadeUp} className="mt-12">
+              <Text className="max-w-3xl text-primary-champagne/30 text-lg md:text-xl leading-relaxed mx-auto font-light uppercase tracking-[0.2em] italic">
+                Nuestra selección de fragancias árabes para quienes entienden que la presencia no se improvisa.
               </Text>
             </motion.div>
 
-            <motion.div variants={fadeUp} className="pt-6">
+            <motion.div variants={fadeUp} className="pt-10">
               <a href="#perfumes">
-                <Button className="px-12 py-4 bg-primary-gold text-primary-black font-black uppercase tracking-[0.25em] text-xs rounded-full hover:bg-primary-champagne hover:scale-105 active:scale-95 transition-all shadow-2xl">
-                  Descubrir fragancias
+                <Button className="px-16 py-6 shadow-[0_20px_60px_rgba(224,179,84,0.4)] hover:scale-110 active:scale-95 transition-all font-black uppercase tracking-[0.3em] text-sm">
+                  EXPLORAR COLECCIÓN
                 </Button>
               </a>
             </motion.div>

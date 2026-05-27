@@ -41,65 +41,59 @@ export const Navbar = () => {
       >
         <Container className="flex items-center justify-between h-16 md:h-20 px-8">
 
-          <Link to="/" className="font-heading text-lg md:text-xl tracking-[0.18em] uppercase text-primary-champagne font-bold">
-            Habibi Parfums
+          <Link to="/" className="flex items-center hover:scale-105 transition-all duration-700 py-1">
+            <span className="text-primary-gold font-brand text-4xl md:text-5xl font-normal lowercase tracking-tight">Habibi</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-12">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.href}
                 className={`
-                  relative text-[10px] tracking-[0.2em] uppercase transition-colors duration-200 py-2 font-semibold
-                  ${isActive(link.href) ? "text-primary-gold" : "text-primary-champagne/60 hover:text-primary-champagne"}
+                  relative text-xl tracking-[0.05em] lowercase transition-all duration-300 py-2 font-brand
+                  ${isActive(link.href) ? "text-primary-gold" : "text-primary-champagne/80 hover:text-primary-gold hover:scale-110"}
                 `}
               >
                 {link.label}
-                {isActive(link.href) && (
-                  <motion.div 
-                    layoutId="nav-indicator"
-                    className="absolute -bottom-1 left-0 right-0 h-[1.5px] bg-primary-gold rounded-full" 
-                  />
-                )}
               </Link>
             ))}
             {isAuthenticated && user?.role === 'ADMIN' && (
               <>
-                <Link to="/admin" className="text-[10px] tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-champagne font-semibold">Dashboard</Link>
-                <Link to="/reporte" className="text-[10px] tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-champagne font-semibold">Reporte</Link>
+                <Link to="/admin" className="text-xl tracking-[0.05em] lowercase text-primary-champagne/80 hover:text-primary-gold font-brand transition-all">Panel</Link>
+                <Link to="/reporte" className="text-xl tracking-[0.05em] lowercase text-primary-champagne/80 hover:text-primary-gold font-brand transition-all">Reporte</Link>
               </>
             )}
           </nav>
 
-          <div className="flex items-center gap-6">
-            <Link to="/cart" className="relative text-primary-champagne/80 hover:text-primary-champagne transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex items-center gap-8">
+            <Link to="/cart" className="relative text-primary-champagne/80 hover:text-primary-gold transition-all hover:scale-110">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
                 <path d="M3 6h18"></path>
                 <path d="M16 10a4 4 0 0 1-8 0"></path>
               </svg>
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-primary-gold text-primary-black text-[9px] font-black min-w-[17px] h-[17px] flex items-center justify-center rounded-full shadow-lg">
+                <span className="absolute -top-3 -right-3 bg-primary-gold text-primary-black text-[11px] font-black min-w-[22px] h-[22px] flex items-center justify-center rounded-full shadow-2xl">
                   {totalItems}
                 </span>
               )}
             </Link>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-4">
               {isAuthenticated && user ? (
                 <button
                   onClick={handleLogout}
-                  className="text-[10px] tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-champagne font-semibold"
+                  className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
                 >
                   Salir
                 </button>
               ) : (
                 <Link 
                   to="/login"
-                  className="text-[10px] uppercase tracking-[0.2em] font-bold bg-primary-gold text-primary-black px-6 py-2.5 rounded-full hover:bg-primary-champagne hover:scale-105 active:scale-95 transition-all shadow-md"
+                  className="text-xs uppercase tracking-[0.2em] font-black bg-primary-gold text-primary-black px-8 py-3 rounded-button hover:bg-primary-champagne hover:scale-110 transition-all shadow-lg"
                 >
-                  Ingresar
+                  Entrar
                 </Link>
               )}
             </div>
@@ -133,7 +127,7 @@ export const Navbar = () => {
                   key={link.label}
                   to={link.href}
                   onClick={() => setOpen(false)}
-                  className="text-xs tracking-[0.2em] uppercase text-primary-champagne hover:text-primary-gold font-semibold"
+                  className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
                 >
                   {link.label}
                 </Link>
@@ -141,7 +135,7 @@ export const Navbar = () => {
               {isAuthenticated && user ? (
                 <button
                   onClick={handleLogout}
-                  className="text-xs tracking-[0.2em] uppercase text-primary-gold font-bold"
+                  className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
                 >
                   Cerrar sesión
                 </button>
@@ -149,9 +143,9 @@ export const Navbar = () => {
                 <Link 
                   to="/login" 
                   onClick={() => setOpen(false)} 
-                  className="text-xs tracking-[0.2em] uppercase text-primary-black font-bold bg-primary-gold px-8 py-3 rounded-full hover:bg-primary-champagne w-full text-center"
+                  className="text-xs tracking-[0.2em] uppercase text-primary-black font-black bg-primary-gold px-12 py-4 rounded-button hover:bg-primary-champagne w-full text-center"
                 >
-                  Ingresar
+                  Entrar
                 </Link>
               )}
             </div>

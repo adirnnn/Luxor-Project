@@ -83,32 +83,32 @@ export default function AdminCreateUserPage() {
 
   return (
     <MainLayout>
-      <Section size="lg">
+      <Section size="lg" className="min-h-screen pt-32 pb-20">
         <Container>
-          <div className="max-w-lg mx-auto flex flex-col gap-8">
-            <div>
-              <H1>Crear Usuario</H1>
-              <Text>Registra un nuevo cliente en el sistema.</Text>
+          <div className="max-w-2xl mx-auto flex flex-col gap-12">
+            <div className="flex flex-col gap-2">
+              <H1 className="text-primary-gold mb-2 font-light italic uppercase tracking-tighter">Registrar Cliente</H1>
+              <Text className="text-primary-champagne/40 font-black uppercase tracking-[0.3em] text-xs italic">Añadir a la Comunidad Habibi</Text>
             </div>
 
             {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+              <div className="p-6 glass-card border-green-500/20 text-green-500 text-center font-bold italic">
                 ¡Usuario creado exitosamente! Redirigiendo...
               </div>
             )}
 
             {serverError && (
-              <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm">
+              <div className="p-6 glass-card border-red-500/20 text-red-500 text-center font-bold italic">
                 {serverError}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+            <form onSubmit={handleSubmit} className="glass-card p-10 md:p-16 flex flex-col gap-10 border-white/5" noValidate>
 
               {/* Nombre */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">
-                  Nombre completo
+              <div className="flex flex-col gap-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">
+                  Nombre de Usuario
                 </label>
                 <input
                   type="text"
@@ -116,17 +116,19 @@ export default function AdminCreateUserPage() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Ej: Juan Pérez"
-                  className={`bg-white border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold transition-colors ${
-                    errors.name ? "border-red-400" : "border-primary-beige"
-                  }`}
+                  className={clsx(
+                    "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
+                    "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
+                    errors.name ? "ring-2 ring-red-500 bg-red-500/10" : ""
+                  )}
                 />
-                {errors.name && <span className="text-xs text-red-500">{errors.name}</span>}
+                {errors.name && <span className="text-xs text-red-500 font-bold italic">{errors.name}</span>}
               </div>
 
               {/* Email */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">
-                  Correo electrónico
+              <div className="flex flex-col gap-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">
+                  Identidad Digital (Email)
                 </label>
                 <input
                   type="email"
@@ -134,17 +136,19 @@ export default function AdminCreateUserPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="correo@ejemplo.com"
-                  className={`bg-white border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold transition-colors ${
-                    errors.email ? "border-red-400" : "border-primary-beige"
-                  }`}
+                  className={clsx(
+                    "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
+                    "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
+                    errors.email ? "ring-2 ring-red-500 bg-red-500/10" : ""
+                  )}
                 />
-                {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
+                {errors.email && <span className="text-xs text-red-500 font-bold italic">{errors.email}</span>}
               </div>
 
               {/* Password */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-secondary-brown">
-                  Contraseña
+              <div className="flex flex-col gap-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-gold italic">
+                  Llave Maestra (Contraseña)
                 </label>
                 <input
                   type="password"
@@ -152,18 +156,20 @@ export default function AdminCreateUserPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Mínimo 6 caracteres"
-                  className={`bg-white border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-gold transition-colors ${
-                    errors.password ? "border-red-400" : "border-primary-beige"
-                  }`}
+                  className={clsx(
+                    "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
+                    "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
+                    errors.password ? "ring-2 ring-red-500 bg-red-500/10" : ""
+                  )}
                 />
-                {errors.password && <span className="text-xs text-red-500">{errors.password}</span>}
+                {errors.password && <span className="text-xs text-red-500 font-bold italic">{errors.password}</span>}
               </div>
 
-              <div className="flex gap-4 pt-2">
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  {loading ? "Creando..." : "Crear Usuario"}
+              <div className="flex flex-col sm:flex-row gap-6 pt-6">
+                <Button type="submit" className="flex-1 py-6 shadow-[0_20px_50px_rgba(212,175,55,0.2)]" disabled={loading}>
+                  {loading ? "Registrando..." : "Crear Usuario"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate("/admin")}>
+                <Button type="button" variant="outline" onClick={() => navigate("/admin")} className="px-12 py-6">
                   Cancelar
                 </Button>
               </div>

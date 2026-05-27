@@ -38,41 +38,40 @@ export const ProductCard: FC<ProductCardProps> = ({
 
   return (
     <div className={clsx(
-        "group relative flex flex-col gap-3 p-2.5 sm:p-3 rounded-2xl border border-transparent",
-        "bg-white/40 hover:bg-white hover:border-primary-beige hover:shadow-soft",
-        "transition-all duration-300 ease-out", className)}>
+        "group relative flex flex-col gap-5 p-4 glass-card border-none hover:scale-[1.02]",
+        "transition-all duration-500 ease-out", className)}>
           
-      <Link to={`/producto/${id}`} className="flex flex-col gap-4">
+      <Link to={`/producto/${id}`} className="flex flex-col gap-6">
         {/* Image */}
-        <div className="relative overflow-hidden rounded-xl bg-primary-nude shadow-sm">
-          <div className="aspect-[3/4] w-full overflow-hidden">
+        <div className="relative overflow-hidden rounded-2xl bg-primary-black shadow-2xl">
+          <div className="aspect-[4/5] w-full overflow-hidden">
             <img
               src={image}
               alt={name}
-              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             />
           </div>
           
           {/* Quick Add Overlay */}
           <button 
             onClick={handleAddToCart}
-            className="absolute bottom-4 left-4 right-4 py-3 bg-primary-black/90 text-white text-[10px] font-bold uppercase tracking-widest opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 backdrop-blur-sm hover:bg-primary-gold hover:text-primary-black z-10"
+            className="absolute bottom-6 left-6 right-6 py-4 bg-primary-gold text-primary-black text-xs font-black uppercase tracking-[0.2em] opacity-0 translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 rounded-button shadow-2xl z-10 hover:bg-primary-champagne"
           >
-            Agregar al Carrito
+            Agregar
           </button>
         </div>
 
         {/* Info */}
-        <div className="flex flex-col gap-1 px-1">
-          <div className="flex justify-between items-start gap-2">
-            <H3 className="text-sm font-medium leading-tight">{name}</H3>
-            <span className="text-sm text-primary-black font-semibold shrink-0">
+        <div className="flex flex-col gap-3 px-1 mt-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <H3 className="text-lg md:text-xl font-light tracking-tight leading-none text-primary-champagne truncate max-w-[70%]">{name}</H3>
+            <span className="text-xl md:text-2xl font-light text-primary-gold shrink-0">
               Q{price}
             </span>
           </div>
 
           {description && (
-            <Text className="text-[10px] text-secondary-brown/80 line-clamp-1 mt-1">
+            <Text className="text-sm text-primary-champagne/40 line-clamp-1 font-normal italic">
               {description}
             </Text>
           )}

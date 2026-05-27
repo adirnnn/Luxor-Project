@@ -5,27 +5,34 @@ export default {
     extend: {
       colors: {
         primary: {
-          black: "#2A1610", // Deep Brown Background
-          gold: "#C5A059",  // Burnished Gold
-          champagne: "#F7F4EF", // Warm Ivory
-          beige: "#D8C2A8",
-          nude: "#EAD7C5",
+          black: "#1A1614", // Warm Desert Dusk (Deep Coffee/Earthy)
+          gold: "#D4AF37",  // Metallic Gold
+          champagne: "#FDFCFB", // Bone White / Warm Ivory
+          sand: "#E5D3B3", 
+          amber: "#9B673C",
         },
         secondary: {
-          brown: "#8F5C38", // Liquid Brun / Amber
-          rose: "#CFA18D",
-          emerald: "#2F6B5F",
+          charcoal: "#2A2522", // Warmer charcoal for cards
+          tan: "#C2A17E",
         },
       },
       fontFamily: {
-        heading: ["Playfair Display", "serif"],
-        body: ["Inter", "sans-serif"],
+        heading: ["Bodoni Moda", "serif"],
+        body: ["Cormorant Garamond", "serif"],
+        brand: ["Abogia", "serif"],
+        sans: ["Montserrat", "sans-serif"],
+        mono: ["Space Mono", "monospace"],
       },
       fontSize: {
-        h1: ["3.2rem", { lineHeight: "1.02", letterSpacing: "-0.02em" }],
-        h2: ["2.2rem", { lineHeight: "1.15" }],
-        h3: ["1.25rem", { lineHeight: "1.3" }],
-        body: ["1rem", { lineHeight: "1.6" }],
+        h1: ["7.5rem", { lineHeight: "0.85", letterSpacing: "-0.02em" }],
+        h2: ["4.5rem", { lineHeight: "1", letterSpacing: "-0.01em" }],
+        h3: ["2.5rem", { lineHeight: "1.1" }],
+        body: ["1.25rem", { lineHeight: "1.6" }],
+        xs: ["0.8rem", { lineHeight: "1.5", letterSpacing: "0.15em" }],
+      },
+      borderRadius: {
+        'button': '100px', // Ultra-rounded modern buttons
+        'card': '32px', // Softer, modern corners
       },
       maxWidth: {
         content: "1200px",

@@ -93,48 +93,48 @@ export default function ReportPage() {
                         {data && (
                             <div className="flex flex-col gap-8">
                                 {/* Tarjetas resumen */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <div className="bg-white/70 border border-primary-beige rounded-2xl p-6 flex flex-col gap-2">
-                                        <Text className="text-xs tracking-widest uppercase text-secondary-brown">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                    <div className="glass-card p-10 flex flex-col gap-4 border-white/5">
+                                        <Text className="text-xs tracking-[0.3em] uppercase text-primary-gold font-black italic">
                                             Usuarios registrados
                                         </Text>
-                                        <span className="text-4xl font-bold text-primary-black">
+                                        <span className="text-6xl font-heading text-primary-champagne font-light">
                                             {data.totalUsers}
                                         </span>
                                     </div>
 
-                                    <div className="bg-white/70 border border-primary-beige rounded-2xl p-6 flex flex-col gap-2">
-                                        <Text className="text-xs tracking-widest uppercase text-secondary-brown">
+                                    <div className="glass-card p-10 flex flex-col gap-4 border-white/5">
+                                        <Text className="text-xs tracking-[0.3em] uppercase text-primary-gold font-black italic">
                                             Productos en carritos
                                         </Text>
-                                        <span className="text-4xl font-bold text-primary-black">
+                                        <span className="text-6xl font-heading text-primary-champagne font-light">
                                             {data.totalItemsInCarts}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Top productos */}
-                                <div className="bg-white/70 border border-primary-beige rounded-2xl p-6 flex flex-col gap-4">
-                                    <H3>Productos más agregados al carrito</H3>
+                                <div className="glass-card p-10 flex flex-col gap-8 border-white/5">
+                                    <H3 className="text-primary-gold tracking-[0.2em] italic">Top Movimientos</H3>
                                     {data.topProducts.length === 0 ? (
                                         <Text>No hay datos de productos aún.</Text>
                                     ) : (
-                                        <div className="flex flex-col gap-3">
+                                        <div className="flex flex-col gap-6">
                                             {data.topProducts.map((item, index) => (
                                                 <div
                                                     key={item.product_id}
-                                                    className="flex items-center justify-between py-3 border-b border-primary-beige last:border-0"
+                                                    className="flex items-center justify-between py-5 border-b border-white/5 last:border-0 group hover:bg-white/[0.02] px-4 transition-all rounded-xl"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-xs font-bold text-primary-gold w-5">
-                                                            {index + 1}.
+                                                    <div className="flex items-center gap-6">
+                                                        <span className="text-lg font-heading text-primary-gold/40 font-light w-8 italic">
+                                                            0{index + 1}
                                                         </span>
-                                                        <Text className="capitalize">
+                                                        <Text className="capitalize text-xl text-primary-champagne font-medium">
                                                             {item.product_id.replace(/-/g, " ")}
                                                         </Text>
                                                     </div>
-                                                    <span className="text-sm font-semibold text-primary-black">
-                                                        {item.total_quantity} uds.
+                                                    <span className="text-lg font-heading text-primary-gold font-light tracking-tighter">
+                                                        {item.total_quantity} <span className="text-xs uppercase ml-1 opacity-40 italic">Uds.</span>
                                                     </span>
                                                 </div>
                                             ))}
