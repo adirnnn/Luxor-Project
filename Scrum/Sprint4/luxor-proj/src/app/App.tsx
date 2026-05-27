@@ -8,6 +8,7 @@ import LoginPage from "../pages/LoginPage";
 import { ScrollToTop } from "./ScrollToTop";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
+import { SearchProvider } from "../context/SearchContext";
 import ReportPage from "../pages/ReportPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminProductPage from "../pages/AdminProductPage";
@@ -50,10 +51,12 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <AnimatedRoutes />
-        </BrowserRouter>
+        <SearchProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </SearchProvider>
       </CartProvider>
     </AuthProvider>
   );
