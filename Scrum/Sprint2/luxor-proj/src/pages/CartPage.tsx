@@ -5,6 +5,8 @@ import { Button } from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 
+// SFTWRKEY-248: El fetch del carrito ya está manejado en CartContext (carga y guarda en backend)
+// Este componente solo consume el contexto
 export default function CartPage() {
   const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart } = useCart();
 
@@ -33,21 +35,21 @@ export default function CartPage() {
                     <span className="text-primary-gold font-bold">Q{item.product.price}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button 
+                    <button
                       onClick={() => decrementQuantity(item.product.id)}
                       className="w-8 h-8 flex items-center justify-center border border-primary-beige rounded-full hover:bg-primary-beige transition-colors"
                     >
                       -
                     </button>
                     <span className="w-4 text-center">{item.quantity}</span>
-                    <button 
+                    <button
                       onClick={() => incrementQuantity(item.product.id)}
                       className="w-8 h-8 flex items-center justify-center border border-primary-beige rounded-full hover:bg-primary-beige transition-colors"
                     >
                       +
                     </button>
                   </div>
-                  <button 
+                  <button
                     onClick={() => removeFromCart(item.product.id)}
                     className="text-red-400 hover:text-red-600 p-2"
                   >

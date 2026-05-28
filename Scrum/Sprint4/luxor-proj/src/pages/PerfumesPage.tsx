@@ -26,18 +26,21 @@ export default function PerfumesPage() {
 
   return (
     <MainLayout>
-      <Section size="sm">
+      <Section size="lg" className="pt-32 md:pt-40 pb-20 bg-primary-black">
         <Container>
-          <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-16">
             <div className="max-w-xl flex flex-col gap-4">
-              <H1>Perfumes</H1>
-              <Text>Explora nuestra colección completa de fragancias seleccionadas.</Text>
+              <span className="text-[10px] tracking-[0.3em] uppercase text-primary-gold font-bold">Colección</span>
+              <H1 className="text-3xl md:text-5xl font-heading font-black text-primary-champagne">Nuestros Perfumes</H1>
+              <Text className="text-primary-champagne/70 text-sm md:text-base leading-relaxed">
+                Explora nuestra selección completa de fragancias árabes e internacionales, curadas con la máxima sofisticación y excelencia.
+              </Text>
             </div>
 
             {/* ── Buscador ── */}
             <div className="relative max-w-md">
               <svg
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary-brown/50 pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-gold pointer-events-none"
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
                 height="16"
@@ -56,27 +59,18 @@ export default function PerfumesPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar perfume..."
-                className="w-full pl-10 pr-10 py-3 rounded-xl border border-primary-beige bg-white/70 text-sm text-primary-black placeholder:text-secondary-brown/40 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/[0.08] bg-white/[0.04] text-sm text-primary-champagne placeholder:text-primary-champagne/40 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all duration-200"
               />
-              {query && (
-                <button
-                  onClick={() => setQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-secondary-brown/50 hover:text-primary-black transition-colors"
-                  aria-label="Limpiar búsqueda"
-                >
-                  ✕
-                </button>
-              )}
             </div>
 
             {/* ── Loading ── */}
             {loading && (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="flex flex-col items-center justify-center py-32 gap-6">
                 <svg
                   className="animate-spin text-primary-gold"
                   xmlns="http://www.w3.org/2000/svg"
-                  width="36"
-                  height="36"
+                  width="40"
+                  height="40"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -93,7 +87,7 @@ export default function PerfumesPage() {
                   <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
                   <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
                 </svg>
-                <p className="text-sm text-secondary-brown tracking-wide">Cargando productos...</p>
+                <p className="text-sm text-primary-champagne/70 tracking-wide">Cargando productos...</p>
               </div>
             )}
 
@@ -103,7 +97,7 @@ export default function PerfumesPage() {
             {!loading && !error && (
               <>
                 {query && (
-                  <p className="text-sm text-secondary-brown -mt-6">
+                  <p className="text-sm text-primary-champagne/70 -mt-6">
                     {filtered.length === 0
                       ? `Sin resultados para "${query}"`
                       : `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""} para "${query}"`}
@@ -125,7 +119,7 @@ export default function PerfumesPage() {
                   </div>
                 ) : (
                   !query && (
-                    <p className="text-center text-secondary-brown py-20">
+                    <p className="text-center text-primary-champagne/70 py-20">
                       No hay productos disponibles.
                     </p>
                   )
