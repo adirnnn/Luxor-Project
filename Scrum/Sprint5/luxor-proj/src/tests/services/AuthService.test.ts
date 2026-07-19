@@ -41,4 +41,29 @@ describe("authService", () => {
 
     });
 
+// test de login con credenciales incorrectas
+    it("debe retornar un error cuando las credenciales son incorrectas", async () => {
+
+    const credentials = {
+        email: "admin@luxor.com",
+        password: "incorrecta",
+    };
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({
+        success: false,
+        }),
+    } as Response);
+
+    const result = await login(credentials);
+
+    expect(result).toEqual({
+        success: false,
+        error: "Correo o contraseña incorrectos. Verifica tus datos.",
+    });
+
+    });
+
 });
