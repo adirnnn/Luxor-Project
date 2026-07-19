@@ -66,4 +66,29 @@ describe("authService", () => {
 
     });
 
+// test de login con error del server
+    it("debe retornar un mensaje cuando ocurre un error interno del servidor", async () => {
+
+    const credentials = {
+        email: "admin@luxor.com",
+        password: "123456",
+    };
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({
+        success: false,
+        }),
+    } as Response);
+
+    const result = await login(credentials);
+
+    expect(result).toEqual({
+        success: false,
+        error: "Hubo un problema en el servidor. Intenta más tarde.",
+    });
+
+    });
+
 });
