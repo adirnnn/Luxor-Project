@@ -91,4 +91,25 @@ describe("authService", () => {
 
     });
 
+// test de catch del error de conexión
+    it("debe retornar un mensaje cuando no es posible conectarse al servidor", async () => {
+
+    const credentials = {
+        email: "admin@luxor.com",
+        password: "123456",
+    };
+
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(
+        new Error("Network Error")
+    );
+
+    const result = await login(credentials);
+
+    expect(result).toEqual({
+        success: false,
+        error: "No se pudo conectar con el servidor. Verifica tu conexión.",
+    });
+
+    });
+
 });
