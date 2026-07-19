@@ -29,5 +29,20 @@ describe("Button", () => {
 
     expect(handleClick).toHaveBeenCalledTimes(1);
     });
+
+// Test de funcionamiento de la propiededad disabled del button
+    it("renderiza el botón deshabilitado cuando recibe la prop disabled", () => {
+        render(
+            <Button disabled>
+            Comprar
+            </Button>
+        );
+
+        const button = screen.getByRole("button", {
+            name: "Comprar",
+        });
+
+        expect(button).toBeDisabled();
+        });
 });
 
