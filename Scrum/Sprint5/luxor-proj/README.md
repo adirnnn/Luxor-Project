@@ -1,73 +1,117 @@
-# React + TypeScript + Vite
+# Habibi Parfums
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web para explorar, administrar e importar el inventario de perfumes de Habibi Parfums. Incluye catálogo, carrito, autenticación, panel administrativo, reportes y carga masiva de productos mediante CSV.
 
-Currently, two official plugins are available:
+## Características
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Catálogo de perfumes, búsqueda y vista de detalle.
+- Carrito de compras vinculado a usuarios autenticados.
+- Autenticación y registro de usuarios.
+- Panel administrativo para crear, editar y eliminar perfumes.
+- Reporte operativo para administradores.
+- Importación masiva de perfumes desde CSV con validación, errores por fila, resumen e historial.
 
-## React Compiler
+## Tecnologías
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Frontend: React, TypeScript, Vite, Tailwind CSS y Framer Motion.
+- Backend: Node.js, Express y PostgreSQL.
+- Contenedores: Docker Compose.
 
-## Expanding the ESLint configuration
+## Requisitos
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 20 o superior y npm.
+- PostgreSQL 16, o Docker Desktop para ejecutar todos los servicios en contenedores.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Inicio rápido con Docker
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Crea un archivo `.env` en la raíz del proyecto con las credenciales de PostgreSQL que utilizará el backend y la base de datos:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+   ```env
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=tu_contrasena_segura
+   POSTGRES_DB=habibi_parfums
+   POSTGRES_HOST=db
+   POSTGRES_PORT=5432
+   FRONTEND_URL=http://localhost:5173
+   ```
+
+2. Inicia los servicios:
+
+   ```bash
+   docker compose up --build
+   ```
+
+3. Abre `http://localhost:5173`. El backend queda disponible en `http://localhost:3000` y PostgreSQL se expone en el puerto `5433` del equipo anfitrión.
+
+El contenedor del backend ejecuta el seed al iniciar, creando las tablas y datos iniciales necesarios.
+
+## Desarrollo local
+
+Instala y ejecuta el frontend:
+
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+En otra terminal, instala y ejecuta el backend:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd backend
+npm ci
+npm run seed
+npm run dev
 ```
+
+Para que el frontend apunte a otra API, define `VITE_API_URL` en un archivo `.env.local`.
+
+## Importación CSV de perfumes
+
+En el panel de administración, selecciona **Importar CSV**. La pantalla permite descargar una plantilla, cargar el archivo, revisar el resumen de filas importadas y rechazadas, y consultar el historial de los últimos intentos.
+
+El formato exige estos encabezados, en este orden:
+
+```csv
+id,name,price,image,description,stock,salida,corazon,fondo
+```
+
+Ejemplo:
+
+```csv
+noir-oud,Noir Oud,425.00,/assets/products/noir-oud.png,Fragancia amaderada,12,Bergamota,Rosa,Oud
+```
+
+- `id`, `name`, `price` y `stock` son obligatorios.
+- `id` debe ser único y usar letras, números y guiones.
+- `price` debe ser un número no negativo con hasta dos decimales.
+- `stock` debe ser un entero no negativo.
+- Las filas inválidas se rechazan con la fila, campo y causa concretos; las válidas se guardan de forma transaccional.
+
+Consulta la especificación completa en [docs/CSV_IMPORT.md](docs/CSV_IMPORT.md).
+
+## Verificación
+
+Pruebas del validador CSV:
+
+```bash
+cd backend
+npm test
+```
+
+Compilación de producción del frontend:
+
+```bash
+npm run build
+```
+
+## Rutas principales
+
+| Ruta | Descripción |
+| --- | --- |
+| `/` | Inicio y catálogo destacado. |
+| `/perfumes` | Catálogo completo. |
+| `/cart` | Carrito de compras. |
+| `/login` | Inicio de sesión y registro. |
+| `/admin` | Panel de inventario, solo administradores. |
+| `/admin/importar` | Importación CSV e historial, solo administradores. |
+| `/reporte` | Reporte operativo, solo administradores. |
