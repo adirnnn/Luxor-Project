@@ -1,7 +1,7 @@
 import { type FC } from "react";
 import { Section } from "../../components/ui/Section";
 import { Container } from "../../components/ui/Container";
-import { H2, Text } from "../../components/ui/Typography";
+import { H1, Text } from "../../components/ui/Typography";
 import { Button } from "../../components/ui/Button";
 import { useCart } from "../../context/CartContext";
 

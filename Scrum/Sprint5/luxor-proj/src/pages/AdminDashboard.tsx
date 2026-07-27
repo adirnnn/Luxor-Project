@@ -77,6 +77,10 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
+                                <Link to="/admin/importar">
+                                    <Button variant="outline" className="transition-all">Importar CSV</Button>
+                                </Link>
+
                                 <Link to="/admin/nuevo">
                                     <Button className="shadow-[0_20px_50px_rgba(212,175,55,0.2)] hover:scale-110 active:scale-95 transition-all">
                                         Nuevo Perfume

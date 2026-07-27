@@ -94,6 +94,19 @@ const seedUsers = async () => {
     `);
     console.log('Tabla products lista');
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS product_imports (
+        id SERIAL PRIMARY KEY,
+        file_name VARCHAR(255) NOT NULL,
+        total_rows INTEGER NOT NULL,
+        imported_rows INTEGER NOT NULL DEFAULT 0,
+        rejected_rows INTEGER NOT NULL DEFAULT 0,
+        errors JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('Tabla de historial de importaciones lista');
+
     // Tablas para reportes (SFTWRKEY-163+)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (

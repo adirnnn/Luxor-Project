@@ -6,6 +6,7 @@ import { Container } from "../components/ui/Container";
 import { H1, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
+import clsx from "clsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 

@@ -13,6 +13,7 @@ import ReportPage from "../pages/ReportPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminProductPage from "../pages/AdminProductPage";
 import AdminCreateUserPage from "../pages/AdminCreateUserPage";
+import ImportPerfumesPage from "../pages/ImportPerfumesPage";
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -42,6 +43,7 @@ function AnimatedRoutes() {
         <Route path="/admin/nuevo" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
         <Route path="/admin/editar/:id" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
         <Route path="/admin/nuevo-usuario" element={<PageWrapper><AdminCreateUserPage /></PageWrapper>} />
+        <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );
