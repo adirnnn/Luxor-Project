@@ -6,8 +6,8 @@ import { Container } from "../components/ui/Container";
 import { H1, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
-import { fetchProductById, createProduct, updateProduct } from "../services/productService";
-import type { Product } from "../services/productService";
+import { fetchProductById, createProduct, updateProduct, fetchCategories } from "../services/productService";
+import type { Product, Category } from "../services/productService";
 
 type FieldProps = {
     label: string;
@@ -61,11 +61,20 @@ const [formData, setFormData] = useState<Product>({
     image: "",
     description: "",
     stock: 0,
+    category_id: null,
     notes: { salida: "", corazon: "", fondo: "" },
     });
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+useEffect(() => {
+    // SFTWRKEY-275: Cargar categorías disponibles para el selector del formulario
+    fetchCategories()
+        .then(setCategories)
+        .catch(() => setCategories([]));
+}, []);
 
 useEffect(() => {
     if (isEditing && isAuthenticated && user?.role === "ADMIN") {
@@ -94,6 +103,15 @@ const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         [name]: name === "price" || name === "stock" ? Number(value) : value,
         }));
     }
+};
+
+// SFTWRKEY-275: Manejar el cambio del selector de categoría (select, no input)
+const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+        ...prev,
+        category_id: value === "" ? null : Number(value),
+    }));
 };
 
     const handleSubmit = async (e: FormEvent) => {
@@ -185,6 +203,48 @@ return (
                     onChange={handleChange}
                     placeholder="Nombre del perfume"
                 />
+
+                {/* SFTWRKEY-275: Selector de categoría */}
+                <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary-gold italic">
+                        Categoría
+                    </label>
+                    <div className="relative">
+                        <select
+                            name="category_id"
+                            value={formData.category_id ?? ""}
+                            onChange={handleCategoryChange}
+                            className="w-full appearance-none px-4 py-3 pr-10 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 focus:ring-2 focus:ring-primary-gold transition-all duration-300"
+                        >
+                            <option value="" style={{ backgroundColor: "#1A1614", color: "#FDFCFB" }}>
+                                Sin categoría
+                            </option>
+                            {categories.map((c) => (
+                                <option
+                                    key={c.id}
+                                    value={c.id}
+                                    style={{ backgroundColor: "#1A1614", color: "#FDFCFB" }}
+                                >
+                                    {c.nombre}
+                                </option>
+                            ))}
+                        </select>
+                        <svg
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-gold pointer-events-none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                 <Field

@@ -41,7 +41,12 @@ const saveImportHistory = async ({ fileName, totalRows, importedRows, errors }) 
 // ── Productos (Desde DB) ──────────────────────────────────────────────────────
 app.get("/products", async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+    const result = await pool.query(
+      `SELECT p.*, c.nombre AS category_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       ORDER BY p.created_at DESC`
+    );
     const formatted = result.rows.map(p => ({
       ...p,
       notes: { salida: p.salida, corazon: p.corazon, fondo: p.fondo }
@@ -49,6 +54,16 @@ app.get("/products", async (req, res) => {
     res.json(formatted);
   } catch (err) {
     res.status(500).json({ message: "Error al obtener productos" });
+  }
+});
+
+// SFTWRKEY-275: Listar categorías disponibles (para poblar el filtro en el frontend)
+app.get("/categories", async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, nombre FROM categories ORDER BY nombre ASC');
+    res.json({ success: true, categories: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error al obtener categorías" });
   }
 });
 
@@ -66,13 +81,15 @@ app.get("/products/search", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT * FROM products
-       WHERE name ILIKE $1
-          OR description ILIKE $1
-          OR salida ILIKE $1
-          OR corazon ILIKE $1
-          OR fondo ILIKE $1
-       ORDER BY created_at DESC`,
+      `SELECT p.*, c.nombre AS category_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.name ILIKE $1
+          OR p.description ILIKE $1
+          OR p.salida ILIKE $1
+          OR p.corazon ILIKE $1
+          OR p.fondo ILIKE $1
+       ORDER BY p.created_at DESC`,
       [`%${busqueda}%`]
     );
 
@@ -102,7 +119,13 @@ app.get("/products/search", async (req, res) => {
 
 app.get("/products/:id", async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      `SELECT p.*, c.nombre AS category_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.id = $1`,
+      [req.params.id]
+    );
     if (result.rows.length === 0) return res.status(404).json({ message: "Producto no encontrado" });
     const p = result.rows[0];
     res.json({
@@ -115,12 +138,12 @@ app.get("/products/:id", async (req, res) => {
 });
 
 app.post("/products", async (req, res) => {
-  const { id, name, price, image, description, stock, notes } = req.body;
+  const { id, name, price, image, description, stock, notes, category_id } = req.body;
   try {
     await pool.query(
-      `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [id, name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo]
+      `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [id, name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null]
     );
     res.status(201).json({ success: true, message: "Producto creado" });
   } catch (err) {
@@ -130,13 +153,13 @@ app.post("/products", async (req, res) => {
 });
 
 app.put("/products/:id", async (req, res) => {
-  const { name, price, image, description, stock, notes } = req.body;
+  const { name, price, image, description, stock, notes, category_id } = req.body;
   try {
     await pool.query(
       `UPDATE products 
-       SET name = $1, price = $2, image = $3, description = $4, stock = $5, salida = $6, corazon = $7, fondo = $8
-       WHERE id = $9`,
-      [name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, req.params.id]
+       SET name = $1, price = $2, image = $3, description = $4, stock = $5, salida = $6, corazon = $7, fondo = $8, category_id = $9
+       WHERE id = $10`,
+      [name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null, req.params.id]
     );
     res.json({ success: true, message: "Producto actualizado" });
   } catch (err) {

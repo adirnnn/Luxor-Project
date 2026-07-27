@@ -4,25 +4,35 @@ import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H1, Text } from "../components/ui/Typography";
 import { ProductCard } from "../features/perfumes/ProductCard";
-import { fetchProducts } from "../services/productService";
-import type { Product } from "../services/productService";
+import { fetchProducts, fetchCategories } from "../services/productService";
+import type { Product, Category } from "../services/productService";
 
 export default function PerfumesPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [categoryId, setCategoryId] = useState<string>("all");
 
   useEffect(() => {
     fetchProducts()
       .then(setProducts)
       .catch(() => setError("No se pudieron cargar los productos"))
       .finally(() => setLoading(false));
+
+    // SFTWRKEY-275: Cargar categorías para el selector de filtro
+    fetchCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
   }, []);
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = products.filter((p) => {
+    const matchesQuery = p.name.toLowerCase().includes(query.toLowerCase());
+    const matchesCategory =
+      categoryId === "all" || String(p.category_id) === categoryId;
+    return matchesQuery && matchesCategory;
+  });
 
   return (
     <MainLayout>
@@ -63,6 +73,42 @@ export default function PerfumesPage() {
               />
             </div>
 
+            {/* ── Filtro por categoría (SFTWRKEY-275) ── */}
+            <div className="max-w-xs relative">
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full appearance-none py-3 pl-4 pr-10 rounded-xl border border-primary-gold/40 bg-primary-black text-sm text-primary-champagne focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all duration-200"
+              >
+                <option value="all" style={{ backgroundColor: "#1A1614", color: "#FDFCFB" }}>
+                  Todas las categorías
+                </option>
+                {categories.map((c) => (
+                  <option
+                    key={c.id}
+                    value={String(c.id)}
+                    style={{ backgroundColor: "#1A1614", color: "#FDFCFB" }}
+                  >
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+              <svg
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-primary-gold pointer-events-none"
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+
             {/* ── Loading ── */}
             {loading && (
               <div className="flex flex-col items-center justify-center py-32 gap-6">
@@ -96,11 +142,11 @@ export default function PerfumesPage() {
             {/* ── Resultados ── */}
             {!loading && !error && (
               <>
-                {query && (
+                {(query || categoryId !== "all") && (
                   <p className="text-sm text-primary-champagne/70 -mt-6">
                     {filtered.length === 0
-                      ? `Sin resultados para "${query}"`
-                      : `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""} para "${query}"`}
+                      ? `Sin resultados${query ? ` para "${query}"` : ""}`
+                      : `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""}${query ? ` para "${query}"` : ""}`}
                   </p>
                 )}
 
@@ -118,7 +164,7 @@ export default function PerfumesPage() {
                     ))}
                   </div>
                 ) : (
-                  !query && (
+                  !query && categoryId === "all" && (
                     <p className="text-center text-primary-champagne/70 py-20">
                       No hay productos disponibles.
                     </p>

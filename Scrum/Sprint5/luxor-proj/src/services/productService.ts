@@ -7,6 +7,8 @@ export type Product = {
   image: string;
   description: string;
   stock?: number;
+  category_id?: number | null;
+  category_name?: string | null;
   notes: {
     salida: string;
     corazon: string;
@@ -14,10 +16,23 @@ export type Product = {
   };
 }
 
+export type Category = {
+  id: number;
+  nombre: string;
+}
+
 export async function fetchProducts(): Promise<Product[]> {
   const res = await fetch(`${API_URL}/products`);
   if (!res.ok) throw new Error('Error al obtener productos');
   return res.json();
+}
+
+// SFTWRKEY-275: Traer categorías disponibles para el filtro de la UI
+export async function fetchCategories(): Promise<Category[]> {
+  const res = await fetch(`${API_URL}/categories`);
+  if (!res.ok) throw new Error('Error al obtener categorías');
+  const data = await res.json();
+  return data.categories;
 }
 
 export async function fetchProductById(id: string): Promise<Product> {

@@ -57,6 +57,22 @@ const seedUsers = async () => {
 
     console.log('Tabla users lista (con FK a rol)');
 
+    // SFTWRKEY-274: Tabla categorías
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(50) UNIQUE NOT NULL
+      );
+    `);
+
+    await pool.query(`
+      INSERT INTO categories (nombre)
+      VALUES ('Árabe'), ('Oriental'), ('Femenino'), ('Masculino'), ('Fresco'), ('Dulce')
+      ON CONFLICT (nombre) DO NOTHING;
+    `);
+
+    console.log('Tabla categories lista');
+
     // Carrito con FK explícitas
     await pool.query(`
       CREATE TABLE IF NOT EXISTS carts (
@@ -89,6 +105,7 @@ const seedUsers = async () => {
         salida VARCHAR(200),
         corazon VARCHAR(200),
         fondo VARCHAR(200),
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
@@ -106,6 +123,13 @@ const seedUsers = async () => {
       );
     `);
     console.log('Tabla de historial de importaciones lista');
+    // SFTWRKEY-274: Asegurar columna category_id en bases ya existentes (creadas antes de este cambio)
+    try {
+      await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL`);
+      console.log('Columna category_id verificada en products');
+    } catch (e) {
+      console.log('Nota: no se pudo verificar category_id (probablemente ya existe).');
+    }
 
     // Tablas para reportes (SFTWRKEY-163+)
     await pool.query(`
@@ -130,21 +154,28 @@ const seedUsers = async () => {
     console.log('Tablas de ordenes listas');
 
     // Insertar productos iniciales
+    // SFTWRKEY-273: category_id asignado según el nombre insertado arriba
+    // 1 = Árabe, 2 = Oriental, 3 = Femenino, 4 = Masculino, 5 = Fresco, 6 = Dulce
     const initialProducts = [
-  { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', price: 390, image: '/src/assets/products/cdnIntense.webp', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar' },
-  { id: 'khamrah', name: 'Lattafa Khamrah', price: 390, image: '/src/assets/products/lattafaKhamrah.webp', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar' },
-  { id: 'yara', name: 'Lattafa Yara', price: 330, image: '/src/assets/products/lattafaYara.webp', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle' }
-];
+      { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', price: 390, image: '/src/assets/products/cdnIntense.png', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar', category_id: 4 },
+      { id: 'khamrah', name: 'Lattafa Khamrah', price: 390, image: '/src/assets/products/lattafaKhamrah.png', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar', category_id: 6 },
+      { id: 'yara', name: 'Lattafa Yara', price: 330, image: '/src/assets/products/lattafaYara.png', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle', category_id: 3 },
+      { id: 'oud-mood', name: 'Lattafa Oud Mood', price: 228, image: '/src/assets/products/lattafaOudMood.png', description: 'Intenso y profundo con esencia oriental.', stock: 7, salida: 'Especias', corazon: 'Oud', fondo: 'Ámbar', category_id: 2 },
+      { id: '9pm', name: 'Afnan 9PM', price: 420, image: '/src/assets/products/afnan9PM.png', description: 'Dulce, nocturna y seductora.', stock: 2, salida: 'Manzana, canela', corazon: 'Lavanda', fondo: 'Vainilla', category_id: 6 },
+      { id: 'hawas', name: 'Rasasi Hawas', price: 390, image: '/src/assets/products/rasawiHawas.png', description: 'Fresca y moderna con gran proyección.', stock: 4, salida: 'Bergamota', corazon: 'Canela', fondo: 'Almizcle', category_id: 5 },
+      { id: 'amber-oud', name: 'Al Haramain Amber Oud', price: 570, image: '/src/assets/products/amberOudHaramain.png', description: 'Lujo puro con carácter fuerte.', stock: 6, salida: 'Cítricos', corazon: 'Ámbar', fondo: 'Oud', category_id: 1 },
+      { id: 'fakhar', name: 'Lattafa Fakhar', price: 390, image: '/src/assets/products/lattafaFakhar.png', description: 'Elegancia moderna con toque oriental.', stock: 8, salida: 'Manzana', corazon: 'Lavanda', fondo: 'Madera', category_id: 2 },
+    ];
 
     for (const p of initialProducts) {
       await pool.query(
-        `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT (id) DO NOTHING`,
-        [p.id, p.name, p.price, p.image, p.description, p.stock, p.salida, p.corazon, p.fondo]
+        `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id) DO UPDATE SET category_id = EXCLUDED.category_id`,
+        [p.id, p.name, p.price, p.image, p.description, p.stock, p.salida, p.corazon, p.fondo, p.category_id]
       );
     }
-    console.log('Productos iniciales insertados');
+    console.log('Productos iniciales insertados/actualizados con categoría');
 
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA
     // await pool.query(`DELETE FROM users;`);
