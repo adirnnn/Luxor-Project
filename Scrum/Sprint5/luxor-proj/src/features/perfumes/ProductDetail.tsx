@@ -1,7 +1,7 @@
 import { type FC } from "react";
 import { Section } from "../../components/ui/Section";
 import { Container } from "../../components/ui/Container";
-import { H1, Text } from "../../components/ui/Typography";
+import { H1, H2, Text } from "../../components/ui/Typography";
 import { Button } from "../../components/ui/Button";
 import { useCart } from "../../context/CartContext";
 
@@ -69,7 +69,7 @@ export const ProductDetail: FC<ProductDetailProps> = ({
 
           <div className="relative md:order-1">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] border border-white/5 bg-primary-black group">
-              <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+              <img src={image} alt={name} fetchPriority="high" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
               <div className="absolute inset-0 cinematic-overlay opacity-30 pointer-events-none" />
             </div>
           </div>

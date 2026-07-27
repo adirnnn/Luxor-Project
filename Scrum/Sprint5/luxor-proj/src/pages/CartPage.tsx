@@ -1,13 +1,38 @@
+import { useState } from "react";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H1, H3, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
-import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { processCheckout, type CheckoutError } from "../services/checkoutService";
 
 export default function CartPage() {
-  const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart } = useCart();
+  const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<CheckoutError | null>(null);
+
+  const handleCheckout = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setCheckoutError(null);
+    setIsProcessing(true);
+    try {
+      const result = await processCheckout(Number(user.id));
+      clearCart();
+      navigate("/user", { state: { orderSuccess: result.order } });
+    } catch (err) {
+      setCheckoutError(err as CheckoutError);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <MainLayout>
@@ -146,8 +171,28 @@ export default function CartPage() {
                   </span>
                 </div>
 
-                <Button className="w-full py-5 md:py-6 font-black uppercase tracking-[0.3em] text-sm shadow-[0_20px_60px_rgba(224,179,84,0.3)]">
-                  Finalizar Compra
+                {checkoutError && (
+                  <div className="mb-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
+                    <p className="text-sm text-red-400 font-bold mb-1">
+                      {checkoutError.code === "INSUFFICIENT_STOCK" ? "Sin stock suficiente" : "No se pudo procesar tu compra"}
+                    </p>
+                    <p className="text-xs text-red-400/80">{checkoutError.message}</p>
+                    {checkoutError.items && (
+                      <ul className="mt-2 text-xs text-red-400/70 list-disc list-inside">
+                        {checkoutError.items.map((i) => (
+                          <li key={i.product_id}>{i.name}: pediste {i.solicitado}, quedan {i.disponible}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleCheckout}
+                  disabled={isProcessing}
+                  className="w-full py-5 md:py-6 font-black uppercase tracking-[0.3em] text-sm shadow-[0_20px_60px_rgba(224,179,84,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? "Procesando..." : "Finalizar Compra"}
                 </Button>
 
                 <Link

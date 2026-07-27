@@ -131,10 +131,10 @@ const seedUsers = async () => {
 
     // Insertar productos iniciales
     const initialProducts = [
-      { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', price: 390, image: '/src/assets/products/cdnIntense.png', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar' },
-      { id: 'khamrah', name: 'Lattafa Khamrah', price: 390, image: '/src/assets/products/lattafaKhamrah.png', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar' },
-      { id: 'yara', name: 'Lattafa Yara', price: 330, image: '/src/assets/products/lattafaYara.png', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle' }
-    ];
+  { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', price: 390, image: '/src/assets/products/cdnIntense.webp', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar' },
+  { id: 'khamrah', name: 'Lattafa Khamrah', price: 390, image: '/src/assets/products/lattafaKhamrah.webp', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar' },
+  { id: 'yara', name: 'Lattafa Yara', price: 330, image: '/src/assets/products/lattafaYara.webp', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle' }
+];
 
     for (const p of initialProducts) {
       await pool.query(

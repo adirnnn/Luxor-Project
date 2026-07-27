@@ -373,4 +373,83 @@ app.get("/report", async (req, res) => {
   }
 });
 
+// ── Checkout / Pagos ─────────────────────────────────────────────────────────
+app.post("/checkout/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const client = await pool.connect();
+
+  try {
+    const cartResult = await client.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
+    if (cartResult.rows.length === 0) {
+      return res.status(400).json({ success: false, code: "EMPTY_CART", message: "Tu carrito está vacío." });
+    }
+    const cartId = cartResult.rows[0].id;
+
+    const itemsResult = await client.query(
+      `SELECT ci.product_id, ci.quantity, p.name, p.price, p.stock
+       FROM cart_items ci
+       JOIN products p ON ci.product_id = p.id
+       WHERE ci.cart_id = $1`,
+      [cartId]
+    );
+
+    if (itemsResult.rows.length === 0) {
+      return res.status(400).json({ success: false, code: "EMPTY_CART", message: "Tu carrito está vacío." });
+    }
+
+    const sinStock = itemsResult.rows.filter(item => item.quantity > item.stock);
+    if (sinStock.length > 0) {
+      return res.status(409).json({
+        success: false,
+        code: "INSUFFICIENT_STOCK",
+        message: "Algunos productos ya no tienen stock suficiente.",
+        items: sinStock.map(i => ({ product_id: i.product_id, name: i.name, disponible: i.stock, solicitado: i.quantity }))
+      });
+    }
+
+    await client.query('BEGIN');
+
+    const total = itemsResult.rows.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+
+    const orderResult = await client.query(
+      `INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'completed') RETURNING id, created_at`,
+      [userId, total]
+    );
+    const orderId = orderResult.rows[0].id;
+
+    for (const item of itemsResult.rows) {
+      await client.query(
+        `INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ($1, $2, $3, $4)`,
+        [orderId, item.product_id, item.quantity, item.price]
+      );
+      await client.query(
+        `UPDATE products SET stock = stock - $1 WHERE id = $2`,
+        [item.quantity, item.product_id]
+      );
+    }
+
+    await client.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+
+    await client.query('COMMIT');
+
+    return res.status(201).json({
+      success: true,
+      message: "Compra realizada con éxito.",
+      order: { id: orderId, total, created_at: orderResult.rows[0].created_at }
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error("Error en checkout:", err);
+    return res.status(500).json({
+      success: false,
+      code: "PAYMENT_ERROR",
+      message: "No se pudo procesar el pago. Intenta de nuevo."
+    });
+  } finally {
+    client.release();
+  }
+});
+
+
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
