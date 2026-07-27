@@ -151,3 +151,50 @@ function isExpiryInFuture(month: string, year: string): boolean {
 
     return errs;
 }
+
+export interface UsePaymentFormReturn {
+    values: PaymentFormState;
+    errors: PaymentFormErrors;
+    handleChange: (field: keyof PaymentFormState, value: string) => void;
+    // Devuelve la lista de mensajes de error 
+    handleSubmit: (onValid: (values: PaymentFormState) => void) => string[];
+    isValid: boolean;
+}
+
+export function usePaymentForm(): UsePaymentFormReturn {
+    const [values, setValues] = useState<PaymentFormState>(INITIAL_STATE);
+    const [errors, setErrors] = useState<PaymentFormErrors>({});
+
+    const handleChange = useCallback(
+    (field: keyof PaymentFormState, rawValue: string) => {
+        const value = applyMask(field, rawValue);
+        setValues((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+    },
+    []
+    );
+
+    const handleSubmit = useCallback(
+    (onValid: (values: PaymentFormState) => void) => {
+        const validationErrors = validate(values);
+        const messages = Object.values(validationErrors).filter(
+        (m): m is string => Boolean(m)
+        );
+
+        if (messages.length > 0) {
+        setErrors(validationErrors);
+        return messages;
+        }
+
+        setErrors({});
+        onValid(values);
+        return [];
+    },
+    [values]
+    );
+
+    const fieldErrors = validate(values);
+    const isValid = Object.keys(fieldErrors).length === 0;
+
+    return { values, errors, handleChange, handleSubmit, isValid };
+}
