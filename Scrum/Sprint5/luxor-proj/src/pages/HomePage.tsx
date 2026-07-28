@@ -7,7 +7,7 @@ import { FeaturedPerfumesSection } from "../features/perfumes/FeaturedPerfumesSe
 import { BrandSection } from "../features/brand/BrandSection";
 import { CTASection } from "../features/cta/CTASection";
 import { motion } from "framer-motion";
-import { Chatbot } from "../features/chatbot/Chatbot";
+import { ContactFooter } from "../components/layout/ContactFooter";
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -108,8 +108,9 @@ export default function HomePage() {
         transition={{ duration: 1 }}
       >
         <CTASection />
-        <Chatbot />
       </motion.div>
+
+      <ContactFooter />
 
     </MainLayout>
   );

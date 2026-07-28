@@ -1,109 +1,107 @@
-# Luxor-Project
+# Habibi Parfums
 
-##  Descripción
-Luxor-Project es un sistema desarrollado con una arquitectura modular, enfocado en la gestión de diferentes funcionalidades como usuarios, productos, inventario, ventas y más.  
-El objetivo principal es organizar el desarrollo del proyecto de forma clara, utilizando buenas prácticas como el uso de ramas en Git para separar cada módulo.
+Aplicación web para explorar, administrar e importar el inventario de perfumes de Habibi Parfums. El incremento más reciente se encuentra en [`Scrum/Sprint5/luxor-proj`](Scrum/Sprint5/luxor-proj).
 
----
+## Características
 
-## Organización de ramas
+- Catálogo de perfumes, búsqueda, detalle y carrito de compras.
+- Autenticación, registro y panel administrativo.
+- Checkout con resumen de compra, validación y confirmación de pedido.
+- Chatbot para consultas sobre fragancias.
+- Categorías para perfumes e importación masiva de inventario mediante CSV.
+- Reportes operativos e historial de importaciones.
 
-El proyecto utiliza una estructura de ramas basada en funcionalidades:
+## Tecnologías
 
-main        # Rama principal (versión estable)  
-staging     # Rama para integración, pruebas y verificaciones antes de llevar los cambios a main  
-feature/*   # Ramas de desarrollo por módulo  
-docs        # Documentos entregables del proyecto  
+- Frontend: React, TypeScript, Vite, Tailwind CSS y Framer Motion.
+- Backend: Node.js, Express y PostgreSQL.
+- Chatbot: FastAPI y proveedor LLM desacoplado.
+- Infraestructura local: Docker Compose.
 
-Cada rama feature/* representa un módulo específico del sistema.
+## Ejecutar Sprint5 con Docker
 
-La rama main se mantiene limpia y estable, mientras que el desarrollo se realiza en ramas feature/*.
+```bash
+cd Scrum/Sprint5/luxor-proj
+docker compose up --build
+```
 
-La rama staging se utiliza como punto intermedio para pruebas antes de pasar a producción.
+Abre `http://localhost:5173`. El backend se expone en `http://localhost:3000` y PostgreSQL en el puerto local `5433`.
 
-La rama docs se utiliza exclusivamente para almacenar los documentos entregables del proyecto en formato PDF.
+Antes de iniciar, crea `Scrum/Sprint5/luxor-proj/.env` con:
 
----
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=tu_contrasena_segura
+POSTGRES_DB=habibi_parfums
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+FRONTEND_URL=http://localhost:5173
+```
 
-##  Módulos del sistema
+## Desarrollo local
 
-El proyecto está dividido en los siguientes módulos:
+Frontend:
 
-- Autenticación
-- Usuarios
-- Productos
-- Inventario
-- Pedidos
-- Pagos
-- Ventas
-- Proveedores
-- IA
+```bash
+cd Scrum/Sprint5/luxor-proj
+npm ci
+npm run dev
+```
 
-Cada uno de estos módulos se desarrolla en su propia rama `feature/*`.
+Backend:
 
----
+```bash
+cd Scrum/Sprint5/luxor-proj/backend
+npm ci
+npm run seed
+npm run dev
+```
 
-##  Flujo de trabajo
+Para configurar otra API en el frontend, define `VITE_API_URL` en `.env.local`.
 
-El flujo de trabajo del proyecto sigue estos pasos:
+## Importación CSV de perfumes
 
-1. Se crea una rama `feature/*` para desarrollar una funcionalidad específica.
-2. Una vez terminada, se integran los cambios en la rama `staging`.
-3. En `staging` se realizan pruebas y validaciones.
-4. Si todo está correcto, los cambios se pasan a la rama `main`.
+En el panel administrativo, entra a **Importar CSV**. El formato exige estos encabezados, en este orden:
 
-Este flujo permite mantener estabilidad y control en el desarrollo.
+```csv
+id,name,price,image,description,stock,salida,corazon,fondo
+```
 
----
+- `id`, `name`, `price` y `stock` son obligatorios.
+- `id` debe ser único y usar letras, números y guiones.
+- `price` debe ser un número no negativo con hasta dos decimales.
+- `stock` debe ser un entero no negativo.
+- Las filas inválidas muestran fila, campo y causa; las válidas se guardan transaccionalmente.
 
-##  Estructura del proyecto (general)
+Consulta [la especificación CSV](Scrum/Sprint5/luxor-proj/docs/CSV_IMPORT.md) y [el guion de presentación de Sprint5](Scrum/Sprint5/luxor-proj/docs/PRESENTACION_SPRINT5.md).
 
-docs/        # Archivos del frontend o entregables  
-data/        # Datos como productos en JSON (simulación de base de datos)  
-assets/      # Imágenes, PDFs u otros recursos  
-js/          # Lógica del sistema  
-css/         # Estilos  
+## Verificación
 
----
+```bash
+cd Scrum/Sprint5/luxor-proj/backend
+npm test
 
-## Manejo de datos (productos)
+cd ..
+npm run build
+```
 
-Los productos del sistema se almacenan en archivos tipo JSON, los cuales funcionan como una base de datos simple para el frontend.
+## Rutas principales
 
-La información de los productos puede provenir de documentos PDF, los cuales son procesados manualmente para extraer datos como:
+| Ruta | Descripción |
+| --- | --- |
+| `/` | Inicio y catálogo destacado. |
+| `/perfumes` | Catálogo completo. |
+| `/cart` | Carrito de compras. |
+| `/login` | Inicio de sesión y registro. |
+| `/payment` | Pago y confirmación de compra. |
+| `/admin` | Panel de inventario, solo administradores. |
+| `/admin/importar` | Importación CSV e historial, solo administradores. |
+| `/reporte` | Reporte operativo, solo administradores. |
 
-- Nombre
-- Precio
-- Descripción
-- Imagen
+## Equipo
 
-Estos datos se estructuran en archivos como:
-
-data/productos.json
-
----
-
-##  Tecnologías utilizadas
-
-- Git y GitHub
-- HTML, CSS y JavaScript
-- JSON para manejo de datos
-
----
-
-## Equipo de trabajo
-
-- Dally Ramirez - 241035
-- Denis Roberto Rodríguez Jiménez - 21151
-- Diego Sandoval - 231977
-- Javier Chávez - 23132
-- Adrián López - 231361
-
-
----
-
-## 📄 Documentación
-
-La documentación del proyecto se encuentra en la rama `docs`, donde se almacenan los entregables en formato PDF requeridos para el curso.
-
----
+- Dally Ramirez
+- Denis Roberto Rodríguez Jiménez
+- Diego Sandoval
+- Javier Chávez
+- Adrián López

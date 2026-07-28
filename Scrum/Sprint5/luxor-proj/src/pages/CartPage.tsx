@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H1, H3, Text } from "../components/ui/Typography";
@@ -7,10 +6,9 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { processCheckout, type CheckoutError } from "../services/checkoutService";
 
 export default function CartPage() {
-  const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart, clearCart } = useCart();
+  const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const outOfStockItems = cart.filter(
