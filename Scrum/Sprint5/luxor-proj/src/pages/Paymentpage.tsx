@@ -32,6 +32,13 @@ export default function PaymentPage() {
         return <Navigate to="/cart" replace />;
     }
 
+    const outOfStockItems = cart.filter(
+    (item) => item.product.stock !== undefined && item.quantity > item.product.stock
+    );
+    if (outOfStockItems.length > 0 && !confirmedOrder) {
+        return <Navigate to="/cart" replace />;
+    }
+
     const handlePaymentSubmit = async (_values: PaymentFormState) => {
         setCheckoutError(null);
         setIsProcessing(true);
@@ -142,7 +149,7 @@ export default function PaymentPage() {
             </H1>
 
             <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 md:gap-12">
-            // Formulario de pago 
+            {/* Formulario de pago */}
             <div className="lg:col-span-2">
                 <div className="glass-card p-6 md:p-10 border-none">
                 <H3 className="text-primary-gold mb-8 text-lg lg:text-md font-black uppercase tracking-[0.2em]">
@@ -169,7 +176,7 @@ export default function PaymentPage() {
                 </div>
             </div>
 
-            // Resumen de compra 
+            {/* Resumen de compra */}
             <div className="lg:col-span-1 order-first lg:order-none">
                 <div className="glass-card p-6 md:p-10 lg:sticky lg:top-32 border-primary-gold/10 shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
                 <H3 className="text-primary-gold mb-6 text-lg lg:text-md font-black uppercase tracking-[0.2em]">

@@ -13,35 +13,24 @@ export default function CartPage() {
   const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<CheckoutError | null>(null);
-
-  const handleCheckout = async () => {
+  const outOfStockItems = cart.filter(
+    (item) => item.product.stock !== undefined && item.quantity > item.product.stock
+  );
+  const hasStockIssue = outOfStockItems.length > 0;
+  const handleGoToPayment = () => {
     if (!user) {
       navigate("/login");
       return;
     }
-    setCheckoutError(null);
-    setIsProcessing(true);
-    try {
-      const result = await processCheckout(Number(user.id));
-      clearCart();
-      navigate("/user", { state: { orderSuccess: result.order } });
-    } catch (err) {
-      setCheckoutError(err as CheckoutError);
-    } finally {
-      setIsProcessing(false);
-    }
+    if (hasStockIssue) return;
+    navigate("/pago");
   };
-
   return (
     <MainLayout>
       <Container className="py-24 md:py-32 px-4 md:px-6">
-
         <H1 className="mb-8 md:mb-16 text-4xl md:text-7xl font-heading font-black italic text-primary-gold uppercase tracking-tighter">
           Tu Selección
         </H1>
-
         {cart.length === 0 ? (
           <div className="py-16 md:py-24 text-center glass-card p-8 md:p-12 backdrop-blur-3xl">
             <Text className="mb-8 text-primary-champagne/50 text-base md:text-2xl font-black uppercase tracking-widest">
@@ -55,10 +44,12 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 md:gap-12">
-
             <div className="lg:col-span-2 flex flex-col gap-4">
               <AnimatePresence initial={false}>
-                {cart.map((item) => (
+                {cart.map((item) => {
+                  const itemHasStockIssue =
+                    item.product.stock !== undefined && item.quantity > item.product.stock;
+                  return (
                   <motion.div
                     key={item.product.id}
                     layout
@@ -66,7 +57,11 @@ export default function CartPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -40, transition: { duration: 0.25 } }}
                     transition={{ duration: 0.3 }}
-                    className="glass-card border-none p-4 md:p-6"
+                    className={
+                      itemHasStockIssue
+                        ? "glass-card p-4 md:p-6 border border-red-500/30 bg-red-500/5"
+                        : "glass-card border-none p-4 md:p-6"
+                    }
                   >
                     <div className="flex items-start gap-4">
                       <Link
@@ -79,7 +74,6 @@ export default function CartPage() {
                           className="w-full h-full object-contain"
                         />
                       </Link>
-
                       <div className="flex-1 min-w-0 flex flex-col gap-1">
                         <div className="flex items-start justify-between gap-2">
                           <H3 className="text-base md:text-xl font-black text-primary-champagne uppercase tracking-tight leading-tight line-clamp-2">
@@ -98,11 +92,9 @@ export default function CartPage() {
                             </svg>
                           </button>
                         </div>
-
                         <span className="text-primary-gold font-black text-lg md:text-xl tracking-tight">
                           Q{item.product.price}
                         </span>
-
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center gap-0 border border-white/10 rounded-full overflow-hidden">
                             <button
@@ -123,7 +115,6 @@ export default function CartPage() {
                               +
                             </button>
                           </div>
-
                           <span className="text-xs text-primary-champagne/40 uppercase tracking-widest font-black">
                             Subtotal{" "}
                             <span className="text-primary-champagne/70">
@@ -131,20 +122,28 @@ export default function CartPage() {
                             </span>
                           </span>
                         </div>
+                        {itemHasStockIssue && (
+                          <p className="mt-2 text-xs text-red-400 font-bold flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="12" y1="8" x2="12" y2="12" />
+                              <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            Sin stock suficiente. Solo quedan {item.product.stock} disponibles.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </AnimatePresence>
             </div>
-
             <div className="lg:col-span-1 order-first lg:order-none">
               <div className="glass-card p-6 md:p-10 lg:sticky lg:top-32 border-primary-gold/10 shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
-
                 <H3 className="text-primary-gold mb-6 text-lg lg:text-md font-black uppercase tracking-[0.2em]">
                   Resumen
                 </H3>
-
                 <div className="flex flex-col gap-3 mb-6">
                   {cart.map((item) => (
                     <div key={item.product.id} className="flex justify-between items-center text-sm">
@@ -158,9 +157,7 @@ export default function CartPage() {
                     </div>
                   ))}
                 </div>
-
                 <div className="h-px bg-white/5 mb-6" />
-
                 {/* Total */}
                 <div className="flex justify-between items-center mb-8">
                   <span className="text-primary-champagne/40 text-xs tracking-[0.3em] uppercase font-black">
@@ -170,31 +167,23 @@ export default function CartPage() {
                     Q{totalPrice.toLocaleString()}
                   </span>
                 </div>
-
-                {checkoutError && (
+                {hasStockIssue && (
                   <div className="mb-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
                     <p className="text-sm text-red-400 font-bold mb-1">
-                      {checkoutError.code === "INSUFFICIENT_STOCK" ? "Sin stock suficiente" : "No se pudo procesar tu compra"}
+                      Sin stock suficiente
                     </p>
-                    <p className="text-xs text-red-400/80">{checkoutError.message}</p>
-                    {checkoutError.items && (
-                      <ul className="mt-2 text-xs text-red-400/70 list-disc list-inside">
-                        {checkoutError.items.map((i) => (
-                          <li key={i.product_id}>{i.name}: pediste {i.solicitado}, quedan {i.disponible}</li>
-                        ))}
-                      </ul>
-                    )}
+                    <p className="text-xs text-red-400/80">
+                      Ajusta la cantidad de los productos marcados en rojo antes de continuar con la compra.
+                    </p>
                   </div>
                 )}
-
                 <Button
-                  onClick={handleCheckout}
-                  disabled={isProcessing}
-                  className="w-full py-5 md:py-6 font-black uppercase tracking-[0.3em] text-sm shadow-[0_20px_60px_rgba(224,179,84,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleGoToPayment}
+                  disabled={hasStockIssue}
+                  className="w-full py-5 md:py-6 font-black uppercase tracking-[0.3em] text-sm shadow-[0_20px_60px_rgba(224,179,84,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  {isProcessing ? "Procesando..." : "Finalizar Compra"}
+                  {hasStockIssue ? "Ajusta tu carrito para continuar" : "Ir a Pagar"}
                 </Button>
-
                 <Link
                   to="/perfumes"
                   className="block text-center mt-4 text-xs text-primary-champagne/30 hover:text-primary-gold uppercase tracking-[0.2em] font-black transition-all"
@@ -203,7 +192,6 @@ export default function CartPage() {
                 </Link>
               </div>
             </div>
-
           </div>
         )}
       </Container>
