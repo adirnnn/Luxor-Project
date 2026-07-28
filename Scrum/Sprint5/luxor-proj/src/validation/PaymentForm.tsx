@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 
 type FieldProps = {
     id: string;
@@ -138,4 +139,75 @@ const FormSelect = ({
         </p>
         )}
     </div>
+);
+
+
+// Error popup
+type ErrorPopupProps = {
+    messages: string[];
+    onClose: () => void;
+};
+
+const ErrorPopup = ({ messages, onClose }: ErrorPopupProps) => (
+    <AnimatePresence>
+        {messages.length > 0 && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-primary-black/80 backdrop-blur-sm px-4"
+            onClick={onClose}
+        >
+            <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.96 }}
+            transition={{ duration: 0.25 }}
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card w-full max-w-md p-8 md:p-10 border border-red-500/20 shadow-[0_30px_100px_rgba(0,0,0,0.6)]"
+            >
+            <div className="mx-auto mb-6 w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-red-500"
+                >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+            </div>
+
+            <h3 className="text-center mb-4 text-lg md:text-xl font-black uppercase tracking-tight text-primary-champagne">
+                No se pudo realizar la compra
+            </h3>
+
+            <ul className="mb-8 flex flex-col gap-2">
+                {messages.map((msg, i) => (
+                <li
+                    key={i}
+                    className="text-sm text-primary-champagne/70 bg-red-500/5 border border-red-500/10 rounded-xl px-4 py-2.5"
+                >
+                    {msg}
+                </li>
+                ))}
+            </ul>
+
+            <button
+                onClick={onClose}
+                className="w-full py-4 rounded-button text-sm font-black uppercase tracking-[0.3em] bg-primary-gold text-primary-black hover:bg-primary-champagne transition-all duration-300"
+            >
+                Entendido
+            </button>
+            </motion.div>
+        </motion.div>
+        )}
+    </AnimatePresence>
 );
