@@ -47,7 +47,10 @@ export async function createProduct(product: Product): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product),
   });
-  if (!res.ok) throw new Error('Error al crear producto');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message || 'Error al crear producto');
+  }
 }
 
 export async function updateProduct(id: string, product: Partial<Product>): Promise<void> {
@@ -56,7 +59,10 @@ export async function updateProduct(id: string, product: Partial<Product>): Prom
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product),
   });
-  if (!res.ok) throw new Error('Error al actualizar producto');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message || 'Error al actualizar producto');
+  }
 }
 
 export async function deleteProduct(id: string): Promise<void> {

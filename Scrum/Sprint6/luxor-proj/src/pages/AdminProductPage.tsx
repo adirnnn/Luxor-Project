@@ -18,9 +18,10 @@ type FieldProps = {
     placeholder?: string;
     disabled?: boolean;
     multiline?: boolean;
+    required?: boolean;
 };
 
-const Field = ({ label, name, value, onChange, type = "text", placeholder, disabled, multiline }: FieldProps) => (
+const Field = ({ label, name, value, onChange, type = "text", placeholder, disabled, multiline, required }: FieldProps) => (
 <div className="flex flex-col gap-2">
     <label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary-gold italic">
         {label}
@@ -32,6 +33,7 @@ const Field = ({ label, name, value, onChange, type = "text", placeholder, disab
         onChange={onChange}
         placeholder={placeholder}
         rows={4}
+        required={required}
         className="w-full px-4 py-3 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300 resize-none"
         />
     ) : (
@@ -42,6 +44,7 @@ const Field = ({ label, name, value, onChange, type = "text", placeholder, disab
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
+        required={required}
         className="w-full px-4 py-3 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300 disabled:opacity-30"
         />
     )}
@@ -116,6 +119,11 @@ const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
 
     const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
+    if (!formData.id.trim() || !formData.name.trim() || !formData.price) {
+        setError("ID, nombre y precio son obligatorios.");
+        return;
+    }
     setSaving(true);
     try {
         if (isEditing) {
@@ -124,8 +132,8 @@ const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
         await createProduct(formData);
         }
         navigate("/admin");
-    } catch {
-        setError("Error al guardar producto.");
+    } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al guardar producto.");
         setSaving(false);
     }
 };
@@ -194,6 +202,7 @@ return (
                     onChange={handleChange}
                     placeholder="ej: club-de-nuit"
                     disabled={isEditing}
+                    required
                 />
 
                 <Field
@@ -202,6 +211,7 @@ return (
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Nombre del perfume"
+                    required
                 />
 
                 {/* SFTWRKEY-275: Selector de categoría */}
@@ -254,6 +264,7 @@ return (
                     onChange={handleChange}
                     type="number"
                     placeholder="0"
+                    required
                 />
                 <Field
                     label="Stock"

@@ -139,6 +139,9 @@ app.get("/products/:id", async (req, res) => {
 
 app.post("/products", async (req, res) => {
   const { id, name, price, image, description, stock, notes, category_id } = req.body;
+  if (!id || !id.trim() || !name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
+    return res.status(400).json({ success: false, message: "ID, nombre y precio son obligatorios." });
+  }
   try {
     await pool.query(
       `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id)
@@ -154,6 +157,9 @@ app.post("/products", async (req, res) => {
 
 app.put("/products/:id", async (req, res) => {
   const { name, price, image, description, stock, notes, category_id } = req.body;
+  if (!name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
+    return res.status(400).json({ success: false, message: "Nombre y precio son obligatorios." });
+  }
   try {
     await pool.query(
       `UPDATE products 
