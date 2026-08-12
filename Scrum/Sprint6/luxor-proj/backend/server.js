@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import pool from './db.js';
 import bcrypt from 'bcryptjs';
 import { CSV_TEMPLATE, validateCsv } from './csvImport.js';
+import { listSyncLogs } from './services/perfumSyncLog.js';
 
 const SALT_ROUNDS = 12;
 
@@ -181,6 +182,17 @@ app.delete("/products/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error al eliminar producto" });
+  }
+});
+
+// integracion PerfumAPI: historial de errores de sincronizacion
+app.get("/admin/perfum-sync-logs", async (_req, res) => {
+  try {
+    const logs = await listSyncLogs();
+    res.json({ success: true, logs });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "No se pudo consultar el historial de errores de PerfumAPI." });
   }
 });
 

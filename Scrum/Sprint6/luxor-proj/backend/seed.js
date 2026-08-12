@@ -135,7 +135,7 @@ const seedUsers = async () => {
       console.log('Nota: no se pudo verificar category_id (probablemente ya existe).');
     }
 
-    // Integracion PerfumAPI: marca + metadatos de sincronizacion (columnas nuevas en bases ya existentes)
+    // integracion PerfumAPI: marca + metadatos de sincronizacion (columnas nuevas en bases ya existentes)
     try {
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(150)`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS external_source VARCHAR(50)`);
