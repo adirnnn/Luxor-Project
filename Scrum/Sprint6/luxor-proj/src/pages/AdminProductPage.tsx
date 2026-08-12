@@ -8,6 +8,8 @@ import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { fetchProductById, createProduct, updateProduct, fetchCategories } from "../services/productService";
 import type { Product, Category } from "../services/productService";
+import { PerfumApiSearch } from "../features/perfumes/PerfumApiSearch";
+import type { ExternalPerfumeCandidate } from "../services/perfumApiService";
 
 type FieldProps = {
     label: string;
@@ -65,6 +67,7 @@ const [formData, setFormData] = useState<Product>({
     description: "",
     stock: 0,
     category_id: null,
+    brand: "",
     notes: { salida: "", corazon: "", fondo: "" },
     });
     const [categories, setCategories] = useState<Category[]>([]);
@@ -106,6 +109,22 @@ const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         [name]: name === "price" || name === "stock" ? Number(value) : value,
         }));
     }
+};
+
+// integracion PerfumAPI: autocompletar el formulario con el candidato elegido
+// (id, price, stock y category_id NO vienen de la API, los define el admin)
+const handleApiSelect = (candidate: ExternalPerfumeCandidate) => {
+    setFormData((prev) => ({
+        ...prev,
+        name: candidate.name,
+        brand: candidate.brand,
+        image: candidate.image,
+        description: candidate.description,
+        notes: { ...candidate.notes },
+        external_source: candidate.external_source,
+        external_id: candidate.external_id,
+        synced_at: candidate.synced_at,
+    }));
 };
 
 // SFTWRKEY-275: Manejar el cambio del selector de categoría (select, no input)
@@ -190,6 +209,16 @@ return (
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
+                <div className="glass-card p-5 md:p-8 flex flex-col gap-4 border-white/5 rounded-[28px]">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-champagne/20 italic">
+                    Importar desde PerfumAPI
+                </p>
+                <PerfumApiSearch onSelect={handleApiSelect} />
+                <p className="text-[10px] text-primary-champagne/25 italic">
+                    Selecciona un resultado para autocompletar marca, imagen, descripción y notas. Tú solo defines ID, categoría, precio y stock.
+                </p>
+                </div>
+
                 <div className="glass-card p-5 md:p-8 flex flex-col gap-5 border-white/5 rounded-[28px]">
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-champagne/20 italic">
                 Información principal
@@ -212,6 +241,14 @@ return (
                     onChange={handleChange}
                     placeholder="Nombre del perfume"
                     required
+                />
+
+                <Field
+                    label="Marca"
+                    name="brand"
+                    value={formData.brand ?? ""}
+                    onChange={handleChange}
+                    placeholder="Ej: Chanel, Lattafa..."
                 />
 
                 {/* SFTWRKEY-275: Selector de categoría */}
