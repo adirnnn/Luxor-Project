@@ -9,6 +9,10 @@ export type Product = {
   stock?: number;
   category_id?: number | null;
   category_name?: string | null;
+  brand?: string | null;
+  external_source?: string | null;
+  external_id?: string | null;
+  synced_at?: string | null;
   notes: {
     salida: string;
     corazon: string;

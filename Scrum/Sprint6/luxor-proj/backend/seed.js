@@ -106,6 +106,10 @@ const seedUsers = async () => {
         corazon VARCHAR(200),
         fondo VARCHAR(200),
         category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        brand VARCHAR(150),
+        external_source VARCHAR(50),
+        external_id VARCHAR(100),
+        synced_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
@@ -129,6 +133,17 @@ const seedUsers = async () => {
       console.log('Columna category_id verificada en products');
     } catch (e) {
       console.log('Nota: no se pudo verificar category_id (probablemente ya existe).');
+    }
+
+    // Integracion PerfumAPI: marca + metadatos de sincronizacion (columnas nuevas en bases ya existentes)
+    try {
+      await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(150)`);
+      await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS external_source VARCHAR(50)`);
+      await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS external_id VARCHAR(100)`);
+      await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS synced_at TIMESTAMP`);
+      console.log('Columnas de integracion PerfumAPI verificadas en products (brand, external_source, external_id, synced_at)');
+    } catch (e) {
+      console.log('Nota: no se pudieron verificar las columnas de PerfumAPI (probablemente ya existen).');
     }
 
     // Tablas para reportes (SFTWRKEY-163+)

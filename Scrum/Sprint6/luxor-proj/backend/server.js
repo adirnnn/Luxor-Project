@@ -138,15 +138,15 @@ app.get("/products/:id", async (req, res) => {
 });
 
 app.post("/products", async (req, res) => {
-  const { id, name, price, image, description, stock, notes, category_id } = req.body;
+  const { id, name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
   if (!id || !id.trim() || !name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
     return res.status(400).json({ success: false, message: "ID, nombre y precio son obligatorios." });
   }
   try {
     await pool.query(
-      `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null]
+      `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id, brand, external_source, external_id, synced_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [id, name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null, brand || null, external_source || null, external_id || null, synced_at || null]
     );
     res.status(201).json({ success: true, message: "Producto creado" });
   } catch (err) {
@@ -156,16 +156,16 @@ app.post("/products", async (req, res) => {
 });
 
 app.put("/products/:id", async (req, res) => {
-  const { name, price, image, description, stock, notes, category_id } = req.body;
+  const { name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
   if (!name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
     return res.status(400).json({ success: false, message: "Nombre y precio son obligatorios." });
   }
   try {
     await pool.query(
-      `UPDATE products 
-       SET name = $1, price = $2, image = $3, description = $4, stock = $5, salida = $6, corazon = $7, fondo = $8, category_id = $9
-       WHERE id = $10`,
-      [name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null, req.params.id]
+      `UPDATE products
+       SET name = $1, price = $2, image = $3, description = $4, stock = $5, salida = $6, corazon = $7, fondo = $8, category_id = $9, brand = $10, external_source = $11, external_id = $12, synced_at = $13
+       WHERE id = $14`,
+      [name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null, brand || null, external_source || null, external_id || null, synced_at || null, req.params.id]
     );
     res.json({ success: true, message: "Producto actualizado" });
   } catch (err) {
