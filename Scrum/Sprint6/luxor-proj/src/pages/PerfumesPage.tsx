@@ -28,10 +28,12 @@ export default function PerfumesPage() {
   }, []);
 
   const filtered = products.filter((p) => {
+    // Solo se muestran perfumes con stock disponible (busqueda publica).
+    const inStock = (p.stock ?? 0) > 0;
     const matchesQuery = p.name.toLowerCase().includes(query.toLowerCase());
     const matchesCategory =
       categoryId === "all" || String(p.category_id) === categoryId;
-    return matchesQuery && matchesCategory;
+    return inStock && matchesQuery && matchesCategory;
   });
 
   return (
