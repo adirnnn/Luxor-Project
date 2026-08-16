@@ -11,7 +11,8 @@ router = APIRouter(
 )
 
 service = ChatService(
-    provider = get_provider()
+    provider = get_provider(),
+    product_service = ProductService()
 )
 
 product_service = ProductService()
@@ -23,9 +24,9 @@ product_service = ProductService()
 )
 async def chat(request: ChatRequest):
 
-    return await service.generate_response(request)
+    return await service.generar_respuesta(request)
 
-# Prueba de conexión de chatbot con backend para obtener productos
-@router.get("/test-products")
-async def test_products():
-    return await product_service.get_products()
+# Prueba de capacidad de consultas por nombre
+@router.get("/test-search")
+async def test_search(q: str):
+    return await product_service.buscar_productos(q)

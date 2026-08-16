@@ -1,6 +1,5 @@
 import httpx
 
-
 class ProductService:
 
     def __init__(self):
@@ -17,3 +16,23 @@ class ProductService:
             response.raise_for_status()
 
             return response.json()
+
+    async def buscar_productos(
+        self,
+        query: str
+    ) -> list[dict]:
+
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                f"{self.base_url}/products/search",
+                params={
+                    "busqueda": query
+                }
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            return data["products"]
