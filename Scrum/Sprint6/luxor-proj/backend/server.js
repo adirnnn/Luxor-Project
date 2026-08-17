@@ -9,7 +9,7 @@ import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClie
 import { getKnownBrands } from './services/perfumBrands.js';
 import { mapExternalPerfumeToProduct } from './services/perfumMapper.js';
 import { validateMappedPerfume } from './services/perfumValidation.js';
-import { getGeneralMetrics } from './services/reportMetrics.js';
+import { getGeneralMetrics,  getMonthlySales, getSalesByCategory, } from './services/reportMetrics.js';
 
 const SALT_ROUNDS = 12;
 
@@ -475,6 +475,32 @@ app.get("/report/metrics", async (_req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error al obtener las métricas generales." });
+  }
+});
+
+// ventas mensuales
+app.get("/report/sales-monthly", async (req, res) => {
+  const months = Number(req.query.months ?? 12);
+  if (!Number.isInteger(months) || months < 1 || months > 36) {
+    return res.status(400).json({ success: false, message: "El parámetro 'months' debe ser un entero entre 1 y 36." });
+  }
+  try {
+    const sales = await getMonthlySales(months);
+    res.json({ success: true, sales });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener las ventas mensuales." });
+  }
+});
+
+// ventas por categoria 
+app.get("/report/sales-by-category", async (_req, res) => {
+  try {
+    const sales = await getSalesByCategory();
+    res.json({ success: true, sales });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener las ventas por categoría." });
   }
 });
 
