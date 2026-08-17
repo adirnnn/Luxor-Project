@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
@@ -7,12 +7,20 @@ import { useAuth } from "../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-interface Purchase {
+interface OrderItem {
   product_id: string;
   name: string;
-  price: number;
   image: string;
   quantity: number;
+  unit_price: number;
+}
+
+interface Order {
+  id: number;
+  total: number;
+  status: string;
+  created_at: string;
+  items: OrderItem[];
 }
 
 interface UserInfo {
@@ -37,63 +45,161 @@ const Spinner = () => (
   </div>
 );
 
+// SFTWRKEY-325: Colores según el estado del pedido
+const statusStyles: Record<string, string> = {
+  pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  completed: "bg-green-500/20 text-green-400 border-green-500/30",
+  cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
+};
+
+const statusLabels: Record<string, string> = {
+  pending: "Pendiente",
+  completed: "Completado",
+  cancelled: "Cancelado",
+};
+
 export default function UserPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loadingInfo, setLoadingInfo] = useState(true);
-  const [loadingPurchases, setLoadingPurchases] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [errorInfo, setErrorInfo] = useState<string | null>(null);
-  const [errorPurchases, setErrorPurchases] = useState<string | null>(null);
+  const [errorOrders, setErrorOrders] = useState<string | null>(null);
 
-  // SFTWRKEY-233: Validar sesión activa
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // SFTWRKEY-230: Endpoint historial + SFTWRKEY-231: Conectar frontend con endpoint
-  useEffect(() => {
-    // Fetch info del usuario
+  const loadUserInfo = () => {
+    setLoadingInfo(true);
     fetch(`${API_URL}/user/${user.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener datos del usuario");
         return res.json();
       })
       .then((data) => {
-        if (data.success) setUserInfo(data.user);
-        else setErrorInfo("No se pudo obtener la información del usuario.");
+        if (data.success) {
+          setUserInfo(data.user);
+          setEditName(data.user.name);
+          setEditEmail(data.user.email);
+        } else {
+          setErrorInfo("No se pudo obtener la información del usuario.");
+        }
       })
       .catch(() => setErrorInfo("Error de conexión al obtener información."))
       .finally(() => setLoadingInfo(false));
+  };
 
-    // Fetch historial de compras
-    fetch(`${API_URL}/user/${user.id}/purchases`)
+  useEffect(() => {
+    loadUserInfo();
+
+    fetch(`${API_URL}/user/${user.id}/orders`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener historial");
         return res.json();
       })
       .then((data) => {
-        if (data.success) setPurchases(data.purchases);
-        else setErrorPurchases("No se pudo obtener el historial.");
+        if (data.success) setOrders(data.orders);
+        else setErrorOrders("No se pudo obtener el historial.");
       })
-      .catch(() => setErrorPurchases("Error de conexión al obtener historial."))
-      .finally(() => setLoadingPurchases(false));
+      .catch(() => setErrorOrders("Error de conexión al obtener historial."))
+      .finally(() => setLoadingOrders(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
-  const totalSpent = purchases.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  const totalSpent = orders.reduce((sum, o) => sum + Number(o.total), 0);
 
-  // SFTWRKEY-232: Aplicar estilos UI
+  const handleSaveInfo = async (e: FormEvent) => {
+    e.preventDefault();
+    setSavingInfo(true);
+    setInfoMessage(null);
+    try {
+      const res = await fetch(`${API_URL}/user/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, email: editEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setInfoMessage({ type: "error", text: data.message || "No se pudo actualizar la información." });
+        return;
+      }
+      setUserInfo(data.user);
+      // Actualiza también la sesión (para que el nombre se refleje en toda la app)
+      login({ ...user, name: data.user.name, email: data.user.email });
+      setInfoMessage({ type: "success", text: "Información actualizada correctamente." });
+      setIsEditingInfo(false);
+    } catch {
+      setInfoMessage({ type: "error", text: "Error de conexión. Intenta de nuevo." });
+    } finally {
+      setSavingInfo(false);
+    }
+  };
+
+  // SFTWRKEY-322: Guardar nueva contraseña
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage(null);
+
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: "error", text: "La nueva contraseña debe tener al menos 6 caracteres." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: "error", text: "Las contraseñas nuevas no coinciden." });
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      const res = await fetch(`${API_URL}/user/${user.id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setPasswordMessage({ type: "error", text: data.message || "No se pudo cambiar la contraseña." });
+        return;
+      }
+      setPasswordMessage({ type: "success", text: "Contraseña actualizada correctamente." });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsChangingPassword(false);
+    } catch {
+      setPasswordMessage({ type: "error", text: "Error de conexión. Intenta de nuevo." });
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   return (
     <MainLayout>
       <Container className="py-12">
         <H1 className="mb-10">Mi Cuenta</H1>
 
-        {/* ── SFTWRKEY-228: Mostrar información del usuario ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* Panel izquierdo: info */}
-          <div className="lg:col-span-1">
+          {/* Panel izquierdo: info + edición + contraseña */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
             <div className="bg-primary-black text-white p-8 rounded-3xl shadow-xl flex flex-col gap-6">
               {/* Avatar */}
               <div className="flex flex-col items-center gap-3">
@@ -112,35 +218,173 @@ export default function UserPage() {
 
               <div className="h-px bg-white/10" />
 
-              {/* Detalles */}
               {loadingInfo ? (
                 <Spinner />
               ) : errorInfo ? (
                 <p className="text-sm text-red-400 text-center">{errorInfo}</p>
               ) : userInfo ? (
-                <div className="flex flex-col gap-4 text-sm">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-white/40 uppercase tracking-widest">Nombre</span>
-                    <span className="text-white">{userInfo.name}</span>
+                isEditingInfo ? (
+                  <form onSubmit={handleSaveInfo} className="flex flex-col gap-4 text-sm">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-white/40 uppercase tracking-widest">Nombre</label>
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                        required
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-white/40 uppercase tracking-widest">Correo</label>
+                      <input
+                        type="email"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                        required
+                      />
+                    </div>
+
+                    {infoMessage && (
+                      <p className={`text-xs ${infoMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                        {infoMessage.text}
+                      </p>
+                    )}
+
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="submit"
+                        disabled={savingInfo}
+                        className="flex-1 bg-primary-gold text-primary-black font-bold rounded-lg py-2 text-xs uppercase tracking-widest disabled:opacity-50"
+                      >
+                        {savingInfo ? "Guardando..." : "Guardar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingInfo(false);
+                          setEditName(userInfo.name);
+                          setEditEmail(userInfo.email);
+                          setInfoMessage(null);
+                        }}
+                        className="flex-1 bg-white/10 text-white rounded-lg py-2 text-xs uppercase tracking-widest"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex flex-col gap-4 text-sm">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-white/40 uppercase tracking-widest">Nombre</span>
+                      <span className="text-white">{userInfo.name}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-white/40 uppercase tracking-widest">Correo</span>
+                      <span className="text-white">{userInfo.email}</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-white/40 uppercase tracking-widest">Rol</span>
+                      <span className="text-white capitalize">{userInfo.role}</span>
+                    </div>
+
+                    {infoMessage && (
+                      <p className={`text-xs ${infoMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                        {infoMessage.text}
+                      </p>
+                    )}
+
+                    <button
+                      onClick={() => setIsEditingInfo(true)}
+                      className="mt-1 border border-primary-gold text-primary-gold rounded-lg py-2 text-xs uppercase tracking-widest hover:bg-primary-gold hover:text-primary-black transition-colors"
+                    >
+                      Editar información
+                    </button>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-white/40 uppercase tracking-widest">Correo</span>
-                    <span className="text-white">{userInfo.email}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-white/40 uppercase tracking-widest">Rol</span>
-                    <span className="text-white capitalize">{userInfo.role}</span>
-                  </div>
-                </div>
+                )
               ) : null}
+
+              <div className="h-px bg-white/10" />
+
+              {isChangingPassword ? (
+                <form onSubmit={handleChangePassword} className="flex flex-col gap-3 text-sm">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-white/40 uppercase tracking-widest">Contraseña actual</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-white/40 uppercase tracking-widest">Nueva contraseña</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-white/40 uppercase tracking-widest">Confirmar nueva contraseña</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                      required
+                    />
+                  </div>
+
+                  {passwordMessage && (
+                    <p className={`text-xs ${passwordMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                      {passwordMessage.text}
+                    </p>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={savingPassword}
+                      className="flex-1 bg-primary-gold text-primary-black font-bold rounded-lg py-2 text-xs uppercase tracking-widest disabled:opacity-50"
+                    >
+                      {savingPassword ? "Guardando..." : "Guardar"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsChangingPassword(false);
+                        setCurrentPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                        setPasswordMessage(null);
+                      }}
+                      className="flex-1 bg-white/10 text-white rounded-lg py-2 text-xs uppercase tracking-widest"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setIsChangingPassword(true)}
+                  className="border border-white/20 text-white/70 rounded-lg py-2 text-xs uppercase tracking-widest hover:border-primary-gold hover:text-primary-gold transition-colors"
+                >
+                  Cambiar contraseña
+                </button>
+              )}
 
               <div className="h-px bg-white/10" />
 
               {/* Resumen */}
               <div className="flex flex-col gap-2 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-white/50">Productos en historial</span>
-                  <span className="font-bold text-primary-gold">{purchases.length}</span>
+                  <span className="text-white/50">Pedidos realizados</span>
+                  <span className="font-bold text-primary-gold">{orders.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-white/50">Total acumulado</span>
@@ -150,41 +394,77 @@ export default function UserPage() {
             </div>
           </div>
 
-          {/* Panel derecho: historial */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            <H2>Historial de Compras</H2>
+            <H2>Historial de Pedidos</H2>
 
-            {loadingPurchases ? (
+            {loadingOrders ? (
               <Spinner />
-            ) : errorPurchases ? (
+            ) : errorOrders ? (
               <div className="py-10 text-center bg-white/30 rounded-3xl border border-primary-beige">
-                <p className="text-red-500 text-sm">{errorPurchases}</p>
+                <p className="text-red-500 text-sm">{errorOrders}</p>
               </div>
-            ) : purchases.length === 0 ? (
+            ) : orders.length === 0 ? (
               <div className="py-20 text-center bg-white/30 rounded-3xl border border-primary-beige">
-                <Text>Aún no tienes compras registradas.</Text>
+                <Text>Aún no tienes pedidos registrados.</Text>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                {purchases.map((item, i) => (
-                  <div key={`${item.product_id}-${i}`}
-                    className="flex items-center gap-5 p-4 bg-white/70 rounded-2xl border border-primary-beige">
-                    <div className="w-16 h-16 bg-primary-champagne rounded-xl overflow-hidden flex-shrink-0 p-2">
-                      <img src={item.image} alt={item.name}
-                        className="w-full h-full object-contain mix-blend-multiply" />
+                {orders.map((order) => {
+                  const isExpanded = expandedOrderId === order.id;
+                  const badgeClass = statusStyles[order.status] ?? "bg-white/10 text-white/70 border-white/20";
+                  const badgeLabel = statusLabels[order.status] ?? order.status;
+
+                  return (
+                    <div key={order.id} className="bg-white/70 rounded-2xl border border-primary-beige overflow-hidden">
+                      <button
+                        onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                        className="w-full flex items-center justify-between gap-4 p-5 text-left"
+                      >
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold text-primary-black">Pedido #{order.id}</span>
+                          <span className="text-xs text-secondary-brown">
+                            {new Date(order.created_at).toLocaleDateString("es-GT", {
+                              day: "2-digit", month: "long", year: "numeric",
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${badgeClass}`}>
+                            {badgeLabel}
+                          </span>
+                          <span className="font-bold text-primary-gold">Q{Number(order.total).toFixed(2)}</span>
+                          <svg
+                            className={`text-secondary-brown transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                            xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="border-t border-primary-beige px-5 py-4 flex flex-col gap-3 bg-white/40">
+                          {order.items.map((item, i) => (
+                            <div key={`${item.product_id}-${i}`} className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-primary-champagne rounded-lg overflow-hidden flex-shrink-0 p-1.5">
+                                <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <H3 className="text-sm truncate">{item.name}</H3>
+                                <p className="text-xs text-secondary-brown mt-0.5">Cantidad: {item.quantity}</p>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <p className="font-bold text-primary-gold text-sm">Q{Number(item.unit_price).toFixed(2)}</p>
+                                <p className="text-xs text-secondary-brown">c/u</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <H3 className="text-sm truncate">{item.name}</H3>
-                      <p className="text-xs text-secondary-brown mt-0.5">
-                        Cantidad: {item.quantity}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-primary-gold">Q{item.price}</p>
-                      <p className="text-xs text-secondary-brown">c/u</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
