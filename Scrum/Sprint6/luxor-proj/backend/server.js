@@ -9,6 +9,7 @@ import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClie
 import { getKnownBrands } from './services/perfumBrands.js';
 import { mapExternalPerfumeToProduct } from './services/perfumMapper.js';
 import { validateMappedPerfume } from './services/perfumValidation.js';
+import { getGeneralMetrics } from './services/reportMetrics.js';
 
 const SALT_ROUNDS = 12;
 
@@ -463,6 +464,17 @@ app.get("/report", async (req, res) => {
     res.json({ success: true, data: { totalUsers: parseInt(users.rows[0].total), totalItemsInCarts: parseInt(items.rows[0].total) || 0, topProducts: top.rows } });
   } catch (err) {
     res.status(500).json({ success: false });
+  }
+});
+
+// matrices generales de ventas confirmadas
+app.get("/report/metrics", async (_req, res) => {
+  try {
+    const metrics = await getGeneralMetrics();
+    res.json({ success: true, metrics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener las métricas generales." });
   }
 });
 
