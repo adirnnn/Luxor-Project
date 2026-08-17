@@ -270,12 +270,20 @@ export const Navbar = () => {
 
             <div className="hidden md:flex items-center gap-4">
               {isAuthenticated && user ? (
-                <button
-                  onClick={handleLogout}
-                  className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
-                >
-                  Salir
-                </button>
+                <>
+                  <Link
+                    to="/mi-cuenta"
+                    className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
+                  >
+                    Mi Cuenta
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
+                  >
+                    Salir
+                  </button>
+                </>
               ) : (
                 <Link
                   to="/login"
@@ -403,12 +411,21 @@ export const Navbar = () => {
                 </>
               )}
               {isAuthenticated && user ? (
-                <button
-                  onClick={handleLogout}
-                  className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
-                >
-                  Cerrar sesión
-                </button>
+                <>
+                  <Link
+                    to="/mi-cuenta"
+                    onClick={() => setOpen(false)}
+                    className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
+                  >
+                    Mi Cuenta
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
               ) : (
                 <Link
                   to="/login"

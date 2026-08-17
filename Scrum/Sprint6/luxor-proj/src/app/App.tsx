@@ -15,6 +15,7 @@ import AdminProductPage from "../pages/AdminProductPage";
 import AdminCreateUserPage from "../pages/AdminCreateUserPage";
 import ImportPerfumesPage from "../pages/ImportPerfumesPage";
 import PaymentPage from "../pages/Paymentpage";
+import UserPage from "../pages/UserPage";
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -46,6 +47,7 @@ function AnimatedRoutes() {
         <Route path="/admin/nuevo-usuario" element={<PageWrapper><AdminCreateUserPage /></PageWrapper>} />
         <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
+        <Route path="/mi-cuenta" element={<PageWrapper><UserPage /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );
