@@ -9,7 +9,9 @@ import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClie
 import { getKnownBrands } from './services/perfumBrands.js';
 import { mapExternalPerfumeToProduct } from './services/perfumMapper.js';
 import { validateMappedPerfume } from './services/perfumValidation.js';
-import { getGeneralMetrics,  getMonthlySales, getSalesByCategory, } from './services/reportMetrics.js';
+import { getGeneralMetrics, getMonthlySales, 
+        getSalesByCategory, getTopProducts,
+        getInventoryByCategory } from './services/reportMetrics.js';
 
 const SALT_ROUNDS = 12;
 
@@ -501,6 +503,32 @@ app.get("/report/sales-by-category", async (_req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error al obtener las ventas por categoría." });
+  }
+});
+
+// productos mas vendidos
+app.get("/report/top-products", async (req, res) => {
+  const limit = Number(req.query.limit ?? 5);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    return res.status(400).json({ success: false, message: "El parámetro 'limit' debe ser un entero entre 1 y 50." });
+  }
+  try {
+    const products = await getTopProducts(limit);
+    res.json({ success: true, products });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener los productos más vendidos." });
+  }
+});
+
+// inventario por categoría
+app.get("/report/inventory", async (_req, res) => {
+  try {
+    const inventory = await getInventoryByCategory();
+    res.json({ success: true, inventory });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener el inventario por categoría." });
   }
 });
 
