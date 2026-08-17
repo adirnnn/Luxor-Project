@@ -9,9 +9,6 @@ import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClie
 import { getKnownBrands } from './services/perfumBrands.js';
 import { mapExternalPerfumeToProduct } from './services/perfumMapper.js';
 import { validateMappedPerfume } from './services/perfumValidation.js';
-import { getGeneralMetrics, getMonthlySales, 
-        getSalesByCategory, getTopProducts,
-        getInventoryByCategory } from './services/reportMetrics.js';
 
 const SALT_ROUNDS = 12;
 
@@ -409,6 +406,92 @@ app.get("/user/:userId/purchases", async (req, res) => {
   }
 });
 
+// SFTWRKEY-323/324/325: Historial real de pedidos 
+app.get("/user/:userId/orders", async (req, res) => {
+  try {
+    const ordersResult = await pool.query(
+      `SELECT id, total, status, created_at
+       FROM orders
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+      [req.params.userId]
+    );
+
+    const orders = [];
+    for (const order of ordersResult.rows) {
+      const itemsResult = await pool.query(
+        `SELECT oi.product_id, oi.quantity, oi.unit_price, p.name, p.image
+         FROM order_items oi
+         JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id = $1`,
+        [order.id]
+      );
+      orders.push({ ...order, items: itemsResult.rows });
+    }
+
+    res.json({ success: true, orders });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener el historial de pedidos" });
+  }
+});
+
+// SFTWRKEY-321: Editar información personal 
+app.put("/user/:userId", async (req, res) => {
+  const { name, email } = req.body;
+  if (!name || !email) {
+    return res.status(400).json({ success: false, message: "Nombre y correo son requeridos." });
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: "El formato del correo no es válido." });
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE users SET name = $1, email = $2 WHERE id = $3
+       RETURNING id, name, email`,
+      [name, email, req.params.userId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Usuario no encontrado." });
+    }
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ success: false, message: "Ese correo ya está en uso por otra cuenta." });
+    }
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al actualizar la información." });
+  }
+});
+
+// SFTWRKEY-322: Cambiar contraseña 
+app.put("/user/:userId/password", async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: "Debes ingresar la contraseña actual y la nueva." });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: "La nueva contraseña debe tener al menos 6 caracteres." });
+  }
+  try {
+    const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [req.params.userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Usuario no encontrado." });
+    }
+    const match = await bcrypt.compare(currentPassword, userResult.rows[0].password);
+    if (!match) {
+      return res.status(401).json({ success: false, message: "La contraseña actual es incorrecta." });
+    }
+    const newHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [newHash, req.params.userId]);
+    res.json({ success: true, message: "Contraseña actualizada correctamente." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al cambiar la contraseña." });
+  }
+});
+
 // SFTWRKEY-215: Búsqueda de usuarios con ILIKE (case-insensitive)
 app.get("/users/search", async (req, res) => {
   const { q } = req.query;
@@ -466,69 +549,6 @@ app.get("/report", async (req, res) => {
     res.json({ success: true, data: { totalUsers: parseInt(users.rows[0].total), totalItemsInCarts: parseInt(items.rows[0].total) || 0, topProducts: top.rows } });
   } catch (err) {
     res.status(500).json({ success: false });
-  }
-});
-
-// matrices generales de ventas confirmadas
-app.get("/report/metrics", async (_req, res) => {
-  try {
-    const metrics = await getGeneralMetrics();
-    res.json({ success: true, metrics });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error al obtener las métricas generales." });
-  }
-});
-
-// ventas mensuales
-app.get("/report/sales-monthly", async (req, res) => {
-  const months = Number(req.query.months ?? 12);
-  if (!Number.isInteger(months) || months < 1 || months > 36) {
-    return res.status(400).json({ success: false, message: "El parámetro 'months' debe ser un entero entre 1 y 36." });
-  }
-  try {
-    const sales = await getMonthlySales(months);
-    res.json({ success: true, sales });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error al obtener las ventas mensuales." });
-  }
-});
-
-// ventas por categoria 
-app.get("/report/sales-by-category", async (_req, res) => {
-  try {
-    const sales = await getSalesByCategory();
-    res.json({ success: true, sales });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error al obtener las ventas por categoría." });
-  }
-});
-
-// productos mas vendidos
-app.get("/report/top-products", async (req, res) => {
-  const limit = Number(req.query.limit ?? 5);
-  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
-    return res.status(400).json({ success: false, message: "El parámetro 'limit' debe ser un entero entre 1 y 50." });
-  }
-  try {
-    const products = await getTopProducts(limit);
-    res.json({ success: true, products });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error al obtener los productos más vendidos." });
-  }
-});
-
-// inventario por categoría
-app.get("/report/inventory", async (_req, res) => {
-  try {
-    const inventory = await getInventoryByCategory();
-    res.json({ success: true, inventory });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error al obtener el inventario por categoría." });
   }
 });
 
