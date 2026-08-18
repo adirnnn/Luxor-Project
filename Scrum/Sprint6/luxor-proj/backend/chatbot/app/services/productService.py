@@ -112,17 +112,7 @@ class ProductService:
         notas = set()
 
         for producto in productos:
-            notes = producto.get("notes", {})
-
-            for tipo in ["salida", "corazon", "fondo"]:
-                contenido = notes.get(tipo)
-
-                if contenido:
-                    notas.update(
-                        nota.strip()
-                        for nota in contenido.split(",")
-                        if nota.strip()
-                    )
+            notas.update(self._obtener_notas_producto(producto))
 
         return sorted(notas)
 
@@ -135,25 +125,95 @@ class ProductService:
 
         nota_normalizada = nota.strip().casefold()
 
-        resultados = []
+        return [
+            producto
+            for producto in productos
+            if nota_normalizada
+            in self._obtener_notas_producto(producto)
+        ]
 
-        for producto in productos:
+    async def obtener_recomendaciones(
+        self,
+        producto: dict,
+        limite: int = 3
+    ) -> list[dict]:
 
-            notes = producto.get("notes", {})
+        productos = await self.get_products()
 
-            notas_producto = []
+        recomendaciones = []
 
-            for tipo in ["salida", "corazon", "fondo"]:
-                contenido = notes.get(tipo)
+        notas_producto = self._obtener_notas_producto(
+            producto
+        )
 
-                if contenido:
-                    notas_producto.extend(
-                        n.strip().casefold()
-                        for n in contenido.split(",")
-                        if n.strip()
-                    )
+        for candidato in productos:
 
-            if nota_normalizada in notas_producto:
-                resultados.append(producto)
+            # No recomendar el mismo perfume
+            if candidato["id"] == producto["id"]:
+                continue
 
-        return resultados
+            puntaje = 0
+
+            # Misma marca
+            if (
+                producto.get("brand")
+                and candidato.get("brand")
+                and producto["brand"].casefold()
+                == candidato["brand"].casefold()
+            ):
+                puntaje += 2
+
+            # Misma categoría
+            if (
+                producto.get("category_name")
+                and candidato.get("category_name")
+                and producto["category_name"].casefold()
+                == candidato["category_name"].casefold()
+            ):
+                puntaje += 2
+
+            # Notas compartidas
+            notas_producto = self._obtener_notas_producto(producto)
+            notas_candidato = self._obtener_notas_producto(candidato)
+
+            notas_compartidas = (
+                notas_producto & notas_candidato
+            )
+
+            puntaje += len(notas_compartidas)
+
+            if puntaje > 0:
+                recomendaciones.append(
+                    (puntaje, candidato)
+                )
+
+        recomendaciones.sort(
+            key=lambda item: item[0],
+            reverse=True
+        )
+
+        return [
+            producto
+            for _, producto in recomendaciones[:limite]
+        ]
+
+    # Funcion para obtener las notas
+    def _obtener_notas_producto(
+        self,
+        producto: dict
+    ) -> set[str]:
+
+        notas = set()
+        notes = producto.get("notes", {})
+
+        for tipo in ["salida", "corazon", "fondo"]:
+            contenido = notes.get(tipo)
+
+            if contenido:
+                notas.update(
+                    nota.strip().casefold()
+                    for nota in contenido.split(",")
+                    if nota.strip()
+                )
+
+        return notas

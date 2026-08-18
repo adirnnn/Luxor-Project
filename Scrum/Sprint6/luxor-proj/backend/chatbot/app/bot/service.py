@@ -196,9 +196,23 @@ class ChatService:
                 )
             )
 
+        recomendaciones = []
+
+        if nombre_producto != "NONE" and products:
+            recomendaciones = await self.product_service.obtener_recomendaciones(
+                products[0]
+            )
+
+        print("Recomendaciones:", recomendaciones)
+
         # Convertir resultados a texto para el modelo
-        contexto = json.dumps(
+        contexto_productos = json.dumps(
             products,
+            ensure_ascii=False
+        )
+
+        contexto_recomendaciones = json.dumps(
+            recomendaciones,
             ensure_ascii=False
         )
 
@@ -210,7 +224,13 @@ class ChatService:
                     "Responde utilizando únicamente la información "
                     "del catálogo proporcionado. "
                     "No inventes productos ni disponibilidad.\n\n"
-                    f"CATÁLOGO ENCONTRADO:\n{contexto}"
+                    f"PRODUCTOS ENCONTRADOS:\n"
+                    f"{contexto_productos}\n\n"
+                    f"RECOMENDACIONES RELACIONADAS:\n"
+                    f"{contexto_recomendaciones}\n\n"
+                    "Si existen recomendaciones relacionadas, "
+                    "menciona brevemente algunas después de responder "
+                    "la pregunta principal del usuario."
                 )
             ),
             ChatMessage(
