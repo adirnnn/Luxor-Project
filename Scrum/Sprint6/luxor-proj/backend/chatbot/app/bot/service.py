@@ -68,8 +68,9 @@ class ChatService:
         request: ChatRequest
     ) -> ChatResponse:
 
-        # Obtener catálogo
+        # Obtener catálogo y categorías
         products_catalog = await self.product_service.get_products()
+        categorias = await self.product_service.obtener_categorias()
 
         nombre_productos = [
             product["name"]
@@ -83,8 +84,8 @@ class ChatService:
         )
 
         print("Nombre extraído:", nombre_producto)
+        print("Nombres disponibles:", nombre_productos)
 
-        # Normalizar el texto
         if nombre_producto != "NONE":
             nombre_producto = self.normalizar_texto(
                 nombre_producto,
@@ -93,7 +94,21 @@ class ChatService:
 
         print("Nombre normalizado:", nombre_producto)
 
-        # Buscar en la base de datos
+        # Intentar identificar una categoría
+        categoria = await self.extraer_categoria(
+            request.message,
+            categorias
+        )
+
+        if categoria != "NONE":
+            categoria = self.normalizar_texto(
+                categoria,
+                categorias
+            )
+
+        print("Categoría:", categoria)
+
+        # Elegir el tipo de búsqueda
         products = []
 
         if nombre_producto != "NONE":
@@ -101,24 +116,27 @@ class ChatService:
                 nombre_producto
             )
 
-        print("Productos encontrados:", products)
-
-        # Buscar producto en la base de datos
-        products = []
-
-        if nombre_producto != "NONE":
-            products = await self.product_service.buscar_productos(
-                nombre_producto
+        elif categoria != "NONE":
+            products = await self.product_service.buscar_por_categoria(
+                categoria
             )
 
         print("Productos encontrados:", products)
 
-        # Producto mencionado pero no encontrado
+        # Manejar búsquedas sin resultados
         if nombre_producto != "NONE" and not products:
             return ChatResponse(
                 response=(
                     f"No encontré ningún perfume llamado "
                     f"{nombre_producto} en nuestro catálogo."
+                )
+            )
+
+        if categoria != "NONE" and not products:
+            return ChatResponse(
+                response=(
+                    f"No encontré perfumes de la categoría "
+                    f"{categoria} en nuestro catálogo."
                 )
             )
 
@@ -181,3 +199,44 @@ class ChatService:
             return opciones_normalizadas[coincidencias[0]]
 
         return "NONE"
+
+    async def extraer_categoria(
+        self,
+        message: str,
+        categorias: list[str]
+    ) -> str:
+
+        termino_normalizado = message.casefold()
+
+        # Intentar encontrar la categoria
+        for categoria in categorias:
+            if categoria.casefold() in termino_normalizado:
+                return categoria
+
+        catalogo = "\n".join(categorias)
+
+        messages = [
+            ChatMessage(
+                role=MessageRole.SYSTEM,
+                content=(
+                    "Tu única tarea es identificar qué categoría de perfume "
+                    "está mencionando el usuario.\n\n"
+                    "CATEGORÍAS DISPONIBLES:\n"
+                    f"{catalogo}\n\n"
+                    "REGLAS:\n"
+                    "- Responde exclusivamente con una categoría disponible.\n"
+                    "- Copia la categoría exactamente como aparece en la lista.\n"
+                    "- No respondas la pregunta del usuario.\n"
+                    "- No agregues explicaciones.\n"
+                    "- Si ninguna categoría es mencionada, responde exactamente NONE."
+                )
+            ),
+            ChatMessage(
+                role=MessageRole.USER,
+                content=message
+            )
+        ]
+
+        response = await self.provider.chat(messages)
+
+        return response.strip()
