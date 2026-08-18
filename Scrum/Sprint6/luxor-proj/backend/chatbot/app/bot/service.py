@@ -6,6 +6,7 @@ from app.bot.models import MessageRole
 from app.llm.base import LLMProvider
 from app.services.productService import ProductService
 from difflib import get_close_matches
+from app.services.chatLogService import ChatLogService
 
 
 class ChatService:
@@ -13,10 +14,12 @@ class ChatService:
     def __init__(
         self,
         provider: LLMProvider,
-        product_service: ProductService
+        product_service: ProductService,
+        chat_log_service: ChatLogService
     ):
         self.provider = provider
         self.product_service = product_service
+        self.chat_log_service = chat_log_service
 
 
     async def extraer_nombre_perfume(
@@ -170,45 +173,62 @@ class ChatService:
             and marca == "NONE"
             and nota == "NONE"
         ):
-            return ChatResponse(
-                response=(
-                    "No encontré información relacionada con tu consulta "
-                    "en nuestro catálogo. Puedes preguntarme por un perfume, "
-                    "una marca, una categoría o una nota aromática."
-                )
+            respuesta = (
+                "No encontré información relacionada con tu consulta "
+                "en nuestro catálogo. Puedes preguntarme por un perfume, "
+                "una marca, una categoría o una nota aromática."
             )
 
-        # Manejar búsquedas sin resultados
+            return await self._crear_respuesta(
+                request.message,
+                respuesta
+            )
+
+        # Perfume no encontrado
         if nombre_producto != "NONE" and not products:
-            return ChatResponse(
-                response=(
-                    f"No encontré ningún perfume llamado "
-                    f"{nombre_producto} en nuestro catálogo."
-                )
+            respuesta = (
+                f"No encontré ningún perfume llamado "
+                f"{nombre_producto} en nuestro catálogo."
             )
 
+            return await self._crear_respuesta(
+                request.message,
+                respuesta
+            )
+
+        # Categoría sin resultados
         if categoria != "NONE" and not products:
-            return ChatResponse(
-                response=(
-                    f"No encontré perfumes de la categoría "
-                    f"{categoria} en nuestro catálogo."
-                )
+            respuesta = (
+                f"No encontré perfumes de la categoría "
+                f"{categoria} en nuestro catálogo."
             )
 
+            return await self._crear_respuesta(
+                request.message,
+                respuesta
+            )
+
+        # Marca sin resultados
         if marca != "NONE" and not products:
-            return ChatResponse(
-                response=(
-                    f"No encontré perfumes de la marca "
-                    f"{marca} en nuestro catálogo."
-                )
+            respuesta = (
+                f"No encontré perfumes de la marca "
+                f"{marca} en nuestro catálogo."
+            )
+
+            return await self._crear_respuesta(
+                request.message,
+                respuesta
             )
 
         if nota != "NONE" and not products:
-            return ChatResponse(
-                response=(
-                    f"No encontré perfumes con la nota "
-                    f"{nota} en nuestro catálogo."
-                )
+            respuesta = (
+                f"No encontré perfumes con la nota "
+                f"{nota} en nuestro catálogo."
+            )
+
+            return await self._crear_respuesta(
+                request.message,
+                respuesta
             )
 
         recomendaciones = []
@@ -256,8 +276,9 @@ class ChatService:
 
         response = await self.provider.chat(mensajes)
 
-        return ChatResponse(
-            response=response
+        return await self._crear_respuesta(
+            request.message,
+            response
         )
     
     def normalizar_texto(
@@ -413,3 +434,19 @@ class ChatService:
         response = await self.provider.chat(mensajes)
 
         return response.strip()
+
+    # Función para crear respuesta y facilitar que quede registrada
+    async def _crear_respuesta(
+        self,
+        consulta: str,
+        respuesta: str
+    ) -> ChatResponse:
+
+        await self.chat_log_service.registrar_consulta(
+            consulta,
+            respuesta
+        )
+
+        return ChatResponse(
+            response=respuesta
+        )
