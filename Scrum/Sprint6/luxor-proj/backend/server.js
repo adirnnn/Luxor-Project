@@ -9,6 +9,13 @@ import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClie
 import { getKnownBrands } from './services/perfumBrands.js';
 import { mapExternalPerfumeToProduct } from './services/perfumMapper.js';
 import { validateMappedPerfume } from './services/perfumValidation.js';
+import {
+  getGeneralMetrics,
+  getMonthlySales,
+  getSalesByCategory,
+  getTopProducts,
+  getInventoryByCategory,
+} from './services/reportMetrics.js';
 
 const SALT_ROUNDS = 12;
 
@@ -549,6 +556,70 @@ app.get("/report", async (req, res) => {
     res.json({ success: true, data: { totalUsers: parseInt(users.rows[0].total), totalItemsInCarts: parseInt(items.rows[0].total) || 0, topProducts: top.rows } });
   } catch (err) {
     res.status(500).json({ success: false });
+  }
+});
+
+
+// métricas generales del 
+app.get("/report/metrics", async (_req, res) => {
+  try {
+    const metrics = await getGeneralMetrics();
+    res.json({ success: true, metrics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener las métricas generales." });
+  }
+});
+
+//ventas por mes ultimos 12
+app.get("/report/sales-monthly", async (req, res) => {
+  const months = Number(req.query.months ?? 12);
+  if (!Number.isInteger(months) || months < 1 || months > 36) {
+    return res.status(400).json({ success: false, message: "El parámetro 'months' debe ser un entero entre 1 y 36." });
+  }
+  try {
+    const sales = await getMonthlySales(months);
+    res.json({ success: true, sales });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener las ventas mensuales." });
+  }
+});
+
+// ventas por categoría (no existía ningún endpoint con este dato)
+app.get("/report/sales-by-category", async (_req, res) => {
+  try {
+    const sales = await getSalesByCategory();
+    res.json({ success: true, sales });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener las ventas por categoría." });
+  }
+});
+
+// productos más vendidos
+app.get("/report/top-products", async (req, res) => {
+  const limit = Number(req.query.limit ?? 5);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    return res.status(400).json({ success: false, message: "El parámetro 'limit' debe ser un entero entre 1 y 50." });
+  }
+  try {
+    const products = await getTopProducts(limit);
+    res.json({ success: true, products });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener los productos más vendidos." });
+  }
+});
+
+// inventario por categoría
+app.get("/report/inventory", async (_req, res) => {
+  try {
+    const inventory = await getInventoryByCategory();
+    res.json({ success: true, inventory });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error al obtener el inventario por categoría." });
   }
 });
 
