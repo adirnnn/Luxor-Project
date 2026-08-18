@@ -104,3 +104,56 @@ class ProductService:
                 == marca.strip().casefold()
             )
         ]
+
+    async def obtener_notas(self) -> list[str]:
+
+        productos = await self.get_products()
+
+        notas = set()
+
+        for producto in productos:
+            notes = producto.get("notes", {})
+
+            for tipo in ["salida", "corazon", "fondo"]:
+                contenido = notes.get(tipo)
+
+                if contenido:
+                    notas.update(
+                        nota.strip()
+                        for nota in contenido.split(",")
+                        if nota.strip()
+                    )
+
+        return sorted(notas)
+
+    async def buscar_por_nota(
+        self,
+        nota: str
+    ) -> list[dict]:
+
+        productos = await self.get_products()
+
+        nota_normalizada = nota.strip().casefold()
+
+        resultados = []
+
+        for producto in productos:
+
+            notes = producto.get("notes", {})
+
+            notas_producto = []
+
+            for tipo in ["salida", "corazon", "fondo"]:
+                contenido = notes.get(tipo)
+
+                if contenido:
+                    notas_producto.extend(
+                        n.strip().casefold()
+                        for n in contenido.split(",")
+                        if n.strip()
+                    )
+
+            if nota_normalizada in notas_producto:
+                resultados.append(producto)
+
+        return resultados

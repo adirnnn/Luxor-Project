@@ -72,6 +72,7 @@ class ChatService:
         products_catalog = await self.product_service.get_products()
         categorias = await self.product_service.obtener_categorias()
         marcas = await self.product_service.obtener_marcas()
+        notas = await self.product_service.obtener_notas()
 
         nombre_productos = [
             product["name"]
@@ -123,6 +124,20 @@ class ChatService:
 
         print("Marca:", marca)
 
+        # Identificar nota
+        nota = await self.extraer_nota(
+            request.message,
+            notas
+        )
+
+        if nota != "NONE":
+            nota = self.normalizar_texto(
+                nota,
+                notas
+            )
+
+        print("Nota:", nota)
+
         # Elegir el tipo de búsqueda
         products = []
 
@@ -139,6 +154,11 @@ class ChatService:
         elif marca != "NONE":
             products = await self.product_service.buscar_por_marca(
                 marca
+            )
+
+        elif nota != "NONE":
+            products = await self.product_service.buscar_por_nota(
+                nota
             )
 
         print("Productos encontrados:", products)
@@ -165,6 +185,14 @@ class ChatService:
                 response=(
                     f"No encontré perfumes de la marca "
                     f"{marca} en nuestro catálogo."
+                )
+            )
+
+        if nota != "NONE" and not products:
+            return ChatResponse(
+                response=(
+                    f"No encontré perfumes con la nota "
+                    f"{nota} en nuestro catálogo."
                 )
             )
 
@@ -307,5 +335,46 @@ class ChatService:
         ]
 
         response = await self.provider.chat(messages)
+
+        return response.strip()
+
+    async def extraer_nota(
+        self,
+        message: str,
+        notas: list[str]
+    ) -> str:
+
+        mensaje_normalizado = message.casefold()
+
+        # Buscar una nota en el mensaje
+        for nota in notas:
+            if nota.casefold() in mensaje_normalizado:
+                return nota
+
+        catalogo = "\n".join(notas)
+
+        mensajes = [
+            ChatMessage(
+                role=MessageRole.SYSTEM,
+                content=(
+                    "Tu única tarea es identificar qué nota aromática "
+                    "está mencionando el usuario.\n\n"
+                    "NOTAS DISPONIBLES:\n"
+                    f"{catalogo}\n\n"
+                    "REGLAS:\n"
+                    "- Responde exclusivamente con una nota disponible.\n"
+                    "- Copia la nota exactamente como aparece en la lista.\n"
+                    "- No respondas la pregunta del usuario.\n"
+                    "- No agregues explicaciones.\n"
+                    "- Si ninguna nota es mencionada, responde exactamente NONE."
+                )
+            ),
+            ChatMessage(
+                role=MessageRole.USER,
+                content=message
+            )
+        ]
+
+        response = await self.provider.chat(mensajes)
 
         return response.strip()

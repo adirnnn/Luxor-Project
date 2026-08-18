@@ -26,8 +26,13 @@ async def chat(request: ChatRequest):
 
     return await service.generar_respuesta(request)
 
-@router.get("/test-brand")
-async def test_brand(brand: str):
-    return await product_service.buscar_por_marca(
-        brand
+# Prueba de capacidad de búsqueda por notas
+@router.get("/test-notes")
+async def test_notes():
+    return await product_service.obtener_notas()
+
+@router.get("/test-note")
+async def test_note(note: str):
+    return await product_service.buscar_por_nota(
+        note
     )
