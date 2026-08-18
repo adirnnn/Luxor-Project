@@ -1,20 +1,34 @@
+import type { PaymentFormState } from "../validation/usePaymentForm";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export interface CheckoutError {
-  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "PAYMENT_ERROR" | "NETWORK_ERROR";
+  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "CARD_DECLINED" | "INVALID_PAYMENT_DATA" | "GATEWAY_ERROR" | "PAYMENT_ERROR" | "NETWORK_ERROR";
   message: string;
   items?: { product_id: string; name: string; disponible: number; solicitado: number }[];
+  declineCode?: string;
 }
 
 export interface CheckoutSuccess {
   success: true;
   order: { id: number; total: number; created_at: string };
+  payment: {
+    id: number;
+    status: string;
+    brand: string;
+    last4: string;
+    authCode: string;
+  };
 }
 
-export async function processCheckout(userId: number): Promise<CheckoutSuccess> {
+export async function processCheckout(userId: number, card: PaymentFormState): Promise<CheckoutSuccess> {
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/checkout/${userId}`, { method: "POST" });
+    res = await fetch(`${API_URL}/checkout/${userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(card),
+    });
   } catch {
     const err: CheckoutError = { code: "NETWORK_ERROR", message: "No hay conexión con el servidor. Revisa tu internet." };
     throw err;
@@ -27,6 +41,7 @@ export async function processCheckout(userId: number): Promise<CheckoutSuccess> 
       code: data.code || "PAYMENT_ERROR",
       message: data.message || "Ocurrió un error al procesar el pago.",
       items: data.items,
+      declineCode: data.declineCode,
     };
     throw err;
   }
