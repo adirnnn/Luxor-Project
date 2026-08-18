@@ -821,5 +821,39 @@ app.post("/checkout/:userId", async (req, res) => {
   }
 });
 
+// Historial de preguntas y respuestas del chatbot
+app.post("/chatbot/queries", async (req, res) => {
+    const { query, response } = req.body;
+
+    if (!query || !query.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "La consulta es requerida."
+      });
+    }
+
+    try {
+      const result = await pool.query(
+        `INSERT INTO chatbot_queries (query, response)
+        VALUES ($1, $2)
+        RETURNING id, query, response, created_at`,
+        [query, response || null]
+      );
+
+      return res.status(201).json({
+        success: true,
+        query: result.rows[0]
+      });
+
+    } catch (err) {
+      console.error("Error registrando consulta del chatbot:", err);
+
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo registrar la consulta."
+      });
+    }
+});
+
 
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
