@@ -68,3 +68,39 @@ class ProductService:
                 == categoria.strip().casefold()
             )
         ]
+
+    async def obtener_marcas(self) -> list[str]:
+        productos = await self.get_products()
+        marcas = {
+            producto["brand"]
+            for producto in productos
+            if producto.get("brand")
+        }
+
+        return sorted(marcas)
+
+    async def buscar_por_marca(
+        self,
+        marca: str
+    ) -> list[dict]:
+
+        productos = await self.get_products()
+
+        print("Marca buscada:", repr(marca))
+
+        for producto in productos:
+            print(
+                producto.get("name"),
+                "->",
+                repr(producto.get("brand"))
+            )
+
+        return [
+            producto
+            for producto in productos
+            if (
+                producto.get("brand")
+                and producto["brand"].strip().casefold()
+                == marca.strip().casefold()
+            )
+        ]

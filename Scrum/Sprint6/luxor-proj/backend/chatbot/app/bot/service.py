@@ -68,16 +68,17 @@ class ChatService:
         request: ChatRequest
     ) -> ChatResponse:
 
-        # Obtener catálogo y categorías
+        # Obtener toda la información del catálogo
         products_catalog = await self.product_service.get_products()
         categorias = await self.product_service.obtener_categorias()
+        marcas = await self.product_service.obtener_marcas()
 
         nombre_productos = [
             product["name"]
             for product in products_catalog
         ]
 
-        # Identificar producto mencionado
+        # Identificar perfume por nombre
         nombre_producto = await self.extraer_nombre_perfume(
             request.message,
             nombre_productos
@@ -94,7 +95,7 @@ class ChatService:
 
         print("Nombre normalizado:", nombre_producto)
 
-        # Intentar identificar una categoría
+        # Identificar categoría
         categoria = await self.extraer_categoria(
             request.message,
             categorias
@@ -108,6 +109,20 @@ class ChatService:
 
         print("Categoría:", categoria)
 
+        # Identificar marca
+        marca = await self.extraer_marca(
+            request.message,
+            marcas
+        )
+
+        if marca != "NONE":
+            marca = self.normalizar_texto(
+                marca,
+                marcas
+            )
+
+        print("Marca:", marca)
+
         # Elegir el tipo de búsqueda
         products = []
 
@@ -119,6 +134,11 @@ class ChatService:
         elif categoria != "NONE":
             products = await self.product_service.buscar_por_categoria(
                 categoria
+            )
+
+        elif marca != "NONE":
+            products = await self.product_service.buscar_por_marca(
+                marca
             )
 
         print("Productos encontrados:", products)
@@ -137,6 +157,14 @@ class ChatService:
                 response=(
                     f"No encontré perfumes de la categoría "
                     f"{categoria} en nuestro catálogo."
+                )
+            )
+
+        if marca != "NONE" and not products:
+            return ChatResponse(
+                response=(
+                    f"No encontré perfumes de la marca "
+                    f"{marca} en nuestro catálogo."
                 )
             )
 
@@ -229,6 +257,47 @@ class ChatService:
                     "- No respondas la pregunta del usuario.\n"
                     "- No agregues explicaciones.\n"
                     "- Si ninguna categoría es mencionada, responde exactamente NONE."
+                )
+            ),
+            ChatMessage(
+                role=MessageRole.USER,
+                content=message
+            )
+        ]
+
+        response = await self.provider.chat(messages)
+
+        return response.strip()
+
+    async def extraer_marca(
+        self,
+        message: str,
+        marcas: list[str]
+    ) -> str:
+
+        mensaje_normalizado = message.casefold()
+
+        # Buscar una marca directamente en el mensaje
+        for marca in marcas:
+            if marca.casefold() in mensaje_normalizado:
+                return marca
+
+        catalogo = "\n".join(marcas)
+
+        messages = [
+            ChatMessage(
+                role=MessageRole.SYSTEM,
+                content=(
+                    "Tu única tarea es identificar qué marca de perfume "
+                    "está mencionando el usuario.\n\n"
+                    "MARCAS DISPONIBLES:\n"
+                    f"{catalogo}\n\n"
+                    "REGLAS:\n"
+                    "- Responde exclusivamente con una marca disponible.\n"
+                    "- Copia la marca exactamente como aparece en la lista.\n"
+                    "- No respondas la pregunta del usuario.\n"
+                    "- No agregues explicaciones.\n"
+                    "- Si ninguna marca es mencionada, responde exactamente NONE."
                 )
             ),
             ChatMessage(

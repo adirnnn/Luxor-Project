@@ -26,9 +26,8 @@ async def chat(request: ChatRequest):
 
     return await service.generar_respuesta(request)
 
-# Prueba de capacidad de consultas por categoria
-@router.get("/test-category")
-async def test_category(category: str):
-    return await product_service.buscar_por_categoria(
-        category
+@router.get("/test-brand")
+async def test_brand(brand: str):
+    return await product_service.buscar_por_marca(
+        brand
     )
