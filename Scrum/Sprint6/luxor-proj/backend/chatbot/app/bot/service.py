@@ -163,6 +163,21 @@ class ChatService:
 
         print("Productos encontrados:", products)
 
+        # Manejo de consultas que no tienen que ver con los productos
+        if (
+            nombre_producto == "NONE"
+            and categoria == "NONE"
+            and marca == "NONE"
+            and nota == "NONE"
+        ):
+            return ChatResponse(
+                response=(
+                    "No encontré información relacionada con tu consulta "
+                    "en nuestro catálogo. Puedes preguntarme por un perfume, "
+                    "una marca, una categoría o una nota aromática."
+                )
+            )
+
         # Manejar búsquedas sin resultados
         if nombre_producto != "NONE" and not products:
             return ChatResponse(
