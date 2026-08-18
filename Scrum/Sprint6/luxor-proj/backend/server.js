@@ -9,6 +9,7 @@ import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClie
 import { getKnownBrands } from './services/perfumBrands.js';
 import { mapExternalPerfumeToProduct } from './services/perfumMapper.js';
 import { validateMappedPerfume } from './services/perfumValidation.js';
+import { buildGatewayPayload, chargeCard, PaymentGatewayError } from './services/paymentGateway.js';
 import {
   getGeneralMetrics,
   getMonthlySales,
@@ -624,8 +625,76 @@ app.get("/report/inventory", async (_req, res) => {
 });
 
 // ── Checkout / Pagos ─────────────────────────────────────────────────────────
+const ensurePaymentsTable = () => pool.query(`
+  CREATE TABLE IF NOT EXISTS payments (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    amount NUMERIC(10, 2) NOT NULL,
+    currency VARCHAR(10) NOT NULL DEFAULT 'GTQ',
+    status VARCHAR(20) NOT NULL,
+    gateway_reference VARCHAR(100),
+    auth_code VARCHAR(20),
+    card_brand VARCHAR(20),
+    card_last4 VARCHAR(4),
+    decline_code VARCHAR(50),
+    decline_message TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  )
+`);
+
+const savePaymentRecord = async ({ orderId, userId, amount, status, gatewayResult }) => {
+  await ensurePaymentsTable();
+  const result = await pool.query(
+    `INSERT INTO payments
+       (order_id, user_id, amount, status, gateway_reference, auth_code, card_brand, card_last4, decline_code, decline_message)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING id, order_id, status, card_brand, card_last4, created_at`,
+    [
+      orderId,
+      userId,
+      amount,
+      status,
+      gatewayResult.transactionId,
+      gatewayResult.authCode,
+      gatewayResult.brand,
+      gatewayResult.last4,
+      gatewayResult.declineCode,
+      gatewayResult.declineMessage,
+    ]
+  );
+  return result.rows[0];
+};
+
+const CARD_FIELDS = ["cardholderName", "cardNumber", "expiryMonth", "expiryYear", "cvv", "billingAddress", "city", "postalCode", "country"];
+
+function validateCardPayload(body) {
+  for (const field of CARD_FIELDS) {
+    if (!body?.[field] || !String(body[field]).trim()) {
+      return `El campo '${field}' es requerido para procesar el pago.`;
+    }
+  }
+  const digits = String(body.cardNumber).replace(/\D/g, "");
+  if (digits.length !== 16) return "El número de tarjeta debe tener 16 dígitos.";
+  if (!/^\d{3}$/.test(body.cvv)) return "El CVV debe tener exactamente 3 dígitos.";
+  return null;
+}
+
+// SFTWRKEY-295: Crear endpoint para pagos
+// SFTWRKEY-296: Enviar información del carrito (a la pasarela)
+// SFTWRKEY-297: Procesar respuesta de la pasarela
+// SFTWRKEY-298: Mostrar confirmación de compra (datos que consume el frontend)
+// SFTWRKEY-299: Registrar pago en base de datos
+// SFTWRKEY-300: Manejo de pagos rechazados
 app.post("/checkout/:userId", async (req, res) => {
   const { userId } = req.params;
+  const cardPayload = req.body ?? {};
+
+  const validationError = validateCardPayload(cardPayload);
+  if (validationError) {
+    return res.status(400).json({ success: false, code: "INVALID_PAYMENT_DATA", message: validationError });
+  }
+
   const client = await pool.connect();
 
   try {
@@ -657,9 +726,40 @@ app.post("/checkout/:userId", async (req, res) => {
       });
     }
 
-    await client.query('BEGIN');
-
     const total = itemsResult.rows.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+
+    // SFTWRKEY-296: se arma el payload con el detalle del carrito y se envía a la pasarela
+    const gatewayPayload = buildGatewayPayload({
+      orderReference: `user-${userId}-${Date.now()}`,
+      amount: total,
+      cartItems: itemsResult.rows,
+      card: cardPayload,
+      billing: cardPayload,
+    });
+
+    // SFTWRKEY-297: se procesa la respuesta de la pasarela (aprobado o rechazado)
+    const gatewayResult = await chargeCard(gatewayPayload);
+
+    if (!gatewayResult.approved) {
+      // SFTWRKEY-300: manejo de pagos rechazados — se registra el intento fallido
+      // (sin crear orden ni tocar el stock) y se informa el motivo al frontend.
+      const payment = await savePaymentRecord({
+        orderId: null,
+        userId,
+        amount: total,
+        status: "rechazado",
+        gatewayResult,
+      });
+      return res.status(402).json({
+        success: false,
+        code: "CARD_DECLINED",
+        message: gatewayResult.declineMessage,
+        declineCode: gatewayResult.declineCode,
+        payment: { id: payment.id, status: payment.status },
+      });
+    }
+
+    await client.query('BEGIN');
 
     const orderResult = await client.query(
       `INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'completed') RETURNING id, created_at`,
@@ -682,15 +782,35 @@ app.post("/checkout/:userId", async (req, res) => {
 
     await client.query('COMMIT');
 
+    // SFTWRKEY-299: Registrar pago en base de datos (ya asociado a la orden creada)
+    const payment = await savePaymentRecord({
+      orderId,
+      userId,
+      amount: total,
+      status: "aprobado",
+      gatewayResult,
+    });
+
+    // SFTWRKEY-298: datos que la página de confirmación necesita mostrar
     return res.status(201).json({
       success: true,
       message: "Compra realizada con éxito.",
-      order: { id: orderId, total, created_at: orderResult.rows[0].created_at }
+      order: { id: orderId, total, created_at: orderResult.rows[0].created_at },
+      payment: {
+        id: payment.id,
+        status: payment.status,
+        brand: gatewayResult.brand,
+        last4: gatewayResult.last4,
+        authCode: gatewayResult.authCode,
+      },
     });
 
   } catch (err) {
-    await client.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(() => {});
     console.error("Error en checkout:", err);
+    if (err instanceof PaymentGatewayError) {
+      return res.status(502).json({ success: false, code: err.code, message: "No se pudo contactar a la pasarela de pago. Intenta de nuevo." });
+    }
     return res.status(500).json({
       success: false,
       code: "PAYMENT_ERROR",
