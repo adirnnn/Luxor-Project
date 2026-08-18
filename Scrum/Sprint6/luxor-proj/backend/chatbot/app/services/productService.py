@@ -1,9 +1,13 @@
 import httpx
+import os
 
 class ProductService:
 
     def __init__(self):
-        self.base_url = "http://127.0.0.1:3000"
+        self.base_url = os.getenv(
+            "NODE_API_URL",
+            "http://127.0.0.1:3000"
+        )
 
     async def get_products(self) -> list[dict]:
 
