@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H1, H2, H3, Text } from "../components/ui/Typography";
@@ -59,7 +59,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function UserPage() {
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated, login, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -68,21 +69,27 @@ export default function UserPage() {
   const [errorInfo, setErrorInfo] = useState<string | null>(null);
   const [errorOrders, setErrorOrders] = useState<string | null>(null);
 
+  // SFTWRKEY-324: Qué orden está expandida mostrando el detalle
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
 
+  // SFTWRKEY-321: Estado del formulario de edición de datos personales
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoMessage, setInfoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // SFTWRKEY-322: Estado del formulario de cambio de contraseña
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  // SFTWRKEY-322: Mostrar/ocultar contraseña, igual que en el login
+  const [showPasswords, setShowPasswords] = useState(false);
 
+  // SFTWRKEY-233: Validar sesión activa
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
@@ -107,9 +114,11 @@ export default function UserPage() {
       .finally(() => setLoadingInfo(false));
   };
 
+  // SFTWRKEY-230/231: Endpoint de historial + conectar frontend
   useEffect(() => {
     loadUserInfo();
 
+    // SFTWRKEY-323: Historial real de pedidos (orders + order_items)
     fetch(`${API_URL}/user/${user.id}/orders`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener historial");
@@ -126,10 +135,22 @@ export default function UserPage() {
 
   const totalSpent = orders.reduce((sum, o) => sum + Number(o.total), 0);
 
+  // SFTWRKEY-321: Validar formato de correo en el navegador antes de llamar al backend
   const handleSaveInfo = async (e: FormEvent) => {
     e.preventDefault();
-    setSavingInfo(true);
     setInfoMessage(null);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editEmail)) {
+      setInfoMessage({ type: "error", text: "Ingresa un correo con formato válido (ej: nombre@dominio.com)." });
+      return;
+    }
+    if (editName.trim().length < 2) {
+      setInfoMessage({ type: "error", text: "El nombre debe tener al menos 2 caracteres." });
+      return;
+    }
+
+    setSavingInfo(true);
     try {
       const res = await fetch(`${API_URL}/user/${user.id}`, {
         method: "PUT",
@@ -179,11 +200,16 @@ export default function UserPage() {
         setPasswordMessage({ type: "error", text: data.message || "No se pudo cambiar la contraseña." });
         return;
       }
-      setPasswordMessage({ type: "success", text: "Contraseña actualizada correctamente." });
+      setPasswordMessage({ type: "success", text: "Contraseña actualizada. Por seguridad, vuelve a iniciar sesión..." });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setIsChangingPassword(false);
+      // SFTWRKEY-322: Por seguridad, cerramos la sesión tras cambiar la contraseña
+      setTimeout(() => {
+        logout();
+        navigate("/login");
+      }, 1800);
     } catch {
       setPasswordMessage({ type: "error", text: "Error de conexión. Intenta de nuevo." });
     } finally {
@@ -307,12 +333,35 @@ export default function UserPage() {
 
               <div className="h-px bg-white/10" />
 
+              {/* SFTWRKEY-322: Cambiar contraseña */}
               {isChangingPassword ? (
                 <form onSubmit={handleChangePassword} className="flex flex-col gap-3 text-sm">
+                  <div className="flex justify-end -mb-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords((prev) => !prev)}
+                      className="text-[10px] uppercase tracking-widest text-white/40 hover:text-primary-gold transition-colors flex items-center gap-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {showPasswords ? (
+                          <>
+                            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </>
+                        ) : (
+                          <>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </>
+                        )}
+                      </svg>
+                      {showPasswords ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-white/40 uppercase tracking-widest">Contraseña actual</label>
                     <input
-                      type="password"
+                      type={showPasswords ? "text" : "password"}
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
@@ -322,7 +371,7 @@ export default function UserPage() {
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-white/40 uppercase tracking-widest">Nueva contraseña</label>
                     <input
-                      type="password"
+                      type={showPasswords ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
@@ -332,7 +381,7 @@ export default function UserPage() {
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-white/40 uppercase tracking-widest">Confirmar nueva contraseña</label>
                     <input
-                      type="password"
+                      type={showPasswords ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="bg-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary-gold"
@@ -448,7 +497,15 @@ export default function UserPage() {
                           {order.items.map((item, i) => (
                             <div key={`${item.product_id}-${i}`} className="flex items-center gap-4">
                               <div className="w-12 h-12 bg-primary-champagne rounded-lg overflow-hidden flex-shrink-0 p-1.5">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-contain mix-blend-multiply"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src =
+                                      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5'><circle cx='12' cy='8' r='3'/><path d='M4 20c0-4 4-6 8-6s8 2 8 6'/></svg>";
+                                  }}
+                                />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <H3 className="text-sm truncate">{item.name}</H3>
