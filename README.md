@@ -36,6 +36,10 @@ POSTGRES_DB=habibi_parfums
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
 FRONTEND_URL=http://localhost:5173
+
+PAYMENT_GATEWAY_API_KEY=sk_test_luxor_dev_12345
+PAYMENT_GATEWAY_LATENCY_MS=400
+
 ```
 
 ## Desarrollo local

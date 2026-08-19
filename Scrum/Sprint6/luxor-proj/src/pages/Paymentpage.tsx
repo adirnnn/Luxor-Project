@@ -23,6 +23,11 @@ export default function PaymentPage() {
         total: number;
         created_at: string;
     } | null>(null);
+    const [confirmedPayment, setConfirmedPayment] = useState<{
+        brand: string;
+        last4: string;
+        authCode: string;
+    } | null>(null);
 
     if (!isAuthenticated || !user) {
         return <Navigate to="/login" replace />;
@@ -39,13 +44,14 @@ export default function PaymentPage() {
         return <Navigate to="/cart" replace />;
     }
 
-    const handlePaymentSubmit = async (_values: PaymentFormState) => {
+    const handlePaymentSubmit = async (values: PaymentFormState) => {
         setCheckoutError(null);
         setIsProcessing(true);
         try {
-        const result = await processCheckout(Number(user.id));
+        const result = await processCheckout(Number(user.id), values);
         clearCart();
         setConfirmedOrder(result.order);
+        setConfirmedPayment(result.payment);
         } catch (err) {
         setCheckoutError(err as CheckoutError);
         } finally {
@@ -106,6 +112,19 @@ export default function PaymentPage() {
                         Q{confirmedOrder.total.toLocaleString()}
                     </span>
                     </div>
+                    {confirmedPayment && (
+                    <>
+                        <div className="h-px bg-white/5" />
+                        <div className="flex justify-between items-center px-2">
+                        <span className="text-primary-champagne/40 uppercase tracking-widest text-xs font-black">
+                            Método de pago
+                        </span>
+                        <span className="text-primary-champagne/70 font-bold text-sm">
+                            {confirmedPayment.brand} •••• {confirmedPayment.last4}
+                        </span>
+                        </div>
+                    </>
+                    )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -159,7 +178,11 @@ export default function PaymentPage() {
                 {checkoutError && (
                     <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
                     <p className="text-sm text-red-400 font-bold mb-1">
-                        {checkoutError.code === "INSUFFICIENT_STOCK" ? "Sin stock suficiente" : "No se pudo procesar tu compra"}
+                        {checkoutError.code === "INSUFFICIENT_STOCK"
+                          ? "Sin stock suficiente"
+                          : checkoutError.code === "CARD_DECLINED"
+                          ? "Tarjeta rechazada"
+                          : "No se pudo procesar tu compra"}
                     </p>
                     <p className="text-xs text-red-400/80">{checkoutError.message}</p>
                     {checkoutError.items && (
