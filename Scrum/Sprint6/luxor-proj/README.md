@@ -153,3 +153,7 @@ ollama serve
 ```
 
 Dentro de Docker Compose, el chatbot se conecta al backend por el nombre de servicio (`NODE_API_URL=http://backend:3000`) y a Ollama en el equipo anfitrión (`OLLAMA_URL=http://host.docker.internal:11434`, definidos en `docker-compose.yml`).
+
+## LOGT
+
+Los registros de tiempo (LOGT) de cada integrante del equipo para Sprint 6 están en [`LOGT/`](LOGT/): un archivo individual por persona y `LOGT_Sprint6_Equipo.docx` con los cinco juntos.
