@@ -13,14 +13,17 @@ export interface AuthUser {
 export interface AuthResult {
     success: boolean;
     user?: AuthUser;
+    token?: string;
     error?: string;
 }
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export async function login(
     credentials: LoginCredentials
 ): Promise<AuthResult> {
     try {
-        const response = await fetch("http://localhost:3000/login", {
+        const response = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -33,6 +36,7 @@ export async function login(
         if (response.ok && data.success) {
             return {
                 success: true,
+                token: data.token,
                 user: {
                     id: data.user.id,
                     name: data.user.name,

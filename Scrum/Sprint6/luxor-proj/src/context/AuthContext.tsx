@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from "react";
 import type { AuthUser } from "../validation/authService";
+import { TOKEN_KEY } from "../services/apiClient";
 
 interface AuthContextType {
     user: AuthUser | null;
-    login: (user: AuthUser) => void;
+    login: (user: AuthUser, token: string) => void;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -16,20 +17,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<AuthUser | null>(() => {
         try {
             const saved = localStorage.getItem(SESSION_KEY);
-            return saved ? (JSON.parse(saved) as AuthUser) : null;
+            const hasToken = !!localStorage.getItem(TOKEN_KEY);
+            return saved && hasToken ? (JSON.parse(saved) as AuthUser) : null;
         } catch {
             return null;
         }
     });
 
-    const login = (authUser: AuthUser) => {
+    const login = (authUser: AuthUser, token: string) => {
         setUser(authUser);
         localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
+        localStorage.setItem(TOKEN_KEY, token);
     };
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(TOKEN_KEY);
     };
 
     return (

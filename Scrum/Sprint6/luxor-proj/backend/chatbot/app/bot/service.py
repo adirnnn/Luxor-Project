@@ -88,16 +88,11 @@ class ChatService:
             nombre_productos
         )
 
-        print("Nombre extraído:", nombre_producto)
-        print("Nombres disponibles:", nombre_productos)
-
         if nombre_producto != "NONE":
             nombre_producto = self.normalizar_texto(
                 nombre_producto,
                 nombre_productos
             )
-
-        print("Nombre normalizado:", nombre_producto)
 
         # Identificar categoría
         categoria = await self.extraer_categoria(
@@ -111,8 +106,6 @@ class ChatService:
                 categorias
             )
 
-        print("Categoría:", categoria)
-
         # Identificar marca
         marca = await self.extraer_marca(
             request.message,
@@ -125,8 +118,6 @@ class ChatService:
                 marcas
             )
 
-        print("Marca:", marca)
-
         # Identificar nota
         nota = await self.extraer_nota(
             request.message,
@@ -138,8 +129,6 @@ class ChatService:
                 nota,
                 notas
             )
-
-        print("Nota:", nota)
 
         # Elegir el tipo de búsqueda
         products = []
@@ -163,8 +152,6 @@ class ChatService:
             products = await self.product_service.buscar_por_nota(
                 nota
             )
-
-        print("Productos encontrados:", products)
 
         # Manejo de consultas que no tienen que ver con los productos
         if (
@@ -237,8 +224,6 @@ class ChatService:
             recomendaciones = await self.product_service.obtener_recomendaciones(
                 products[0]
             )
-
-        print("Recomendaciones:", recomendaciones)
 
         # Convertir resultados a texto para el modelo
         contexto_productos = json.dumps(

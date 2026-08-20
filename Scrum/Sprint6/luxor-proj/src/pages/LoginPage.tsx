@@ -13,8 +13,8 @@ export default function LoginPage() {
         return <Navigate to="/" replace />;
     }
 
-    const handleSuccess = (user: AuthUser) => {
-        login(user);
+    const handleSuccess = (user: AuthUser, token: string) => {
+        login(user, token);
         navigate("/");
     };
 

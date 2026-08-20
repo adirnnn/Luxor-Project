@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
@@ -7,6 +7,7 @@ import { H1, H3, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
 import { BarChart } from "../components/charts/BarChart";
 import { DonutChart } from "../components/charts/DonutChart";
+import { API_URL, authHeaders } from "../services/apiClient";
 import {
     fetchGeneralMetrics,
     fetchMonthlySales,
@@ -20,7 +21,7 @@ import {
     type CategoryInventory,
 } from "../services/reportService";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const MONTH_RANGE_OPTIONS = [6, 12, 24];
 
 interface ReportData {
     totalUsers: number;
@@ -49,36 +50,57 @@ export default function ReportPage() {
     const [inventory, setInventory] = useState<CategoryInventory[]>([]);
     const [analyticsLoading, setAnalyticsLoading] = useState(true);
     const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+    const [monthsRange, setMonthsRange] = useState(12);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+    const loadReport = useCallback(async () => {
+        if (!isAuthenticated || user?.role !== 'ADMIN') return;
+
+        setError(null);
+        setAnalyticsError(null);
+
+        const reportPromise = fetch(`${API_URL}/report`, { headers: authHeaders() })
+            .then((res) => {
+                if (!res.ok) throw new Error("Error al cargar reporte");
+                return res.json();
+            })
+            .then((res) => setData(res.data))
+            .catch(() => setError("No se pudo cargar el reporte. Intenta más tarde."));
+
+        const analyticsPromise = Promise.all([
+            fetchGeneralMetrics(),
+            fetchMonthlySales(monthsRange),
+            fetchSalesByCategory(),
+            fetchTopProducts(5),
+            fetchInventoryByCategory(),
+        ])
+            .then(([generalMetrics, sales, byCategory, top, stock]) => {
+                setMetrics(generalMetrics);
+                setMonthlySales(sales);
+                setCategorySales(byCategory);
+                setTopProducts(top);
+                setInventory(stock);
+            })
+            .catch(() => setAnalyticsError("No se pudieron cargar las métricas y gráficas. Intenta más tarde."));
+
+        await Promise.all([reportPromise, analyticsPromise]);
+        setLastUpdated(new Date());
+    }, [isAuthenticated, user, monthsRange]);
 
     useEffect(() => {
-        if (isAuthenticated && user?.role === 'ADMIN') {
-            fetch(`${API_URL}/report`)
-                .then((res) => {
-                    if (!res.ok) throw new Error("Error al cargar reporte");
-                    return res.json();
-                })
-                .then((res) => setData(res.data))
-                .catch(() => setError("No se pudo cargar el reporte. Intenta más tarde."))
-                .finally(() => setLoading(false));
-                
-            Promise.all([
-                fetchGeneralMetrics(),
-                fetchMonthlySales(12),
-                fetchSalesByCategory(),
-                fetchTopProducts(5),
-                fetchInventoryByCategory(),
-            ])
-                .then(([generalMetrics, sales, byCategory, top, stock]) => {
-                    setMetrics(generalMetrics);
-                    setMonthlySales(sales);
-                    setCategorySales(byCategory);
-                    setTopProducts(top);
-                    setInventory(stock);
-                })
-                .catch(() => setAnalyticsError("No se pudieron cargar las métricas y gráficas. Intenta más tarde."))
-                .finally(() => setAnalyticsLoading(false));
-        }
-    }, [isAuthenticated, user]);
+        setLoading(true);
+        setAnalyticsLoading(true);
+        loadReport().finally(() => {
+            setLoading(false);
+            setAnalyticsLoading(false);
+        });
+    }, [loadReport]);
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        loadReport().finally(() => setRefreshing(false));
+    };
 
     // Solo ADMINs pueden ver el reporte
     if (!isAuthenticated) {
@@ -94,9 +116,37 @@ export default function ReportPage() {
             <Section size="lg">
                 <Container>
                     <div className="flex flex-col gap-10">
-                        <div className="flex flex-col gap-2">
-                            <H1>Reporte general</H1>
-                            <Text>Resumen del estado actual del negocio.</Text>
+                        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                            <div className="flex flex-col gap-2">
+                                <H1>Reporte general</H1>
+                                <Text>Resumen del estado actual del negocio.</Text>
+                                {lastUpdated && (
+                                    <span className="text-xs text-primary-champagne/50">
+                                        Última actualización: {lastUpdated.toLocaleTimeString("es-GT")}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-2 text-xs text-primary-champagne/70 uppercase tracking-widest">
+                                    Rango
+                                    <select
+                                        value={monthsRange}
+                                        onChange={(e) => setMonthsRange(Number(e.target.value))}
+                                        className="bg-white/10 rounded-lg px-3 py-2 text-primary-champagne text-xs focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                                    >
+                                        {MONTH_RANGE_OPTIONS.map((m) => (
+                                            <option key={m} value={m} className="text-black">{m} meses</option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={refreshing || loading}
+                                    className="border border-primary-gold text-primary-gold rounded-lg px-4 py-2 text-xs uppercase tracking-widest hover:bg-primary-gold hover:text-primary-black transition-colors disabled:opacity-50"
+                                >
+                                    {refreshing ? "Actualizando..." : "Actualizar"}
+                                </button>
+                            </div>
                         </div>
 
                         {loading && (

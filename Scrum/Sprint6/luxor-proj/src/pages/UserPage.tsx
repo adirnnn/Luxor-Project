@@ -4,8 +4,7 @@ import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H1, H2, H3, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { API_URL, authHeaders, getToken } from "../services/apiClient";
 
 interface OrderItem {
   product_id: string;
@@ -89,7 +88,7 @@ export default function UserPage() {
 
   const loadUserInfo = () => {
     setLoadingInfo(true);
-    fetch(`${API_URL}/user/${user.id}`)
+    fetch(`${API_URL}/user/${user.id}`, { headers: authHeaders() })
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener datos del usuario");
         return res.json();
@@ -110,7 +109,7 @@ export default function UserPage() {
   useEffect(() => {
     loadUserInfo();
 
-    fetch(`${API_URL}/user/${user.id}/orders`)
+    fetch(`${API_URL}/user/${user.id}/orders`, { headers: authHeaders() })
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener historial");
         return res.json();
@@ -133,7 +132,7 @@ export default function UserPage() {
     try {
       const res = await fetch(`${API_URL}/user/${user.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ name: editName, email: editEmail }),
       });
       const data = await res.json();
@@ -143,7 +142,8 @@ export default function UserPage() {
       }
       setUserInfo(data.user);
       // Actualiza también la sesión (para que el nombre se refleje en toda la app)
-      login({ ...user, name: data.user.name, email: data.user.email });
+      const token = getToken();
+      if (token) login({ ...user, name: data.user.name, email: data.user.email }, token);
       setInfoMessage({ type: "success", text: "Información actualizada correctamente." });
       setIsEditingInfo(false);
     } catch {
@@ -171,7 +171,7 @@ export default function UserPage() {
     try {
       const res = await fetch(`${API_URL}/user/${user.id}/password`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();

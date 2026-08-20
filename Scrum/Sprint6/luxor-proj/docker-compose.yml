@@ -48,6 +48,17 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      # Dentro de la red de Docker Compose el backend se resuelve por el nombre
+      # del servicio, no por localhost (que dentro de este contenedor apuntaría
+      # al propio contenedor del chatbot).
+      - NODE_API_URL=http://backend:3000
+      # Ollama corre en el host (no como servicio de este compose). En Docker
+      # Desktop se accede a él vía host.docker.internal. Si Ollama corre en otra
+      # máquina, sobreescribe OLLAMA_URL en .env.
+      - OLLAMA_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - backend
 

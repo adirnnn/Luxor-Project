@@ -1,6 +1,5 @@
 import type { PaymentFormState } from "../validation/usePaymentForm";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { API_URL, authHeaders } from "./apiClient";
 
 export interface CheckoutError {
   code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "CARD_DECLINED" | "INVALID_PAYMENT_DATA" | "GATEWAY_ERROR" | "PAYMENT_ERROR" | "NETWORK_ERROR";
@@ -26,7 +25,7 @@ export async function processCheckout(userId: number, card: PaymentFormState): P
   try {
     res = await fetch(`${API_URL}/checkout/${userId}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(card),
     });
   } catch {

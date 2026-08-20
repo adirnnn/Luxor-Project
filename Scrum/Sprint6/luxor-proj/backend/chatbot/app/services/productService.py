@@ -25,21 +25,17 @@ class ProductService:
         self,
         query: str
     ) -> list[dict]:
+        # Búsqueda por nombre: se filtra solo por p.name (no por descripción/notas)
+        # para que una consulta por el nombre de un perfume no traiga perfumes
+        # no relacionados que solo comparten palabras en la descripción.
+        productos = await self.get_products()
+        query_normalizado = query.strip().casefold()
 
-        async with httpx.AsyncClient() as client:
-
-            response = await client.get(
-                f"{self.base_url}/products/search",
-                params={
-                    "busqueda": query
-                }
-            )
-
-            response.raise_for_status()
-
-            data = response.json()
-
-            return data["products"]
+        return [
+            producto
+            for producto in productos
+            if query_normalizado in (producto.get("name") or "").casefold()
+        ]
 
     async def obtener_categorias(self) -> list[str]:
         async with httpx.AsyncClient() as client:
@@ -89,15 +85,6 @@ class ProductService:
     ) -> list[dict]:
 
         productos = await self.get_products()
-
-        print("Marca buscada:", repr(marca))
-
-        for producto in productos:
-            print(
-                producto.get("name"),
-                "->",
-                repr(producto.get("brand"))
-            )
 
         return [
             producto

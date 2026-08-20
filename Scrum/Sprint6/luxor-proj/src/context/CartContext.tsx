@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import type { Product } from "../data/products";
 import { products as localProducts } from "../data/products";
 import { useAuth } from "./AuthContext";
+import { authHeaders } from "../services/apiClient";
 
 export interface CartItem {
   product: Product;
@@ -35,7 +36,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (user && !isNaN(numericUserId)) {
         try {
-          const res = await fetch(`${API_URL}/cart/${numericUserId}`);
+          const res = await fetch(`${API_URL}/cart/${numericUserId}`, { headers: authHeaders() });
           if (res.ok) {
             const items = await res.json();
             const populatedCart = items.map((item: any) => {
@@ -77,7 +78,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
           await fetch(`${API_URL}/cart/${numericUserId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify(payload)
           });
         } catch (err) {

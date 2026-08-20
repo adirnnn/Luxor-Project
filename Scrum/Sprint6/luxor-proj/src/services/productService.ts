@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL, authHeaders } from "./apiClient";
 
 export type Product = {
   id: string;
@@ -48,7 +48,7 @@ export async function fetchProductById(id: string): Promise<Product> {
 export async function createProduct(product: Product): Promise<void> {
   const res = await fetch(`${API_URL}/products`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(product),
   });
   if (!res.ok) {
@@ -60,7 +60,7 @@ export async function createProduct(product: Product): Promise<void> {
 export async function updateProduct(id: string, product: Partial<Product>): Promise<void> {
   const res = await fetch(`${API_URL}/products/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(product),
   });
   if (!res.ok) {
@@ -72,6 +72,7 @@ export async function updateProduct(id: string, product: Partial<Product>): Prom
 export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/products/${id}`, {
     method: 'DELETE',
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Error al eliminar producto');
 }

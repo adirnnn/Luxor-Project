@@ -17,6 +17,8 @@ import {
   getTopProducts,
   getInventoryByCategory,
 } from './services/reportMetrics.js';
+import { signToken, authenticate, authorizeSelfOrRoles, requireRoles } from './services/auth.js';
+import { rateLimit } from './services/rateLimit.js';
 
 const SALT_ROUNDS = 12;
 
@@ -150,10 +152,13 @@ app.get("/products/:id", async (req, res) => {
   }
 });
 
-app.post("/products", async (req, res) => {
+app.post("/products", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { id, name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
   if (!id || !id.trim() || !name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
     return res.status(400).json({ success: false, message: "ID, nombre y precio son obligatorios." });
+  }
+  if (Number(price) < 0 || (stock !== undefined && stock !== null && Number(stock) < 0)) {
+    return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
   }
   try {
     await pool.query(
@@ -168,10 +173,13 @@ app.post("/products", async (req, res) => {
   }
 });
 
-app.put("/products/:id", async (req, res) => {
+app.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
   if (!name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
     return res.status(400).json({ success: false, message: "Nombre y precio son obligatorios." });
+  }
+  if (Number(price) < 0 || (stock !== undefined && stock !== null && Number(stock) < 0)) {
+    return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
   }
   try {
     await pool.query(
@@ -187,7 +195,7 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) => {
   try {
     await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
     res.json({ success: true, message: "Producto eliminado" });
@@ -200,7 +208,7 @@ app.delete("/products/:id", async (req, res) => {
 // fragmento para la integracion PerfumAPI: busqueda para el admin
 // compone cliente + marcas + mapper + validacion + log de errores
 // sin restriccion por catalogo propio: el admin puede buscar cualquier perfume.
-app.get("/external-perfumes/search", async (req, res) => {
+app.get("/external-perfumes/search", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { q, brand } = req.query;
   if (!q || !q.trim()) {
     return res.status(400).json({ success: false, message: "Parámetro de búsqueda 'q' requerido." });
@@ -233,7 +241,7 @@ app.get("/external-perfumes/search", async (req, res) => {
 });
 
 // marcas conocidas por PerfumAPI, para un filtro opcional en el buscador del admin
-app.get("/external-perfumes/brands", async (_req, res) => {
+app.get("/external-perfumes/brands", authenticate, requireRoles("ADMIN"), async (_req, res) => {
   try {
     const brands = await getKnownBrands();
     res.json({ success: true, brands });
@@ -246,7 +254,7 @@ app.get("/external-perfumes/brands", async (_req, res) => {
 });
 
 // integracion PerfumAPI: historial de errores de sincronizacion
-app.get("/admin/perfum-sync-logs", async (_req, res) => {
+app.get("/admin/perfum-sync-logs", authenticate, requireRoles("ADMIN"), async (_req, res) => {
   try {
     const logs = await listSyncLogs();
     res.json({ success: true, logs });
@@ -257,11 +265,11 @@ app.get("/admin/perfum-sync-logs", async (_req, res) => {
 });
 
 // SFTWRKEY-277..282: formato, lectura, validación, importación e historial CSV.
-app.get("/imports/products/template", (_req, res) => {
+app.get("/imports/products/template", authenticate, requireRoles("ADMIN"), (_req, res) => {
   res.type("text/csv").attachment("plantilla-perfumes.csv").send(CSV_TEMPLATE);
 });
 
-app.get("/imports/products", async (_req, res) => {
+app.get("/imports/products", authenticate, requireRoles("ADMIN"), async (_req, res) => {
   try {
     await ensureImportHistoryTable();
     const result = await pool.query(
@@ -275,7 +283,7 @@ app.get("/imports/products", async (_req, res) => {
   }
 });
 
-app.post("/imports/products", async (req, res) => {
+app.post("/imports/products", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { fileName = "importacion.csv", csv } = req.body ?? {};
   if (typeof fileName !== "string" || !fileName.toLowerCase().endsWith(".csv")) {
     return res.status(400).json({ success: false, message: "Debe seleccionar un archivo con extensión .csv." });
@@ -324,7 +332,7 @@ app.post("/imports/products", async (req, res) => {
 app.get("/", (req, res) => res.send("Backend Luxor funcionando"));
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-app.post("/login", async (req, res) => {
+app.post("/login", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ success: false, message: "Requerido" });
   try {
@@ -338,7 +346,9 @@ app.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, storedHash);
     if (result.rows.length === 0 || !match) return res.status(401).json({ success: false, message: "Error" });
     const user = result.rows[0];
-    return res.json({ success: true, user: { id: user.id, name: user.name, role: user.role } });
+    const publicUser = { id: user.id, name: user.name, role: user.role };
+    const token = signToken(publicUser);
+    return res.json({ success: true, token, user: publicUser });
   } catch (err) {
     return res.status(500).json({ success: false });
   }
@@ -382,7 +392,7 @@ app.post("/register", async (req, res) => {
 });
 
 // ── Usuario ───────────────────────────────────────────────────────────────────
-app.get("/user/:userId", async (req, res) => {
+app.get("/user/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT u.id, u.name, u.email, r.nombre AS role
@@ -397,25 +407,8 @@ app.get("/user/:userId", async (req, res) => {
   }
 });
 
-app.get("/user/:userId/purchases", async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT ci.product_id, ci.quantity, p.name, p.price, p.image
-       FROM carts c
-       JOIN cart_items ci ON c.id = ci.cart_id
-       JOIN products p ON ci.product_id = p.id
-       WHERE c.user_id = $1
-       ORDER BY ci.id DESC`,
-      [req.params.userId]
-    );
-    res.json({ success: true, purchases: result.rows });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error al obtener historial" });
-  }
-});
-
-// SFTWRKEY-323/324/325: Historial real de pedidos 
-app.get("/user/:userId/orders", async (req, res) => {
+// SFTWRKEY-323/324/325: Historial real de pedidos
+app.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   try {
     const ordersResult = await pool.query(
       `SELECT id, total, status, created_at
@@ -444,8 +437,8 @@ app.get("/user/:userId/orders", async (req, res) => {
   }
 });
 
-// SFTWRKEY-321: Editar información personal 
-app.put("/user/:userId", async (req, res) => {
+// SFTWRKEY-321: Editar información personal
+app.put("/user/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   const { name, email } = req.body;
   if (!name || !email) {
     return res.status(400).json({ success: false, message: "Nombre y correo son requeridos." });
@@ -473,8 +466,8 @@ app.put("/user/:userId", async (req, res) => {
   }
 });
 
-// SFTWRKEY-322: Cambiar contraseña 
-app.put("/user/:userId/password", async (req, res) => {
+// SFTWRKEY-322: Cambiar contraseña
+app.put("/user/:userId/password", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: "Debes ingresar la contraseña actual y la nueva." });
@@ -501,7 +494,7 @@ app.put("/user/:userId/password", async (req, res) => {
 });
 
 // SFTWRKEY-215: Búsqueda de usuarios con ILIKE (case-insensitive)
-app.get("/users/search", async (req, res) => {
+app.get("/users/search", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ success: false, message: "Parámetro de búsqueda requerido." });
   try {
@@ -519,7 +512,7 @@ app.get("/users/search", async (req, res) => {
 });
 
 // ── Carrito ───────────────────────────────────────────────────────────────────
-app.get("/cart/:userId", async (req, res) => {
+app.get("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   try {
     const cartResult = await pool.query('SELECT id FROM carts WHERE user_id = $1', [req.params.userId]);
     if (cartResult.rows.length === 0) return res.json([]);
@@ -530,7 +523,7 @@ app.get("/cart/:userId", async (req, res) => {
   }
 });
 
-app.post("/cart/:userId", async (req, res) => {
+app.post("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   const userId = req.params.userId;
   const items = req.body;
   try {
@@ -549,7 +542,7 @@ app.post("/cart/:userId", async (req, res) => {
 });
 
 // ── Reportes ──────────────────────────────────────────────────────────────────
-app.get("/report", async (req, res) => {
+app.get("/report", authenticate, requireRoles("ADMIN"), async (req, res) => {
   try {
     const users = await pool.query('SELECT COUNT(*) as total FROM users');
     const items = await pool.query('SELECT SUM(quantity) as total FROM cart_items');
@@ -561,8 +554,8 @@ app.get("/report", async (req, res) => {
 });
 
 
-// métricas generales del 
-app.get("/report/metrics", async (_req, res) => {
+// métricas generales del
+app.get("/report/metrics", authenticate, requireRoles("ADMIN"), async (_req, res) => {
   try {
     const metrics = await getGeneralMetrics();
     res.json({ success: true, metrics });
@@ -573,7 +566,7 @@ app.get("/report/metrics", async (_req, res) => {
 });
 
 //ventas por mes ultimos 12
-app.get("/report/sales-monthly", async (req, res) => {
+app.get("/report/sales-monthly", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const months = Number(req.query.months ?? 12);
   if (!Number.isInteger(months) || months < 1 || months > 36) {
     return res.status(400).json({ success: false, message: "El parámetro 'months' debe ser un entero entre 1 y 36." });
@@ -588,7 +581,7 @@ app.get("/report/sales-monthly", async (req, res) => {
 });
 
 // ventas por categoría (no existía ningún endpoint con este dato)
-app.get("/report/sales-by-category", async (_req, res) => {
+app.get("/report/sales-by-category", authenticate, requireRoles("ADMIN"), async (_req, res) => {
   try {
     const sales = await getSalesByCategory();
     res.json({ success: true, sales });
@@ -599,7 +592,7 @@ app.get("/report/sales-by-category", async (_req, res) => {
 });
 
 // productos más vendidos
-app.get("/report/top-products", async (req, res) => {
+app.get("/report/top-products", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const limit = Number(req.query.limit ?? 5);
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     return res.status(400).json({ success: false, message: "El parámetro 'limit' debe ser un entero entre 1 y 50." });
@@ -614,7 +607,7 @@ app.get("/report/top-products", async (req, res) => {
 });
 
 // inventario por categoría
-app.get("/report/inventory", async (_req, res) => {
+app.get("/report/inventory", authenticate, requireRoles("ADMIN"), async (_req, res) => {
   try {
     const inventory = await getInventoryByCategory();
     res.json({ success: true, inventory });
@@ -686,7 +679,7 @@ function validateCardPayload(body) {
 // SFTWRKEY-298: Mostrar confirmación de compra (datos que consume el frontend)
 // SFTWRKEY-299: Registrar pago en base de datos
 // SFTWRKEY-300: Manejo de pagos rechazados
-app.post("/checkout/:userId", async (req, res) => {
+app.post("/checkout/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   const { userId } = req.params;
   const cardPayload = req.body ?? {};
 
@@ -698,6 +691,7 @@ app.post("/checkout/:userId", async (req, res) => {
   const client = await pool.connect();
 
   try {
+    await ensurePaymentsTable();
     const cartResult = await client.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
     if (cartResult.rows.length === 0) {
       return res.status(400).json({ success: false, code: "EMPTY_CART", message: "Tu carrito está vacío." });
@@ -727,6 +721,7 @@ app.post("/checkout/:userId", async (req, res) => {
     }
 
     const total = itemsResult.rows.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+    // Recalculado a partir de p.price en la consulta anterior: el monto nunca se confía del cliente.
 
     // SFTWRKEY-296: se arma el payload con el detalle del carrito y se envía a la pasarela
     const gatewayPayload = buildGatewayPayload({
@@ -761,6 +756,18 @@ app.post("/checkout/:userId", async (req, res) => {
 
     await client.query('BEGIN');
 
+    // Se vuelve a verificar y bloquear el stock dentro de la transacción para evitar
+    // que dos checkouts concurrentes sobrevendan el mismo producto.
+    for (const item of itemsResult.rows) {
+      const stockResult = await client.query(
+        `UPDATE products SET stock = stock - $1 WHERE id = $2 AND stock >= $1 RETURNING id`,
+        [item.quantity, item.product_id]
+      );
+      if (stockResult.rows.length === 0) {
+        throw Object.assign(new Error("Stock insuficiente al confirmar el pago."), { code: "INSUFFICIENT_STOCK" });
+      }
+    }
+
     const orderResult = await client.query(
       `INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'completed') RETURNING id, created_at`,
       [userId, total]
@@ -772,24 +779,26 @@ app.post("/checkout/:userId", async (req, res) => {
         `INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ($1, $2, $3, $4)`,
         [orderId, item.product_id, item.quantity, item.price]
       );
-      await client.query(
-        `UPDATE products SET stock = stock - $1 WHERE id = $2`,
-        [item.quantity, item.product_id]
-      );
     }
 
     await client.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
 
-    await client.query('COMMIT');
+    // SFTWRKEY-299: Registrar pago en base de datos, dentro de la misma transacción
+    // que la orden — si esto falla, el ROLLBACK revierte también la orden y el stock.
+    const paymentInsert = await client.query(
+      `INSERT INTO payments
+         (order_id, user_id, amount, status, gateway_reference, auth_code, card_brand, card_last4, decline_code, decline_message)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id, order_id, status, card_brand, card_last4, created_at`,
+      [
+        orderId, userId, total, "aprobado",
+        gatewayResult.transactionId, gatewayResult.authCode, gatewayResult.brand,
+        gatewayResult.last4, gatewayResult.declineCode, gatewayResult.declineMessage,
+      ]
+    );
+    const payment = paymentInsert.rows[0];
 
-    // SFTWRKEY-299: Registrar pago en base de datos (ya asociado a la orden creada)
-    const payment = await savePaymentRecord({
-      orderId,
-      userId,
-      amount: total,
-      status: "aprobado",
-      gatewayResult,
-    });
+    await client.query('COMMIT');
 
     // SFTWRKEY-298: datos que la página de confirmación necesita mostrar
     return res.status(201).json({
@@ -811,6 +820,9 @@ app.post("/checkout/:userId", async (req, res) => {
     if (err instanceof PaymentGatewayError) {
       return res.status(502).json({ success: false, code: err.code, message: "No se pudo contactar a la pasarela de pago. Intenta de nuevo." });
     }
+    if (err.code === "INSUFFICIENT_STOCK") {
+      return res.status(409).json({ success: false, code: "INSUFFICIENT_STOCK", message: "Algunos productos ya no tienen stock suficiente." });
+    }
     return res.status(500).json({
       success: false,
       code: "PAYMENT_ERROR",
@@ -822,6 +834,16 @@ app.post("/checkout/:userId", async (req, res) => {
 });
 
 // Historial de preguntas y respuestas del chatbot
+// SFTWRKEY-293: Registrar consultas del chatbot
+const ensureChatbotQueriesTable = () => pool.query(`
+  CREATE TABLE IF NOT EXISTS chatbot_queries (
+    id SERIAL PRIMARY KEY,
+    query TEXT NOT NULL,
+    response TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  )
+`);
+
 app.post("/chatbot/queries", async (req, res) => {
     const { query, response } = req.body;
 
@@ -833,6 +855,7 @@ app.post("/chatbot/queries", async (req, res) => {
     }
 
     try {
+      await ensureChatbotQueriesTable();
       const result = await pool.query(
         `INSERT INTO chatbot_queries (query, response)
         VALUES ($1, $2)

@@ -1,5 +1,5 @@
 // uso de los endpoints de metricas
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL, authHeaders } from "./apiClient";
 
 export type GeneralMetrics = {
     totalUsers: number;
@@ -37,7 +37,7 @@ export type CategoryInventory = {
 };
 
 async function getJson(path: string, errorMessage: string) {
-    const res = await fetch(`${API_URL}${path}`);
+    const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
     if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.message || errorMessage);

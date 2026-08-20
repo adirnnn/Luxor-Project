@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL, authHeaders } from "./apiClient";
 
 export type ExternalPerfumeCandidate = {
   name: string;
@@ -20,7 +20,7 @@ export async function searchExternalPerfumes(query: string, brand?: string): Pro
   const params = new URLSearchParams({ q: query });
   if (brand) params.set('brand', brand);
 
-  const res = await fetch(`${API_URL}/external-perfumes/search?${params.toString()}`);
+  const res = await fetch(`${API_URL}/external-perfumes/search?${params.toString()}`, { headers: authHeaders() });
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     throw new Error(body?.message || 'No se pudo buscar en PerfumAPI.');
@@ -29,7 +29,7 @@ export async function searchExternalPerfumes(query: string, brand?: string): Pro
 }
 
 export async function fetchExternalPerfumeBrands(): Promise<string[]> {
-  const res = await fetch(`${API_URL}/external-perfumes/brands`);
+  const res = await fetch(`${API_URL}/external-perfumes/brands`, { headers: authHeaders() });
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     throw new Error(body?.message || 'No se pudieron obtener las marcas de PerfumAPI.');
