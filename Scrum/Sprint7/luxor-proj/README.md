@@ -129,6 +129,10 @@ Compilación de producción del frontend:
 npm run build
 ```
 
+## Despliegue en Vercel
+
+El frontend se publica en Vercel como sitio estático (build de Vite). La configuración del build está en `vercel.json` y la única variable que necesita es `VITE_API_URL` (URL del backend en producción). El paso a paso está en [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+
 ## Rutas principales
 
 | Ruta | Descripción |
