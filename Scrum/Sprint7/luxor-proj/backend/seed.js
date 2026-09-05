@@ -52,7 +52,7 @@ const seedUsers = async () => {
         FOREIGN KEY (role) REFERENCES rol(id_rol) ON DELETE RESTRICT
       `);
     } catch (e) {
-      // Ignorar si ya existe
+      console.log('Nota: La FK users.role ya existe o no se pudo crear.');
     }
 
     console.log('Tabla users lista (con FK a rol)');
