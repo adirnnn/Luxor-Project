@@ -1,6 +1,6 @@
 # Habibi Parfums
 
-Aplicación web para explorar, administrar e importar el inventario de perfumes de Habibi Parfums. El incremento más reciente se encuentra en [`Scrum/Sprint5/luxor-proj`](Scrum/Sprint5/luxor-proj).
+Aplicación web para explorar, administrar e importar el inventario de perfumes de Habibi Parfums. El incremento más reciente se encuentra en [`Scrum/Sprint7/luxor-proj`](Scrum/Sprint7/luxor-proj).
 
 ## Características
 
@@ -18,26 +18,26 @@ Aplicación web para explorar, administrar e importar el inventario de perfumes 
 - Chatbot: FastAPI y proveedor LLM desacoplado.
 - Infraestructura local: Docker Compose.
 
-## Ejecutar Sprint5 con Docker
+## Ejecutar Sprint7 con Docker
 
 ```bash
-cd Scrum/Sprint5/luxor-proj
+cd Scrum/Sprint7/luxor-proj
 docker compose up --build
 ```
 
 Abre `http://localhost:5173`. El backend se expone en `http://localhost:3000` y PostgreSQL en el puerto local `5433`.
 
-Antes de iniciar, crea `Scrum/Sprint5/luxor-proj/.env` con:
+Antes de iniciar, crea `Scrum/Sprint7/luxor-proj/.env` con:
 
 ```env
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=tu_contrasena_segura
+POSTGRES_PASSWORD=
 POSTGRES_DB=habibi_parfums
 POSTGRES_HOST=db
 POSTGRES_PORT=5432
 FRONTEND_URL=http://localhost:5173
 
-PAYMENT_GATEWAY_API_KEY=sk_test_luxor_dev_12345
+PAYMENT_GATEWAY_API_KEY=
 PAYMENT_GATEWAY_LATENCY_MS=400
 
 ```
@@ -47,7 +47,7 @@ PAYMENT_GATEWAY_LATENCY_MS=400
 Frontend:
 
 ```bash
-cd Scrum/Sprint5/luxor-proj
+cd Scrum/Sprint7/luxor-proj
 npm ci
 npm run dev
 ```
@@ -55,7 +55,7 @@ npm run dev
 Backend:
 
 ```bash
-cd Scrum/Sprint5/luxor-proj/backend
+cd Scrum/Sprint7/luxor-proj/backend
 npm ci
 npm run seed
 npm run dev
@@ -77,12 +77,12 @@ id,name,price,image,description,stock,salida,corazon,fondo
 - `stock` debe ser un entero no negativo.
 - Las filas inválidas muestran fila, campo y causa; las válidas se guardan transaccionalmente.
 
-Consulta [la especificación CSV](Scrum/Sprint5/luxor-proj/docs/CSV_IMPORT.md) y [el guion de presentación de Sprint5](Scrum/Sprint5/luxor-proj/docs/PRESENTACION_SPRINT5.md).
+Consulta [la especificación CSV](Scrum/Sprint7/luxor-proj/docs/CSV_IMPORT.md) y [el guion de presentación de Sprint7](Scrum/Sprint7/luxor-proj/docs/PRESENTACION_SPRINT5.md).
 
 ## Verificación
 
 ```bash
-cd Scrum/Sprint5/luxor-proj/backend
+cd Scrum/Sprint7/luxor-proj/backend
 npm test
 
 cd ..
