@@ -546,7 +546,12 @@ app.get("/report", authenticate, requireRoles("ADMIN"), async (req, res) => {
   try {
     const users = await pool.query('SELECT COUNT(*) as total FROM users');
     const items = await pool.query('SELECT SUM(quantity) as total FROM cart_items');
-    const top = await pool.query('SELECT product_id, SUM(quantity) as total_quantity FROM cart_items GROUP BY product_id ORDER BY total_quantity DESC LIMIT 5');
+    const top = await pool.query(`SELECT oi.product_id, SUM(oi.quantity) as total_quantity
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id AND o.status = 'completed'
+        GROUP BY oi.product_id
+        ORDER BY total_quantity DESC
+        LIMIT 5`);
     res.json({ success: true, data: { totalUsers: parseInt(users.rows[0].total), totalItemsInCarts: parseInt(items.rows[0].total) || 0, topProducts: top.rows } });
   } catch (err) {
     res.status(500).json({ success: false });
