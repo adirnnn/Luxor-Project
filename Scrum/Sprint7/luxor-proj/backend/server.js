@@ -182,12 +182,16 @@ app.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) =
     return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
   }
   try {
-    await pool.query(
+    const result = await pool.query(
       `UPDATE products
        SET name = $1, price = $2, image = $3, description = $4, stock = $5, salida = $6, corazon = $7, fondo = $8, category_id = $9, brand = $10, external_source = $11, external_id = $12, synced_at = $13
        WHERE id = $14`,
       [name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null, brand || null, external_source || null, external_id || null, synced_at || null, req.params.id]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Producto no encontrado" });
+    }
     res.json({ success: true, message: "Producto actualizado" });
   } catch (err) {
     console.error(err);
@@ -197,7 +201,11 @@ app.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) =
 
 app.delete("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) => {
   try {
-    await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+    const result = await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Producto no encontrado" });
+    }
     res.json({ success: true, message: "Producto eliminado" });
   } catch (err) {
     console.error(err);
