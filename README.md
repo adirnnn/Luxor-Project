@@ -63,6 +63,28 @@ npm run dev
 
 Para configurar otra API en el frontend, define `VITE_API_URL` en `.env.local`.
 
+## Despliegue en producción
+
+Cada pieza vive en un proveedor distinto:
+
+| Componente | Proveedor | URL de producción |
+| --- | --- | --- |
+| Frontend (React + Vite) | Vercel | https://luxor-project-green.vercel.app |
+| Backend (Node + Express) | Render (servicio Docker) | https://luxor-backend-9ov9.onrender.com |
+| Chatbot (FastAPI) | Render (servicio Docker) | https://luxor-chatbot.onrender.com |
+| Base de datos | PostgreSQL gestionado en Render (`luxor-db`) | — (host interno) |
+
+- El *root directory* del proyecto en Vercel es `Scrum/Sprint7/luxor-proj`; el build usa `vercel.json`. Variables: `VITE_API_URL` y `VITE_CHATBOT_URL` (URLs del backend y del chatbot).
+- Los dos servicios de Render y la base se describen en el blueprint [`render.yaml`](render.yaml) (raíz del repo). El chatbot usa un proveedor de LLM compatible con OpenAI (Groq) en producción porque Render no puede correr Ollama; se selecciona con `LLM_PROVIDER=groq`.
+- El paso a paso completo (alta de servicios, tabla de variables, criterios de aceptación) está en [`Scrum/Sprint7/luxor-proj/docs/DEPLOY_RENDER.md`](Scrum/Sprint7/luxor-proj/docs/DEPLOY_RENDER.md).
+
+### Desplegar una versión nueva
+
+1. Hacer merge a `main`.
+2. Vercel redepliega el frontend automáticamente en cada push a `main`.
+3. Render vuelve a sincronizar el blueprint y redepliega backend y chatbot en cada push a `main`.
+4. Los secretos (`LLM_API_KEY` de Groq) no viajan en el repo: se cargan a mano en el panel de Render (`luxor-chatbot` → Environment) y persisten entre despliegues.
+
 ## Importación CSV de perfumes
 
 En el panel administrativo, entra a **Importar CSV**. El formato exige estos encabezados, en este orden:
