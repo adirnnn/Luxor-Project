@@ -99,11 +99,14 @@ app.get("/products/search", async (req, res) => {
       `SELECT p.*, c.nombre AS category_name
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
-       WHERE p.name ILIKE $1
-          OR p.description ILIKE $1
-          OR p.salida ILIKE $1
-          OR p.corazon ILIKE $1
-          OR p.fondo ILIKE $1
+       WHERE p.stock > 0
+         AND (
+           p.name ILIKE $1
+           OR p.description ILIKE $1
+           OR p.salida ILIKE $1
+           OR p.corazon ILIKE $1
+           OR p.fondo ILIKE $1
+         )
        ORDER BY p.created_at DESC`,
       [`%${busqueda}%`]
     );
