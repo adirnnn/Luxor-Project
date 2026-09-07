@@ -585,18 +585,26 @@ app.post("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"),
   if (validationError) {
     return res.status(400).json({ success: false, message: validationError });
   }
+  
+  const client = await pool.connect();
   try {
-    let cartResult = await pool.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
+    await client.query('BEGIN');
+    let cartResult = await client.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
     if (cartResult.rows.length === 0)
-      cartResult = await pool.query('INSERT INTO carts (user_id) VALUES ($1) RETURNING id', [userId]);
+      cartResult = await client.query('INSERT INTO carts (user_id) VALUES ($1) RETURNING id', [userId]);
     const cartId = cartResult.rows[0].id;
-    await pool.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+    await client.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
     for (const item of items) {
-      await pool.query('INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3)', [cartId, item.product_id, item.quantity]);
+      await client.query('INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3)', [cartId, item.product_id, item.quantity]);
     }
+    await client.query('COMMIT');
     res.json({ success: true });
   } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error("Error al sincronizar carrito:", err);
     res.status(500).json({ message: "Error" });
+  } finally {
+    client.release();
   }
 });
 
