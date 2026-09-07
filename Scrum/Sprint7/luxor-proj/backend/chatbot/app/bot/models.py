@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # Roles válidos
 class MessageRole(str, Enum):
@@ -27,6 +27,17 @@ class ChatRequest(BaseModel):
         min_length=1,
         description="Mensaje enviado por el usuario."
     )
+
+    # SFTWRKEY-352: min_length=1 solo bloquea strings vacíos (""), pero un mensaje
+    # de puros espacios (" ") tiene longitud > 0 y pasaba la validación sin problema.
+    # Aquí quitamos los espacios de los extremos y rechazamos si queda vacío.
+    @field_validator("message")
+    @classmethod
+    def message_no_puede_ser_solo_espacios(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("El mensaje no puede estar vacío ni contener solo espacios.")
+        return cleaned
 
 # Respuesta que devuelve el chatbot
 class ChatResponse(BaseModel):
