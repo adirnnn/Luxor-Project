@@ -16,7 +16,7 @@ Aplicación web para explorar, administrar e importar el inventario de perfumes 
 
 ## Tecnologías
 
-- Frontend: React, TypeScript, Vite, Tailwind CSS y Framer Motion.
+- Frontend: React, TypeScript, Vite, Tailwind CSS y Framer Motion. Tests con Vitest y React Testing Library.
 - Backend: Node.js, Express, PostgreSQL y JWT para autenticación.
 - Chatbot: Python, FastAPI y un modelo LLM local vía Ollama.
 - Contenedores: Docker Compose.
@@ -115,6 +115,20 @@ noir-oud,Noir Oud,425.00,/assets/products/noir-oud.png,Fragancia amaderada,12,Be
 Consulta la especificación completa en [docs/CSV_IMPORT.md](docs/CSV_IMPORT.md).
 
 ## Verificación
+
+Pruebas del frontend (Vitest + React Testing Library, entorno `jsdom`):
+
+```bash
+npm run test          # modo watch, para desarrollo
+npm run test:run      # una sola pasada, para CI
+npm run test:coverage # una pasada + reporte de cobertura (carpeta coverage/)
+```
+
+Los tests viven junto al componente que prueban, con el nombre `*.test.tsx` (por
+ejemplo `src/components/ui/Button.test.tsx`). La configuración está en el bloque
+`test` de `vite.config.ts`; el setup global (matchers de
+`@testing-library/jest-dom` y limpieza del DOM entre tests) está en
+`src/test/setup.ts`.
 
 Pruebas del backend (validador CSV, pasarela de pago simulada y middleware de autenticación):
 
