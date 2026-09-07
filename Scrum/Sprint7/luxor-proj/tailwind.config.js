@@ -15,6 +15,18 @@ export default {
           charcoal: "#2A2522", // Warmer charcoal for cards
           tan: "#C2A17E",
         },
+        // SFTWRKEY-353: Colores semánticos únicos para estados (éxito/error/advertencia/info),
+        // en vez de que cada pantalla improvise su propio verde/rojo/amarillo genérico de Tailwind.
+        status: {
+          success: "#4C9A6A",       // Verde cálido, coherente con la paleta tierra
+          "success-bg": "#4C9A6A26", // 15% opacidad para fondos de badges/alertas
+          error: "#C0524A",         // Rojo terracota, no un rojo puro/frío
+          "error-bg": "#C0524A26",
+          warning: "#C79A3B",       // Ámbar dorado, cercano al primary-gold
+          "warning-bg": "#C79A3B26",
+          info: "#5B7C99",
+          "info-bg": "#5B7C9926",
+        },
       },
       fontFamily: {
         heading: ["Bodoni Moda", "serif"],

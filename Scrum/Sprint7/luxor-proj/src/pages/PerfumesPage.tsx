@@ -139,7 +139,7 @@ export default function PerfumesPage() {
               </div>
             )}
 
-            {error && <p className="text-center text-red-500">{error}</p>}
+            {error && <p className="text-center text-status-error">{error}</p>}
 
             {/* ── Resultados ── */}
             {!loading && !error && (

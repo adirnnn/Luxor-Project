@@ -95,8 +95,8 @@ export default function AdminDashboard() {
                                 <Text className="text-primary-gold animate-pulse font-black tracking-[0.4em] uppercase text-xs italic">Sincronizando Bóveda...</Text>
                             </div>
                         ) : error ? (
-                            <div className="p-12 glass-card border-red-500/20 text-center">
-                                <Text className="text-red-500 font-bold italic">{error}</Text>
+                            <div className="p-12 glass-card border-status-error/20 text-center">
+                                <Text className="text-status-error font-bold italic">{error}</Text>
                                 <Button onClick={loadProducts} className="mt-8 px-12" variant="outline">Reintentar</Button>
                             </div>
                         ) : viewMode === 'grid' ? (
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
                                                 </button>
                                             </Link>
                                             <button
-                                                className="md:hidden w-full h-9 flex items-center justify-center rounded-xl border border-white/10 text-red-500/30 hover:text-red-500 hover:border-red-500/30 transition-all"
+                                                className="md:hidden w-full h-9 flex items-center justify-center rounded-xl border border-white/10 text-status-error/30 hover:text-status-error hover:border-status-error/30 transition-all"
                                                 onClick={() => handleDelete(product.id)}
                                                 aria-label="Eliminar"
                                             >
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
                                             </Link>
                                             <Button
                                                 variant="ghost"
-                                                className="hidden md:flex w-full py-4 text-[10px] font-black text-red-500/60 hover:text-red-500 tracking-[0.2em] italic justify-center items-center text-center"
+                                                className="hidden md:flex w-full py-4 text-[10px] font-black text-status-error/60 hover:text-status-error tracking-[0.2em] italic justify-center items-center text-center"
                                                 onClick={() => handleDelete(product.id)}
                                             >
                                                 ELIMINAR
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
                                                     </Link>
                                                     <button
                                                         onClick={() => handleDelete(product.id)}
-                                                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-red-500/30 hover:text-red-500 hover:border-red-500/30 transition-all"
+                                                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-status-error/30 hover:text-status-error hover:border-status-error/30 transition-all"
                                                         aria-label="Eliminar"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
                                                     </Link>
                                                     <Button
                                                         variant="ghost"
-                                                        className="px-10 py-3 text-[10px] font-black text-red-500/60 hover:text-red-500 tracking-[0.2em] italic flex justify-center items-center"
+                                                        className="px-10 py-3 text-[10px] font-black text-status-error/60 hover:text-status-error tracking-[0.2em] italic flex justify-center items-center"
                                                         onClick={() => handleDelete(product.id)}
                                                     >
                                                         ELIMINAR

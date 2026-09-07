@@ -57,7 +57,7 @@ export default function CartPage() {
                     transition={{ duration: 0.3 }}
                     className={
                       itemHasStockIssue
-                        ? "glass-card p-4 md:p-6 border border-red-500/30 bg-red-500/5"
+                        ? "glass-card p-4 md:p-6 border border-status-error/30 bg-status-error-bg"
                         : "glass-card border-none p-4 md:p-6"
                     }
                   >
@@ -79,7 +79,7 @@ export default function CartPage() {
                           </H3>
                           <button
                             onClick={() => removeFromCart(item.product.id)}
-                            className="shrink-0 text-primary-champagne/20 hover:text-red-500 transition-all p-1 -mt-0.5"
+                            className="shrink-0 text-primary-champagne/20 hover:text-status-error transition-all p-1 -mt-0.5"
                             aria-label="Eliminar producto"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -121,7 +121,7 @@ export default function CartPage() {
                           </span>
                         </div>
                         {itemHasStockIssue && (
-                          <p className="mt-2 text-xs text-red-400 font-bold flex items-center gap-1.5">
+                          <p className="mt-2 text-xs text-status-error font-bold flex items-center gap-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <line x1="12" y1="8" x2="12" y2="12" />
@@ -166,11 +166,11 @@ export default function CartPage() {
                   </span>
                 </div>
                 {hasStockIssue && (
-                  <div className="mb-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
-                    <p className="text-sm text-red-400 font-bold mb-1">
+                  <div className="mb-4 p-4 rounded-2xl bg-status-error-bg border border-status-error/30">
+                    <p className="text-sm text-status-error font-bold mb-1">
                       Sin stock suficiente
                     </p>
-                    <p className="text-xs text-red-400/80">
+                    <p className="text-xs text-status-error/80">
                       Ajusta la cantidad de los productos marcados en rojo antes de continuar con la compra.
                     </p>
                   </div>

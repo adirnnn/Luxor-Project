@@ -93,13 +93,13 @@ export default function AdminCreateUserPage() {
             </div>
 
             {success && (
-              <div className="p-6 glass-card border-green-500/20 text-green-500 text-center font-bold italic">
+              <div className="p-6 glass-card border-status-success/20 text-status-success text-center font-bold italic">
                 ¡Usuario creado exitosamente! Redirigiendo...
               </div>
             )}
 
             {serverError && (
-              <div className="p-6 glass-card border-red-500/20 text-red-500 text-center font-bold italic">
+              <div className="p-6 glass-card border-status-error/20 text-status-error text-center font-bold italic">
                 {serverError}
               </div>
             )}
@@ -120,10 +120,10 @@ export default function AdminCreateUserPage() {
                   className={clsx(
                     "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
                     "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
-                    errors.name ? "ring-2 ring-red-500 bg-red-500/10" : ""
+                    errors.name ? "ring-2 ring-status-error bg-status-error-bg" : ""
                   )}
                 />
-                {errors.name && <span className="text-xs text-red-500 font-bold italic">{errors.name}</span>}
+                {errors.name && <span className="text-xs text-status-error font-bold italic">{errors.name}</span>}
               </div>
 
               {/* Email */}
@@ -140,10 +140,10 @@ export default function AdminCreateUserPage() {
                   className={clsx(
                     "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
                     "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
-                    errors.email ? "ring-2 ring-red-500 bg-red-500/10" : ""
+                    errors.email ? "ring-2 ring-status-error bg-status-error-bg" : ""
                   )}
                 />
-                {errors.email && <span className="text-xs text-red-500 font-bold italic">{errors.email}</span>}
+                {errors.email && <span className="text-xs text-status-error font-bold italic">{errors.email}</span>}
               </div>
 
               {/* Password */}
@@ -160,10 +160,10 @@ export default function AdminCreateUserPage() {
                   className={clsx(
                     "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
                     "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",
-                    errors.password ? "ring-2 ring-red-500 bg-red-500/10" : ""
+                    errors.password ? "ring-2 ring-status-error bg-status-error-bg" : ""
                   )}
                 />
-                {errors.password && <span className="text-xs text-red-500 font-bold italic">{errors.password}</span>}
+                {errors.password && <span className="text-xs text-status-error font-bold italic">{errors.password}</span>}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-6 pt-6">

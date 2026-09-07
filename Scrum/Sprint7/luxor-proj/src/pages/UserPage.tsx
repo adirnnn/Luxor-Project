@@ -46,9 +46,9 @@ const Spinner = () => (
 
 // SFTWRKEY-325: Colores según el estado del pedido
 const statusStyles: Record<string, string> = {
-  pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  completed: "bg-green-500/20 text-green-400 border-green-500/30",
-  cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
+  pending: "bg-status-warning-bg text-status-warning border-status-warning/30",
+  completed: "bg-status-success-bg text-status-success border-status-success/30",
+  cancelled: "bg-status-error-bg text-status-error border-status-error/30",
 };
 
 const statusLabels: Record<string, string> = {
@@ -247,7 +247,7 @@ export default function UserPage() {
               {loadingInfo ? (
                 <Spinner />
               ) : errorInfo ? (
-                <p className="text-sm text-red-400 text-center">{errorInfo}</p>
+                <p className="text-sm text-status-error text-center">{errorInfo}</p>
               ) : userInfo ? (
                 isEditingInfo ? (
                   <form onSubmit={handleSaveInfo} className="flex flex-col gap-4 text-sm">
@@ -273,7 +273,7 @@ export default function UserPage() {
                     </div>
 
                     {infoMessage && (
-                      <p className={`text-xs ${infoMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                      <p className={`text-xs ${infoMessage.type === "success" ? "text-status-success" : "text-status-error"}`}>
                         {infoMessage.text}
                       </p>
                     )}
@@ -316,7 +316,7 @@ export default function UserPage() {
                     </div>
 
                     {infoMessage && (
-                      <p className={`text-xs ${infoMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                      <p className={`text-xs ${infoMessage.type === "success" ? "text-status-success" : "text-status-error"}`}>
                         {infoMessage.text}
                       </p>
                     )}
@@ -390,7 +390,7 @@ export default function UserPage() {
                   </div>
 
                   {passwordMessage && (
-                    <p className={`text-xs ${passwordMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                    <p className={`text-xs ${passwordMessage.type === "success" ? "text-status-success" : "text-status-error"}`}>
                       {passwordMessage.text}
                     </p>
                   )}

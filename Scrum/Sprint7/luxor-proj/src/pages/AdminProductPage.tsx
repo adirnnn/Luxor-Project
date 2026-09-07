@@ -202,7 +202,7 @@ return (
 
             {/* Error */}
             {error && (
-            <div className="p-4 glass-card border-red-500/20 text-red-500 text-center text-sm font-bold italic rounded-2xl">
+            <div className="p-4 glass-card border-status-error/20 text-status-error text-center text-sm font-bold italic rounded-2xl">
                 {error}
             </div>
             )}

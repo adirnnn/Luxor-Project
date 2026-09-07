@@ -176,17 +176,17 @@ export default function PaymentPage() {
                 </H3>
 
                 {checkoutError && (
-                    <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
-                    <p className="text-sm text-red-400 font-bold mb-1">
+                    <div className="mb-6 p-4 rounded-2xl bg-status-error-bg border border-status-error/30">
+                    <p className="text-sm text-status-error font-bold mb-1">
                         {checkoutError.code === "INSUFFICIENT_STOCK"
                           ? "Sin stock suficiente"
                           : checkoutError.code === "CARD_DECLINED"
                           ? "Tarjeta rechazada"
                           : "No se pudo procesar tu compra"}
                     </p>
-                    <p className="text-xs text-red-400/80">{checkoutError.message}</p>
+                    <p className="text-xs text-status-error/80">{checkoutError.message}</p>
                     {checkoutError.items && (
-                        <ul className="mt-2 text-xs text-red-400/70 list-disc list-inside">
+                        <ul className="mt-2 text-xs text-status-error/70 list-disc list-inside">
                         {checkoutError.items.map((i) => (
                             <li key={i.product_id}>{i.name}: pediste {i.solicitado}, quedan {i.disponible}</li>
                         ))}
