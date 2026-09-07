@@ -28,11 +28,8 @@ services:
     rootDir: Scrum/Sprint7/luxor-proj/backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    # se corre el seed antes del server. seed.js usa CREATE TABLE IF NOT EXISTS
-    # y ON CONFLICT DO NOTHING, asi que es idempotente y no rompe si se ejecuta
-    # en cada arranque. render ya lo corre dentro de un shell, no hace falta
-    # envolverlo en "sh -c" (eso rompe el parseo del &&).
-    dockerCommand: node seed.js && node server.js
+    # el seed + server los encadena el CMD del Dockerfile (sh -c "..."), porque
+    # render corre dockerCommand con exec y el "&&" no se interpreta.
     healthCheckPath: /products
     envVars:
       # datos de conexion a la base, tomados del servicio de postgres de arriba.
