@@ -1,18 +1,21 @@
 # blueprint de render para el backend + chatbot + base de datos.
 #
-# ojo: para que render lo detecte solo ("new > blueprint"), este archivo tiene
-# que estar en la raiz del repositorio. como el repo guarda una copia por
-# sprint, aca queda junto al proyecto y sirve de dos formas:
-#   1. como referencia exacta de cada setting para el alta manual (ver
-#      docs/DEPLOY_RENDER.md), que es el camino recomendado.
-#   2. si se copia a la raiz del repo, render lo puede usar como blueprint.
+# este archivo tiene que estar en la RAIZ del repositorio para que render lo
+# detecte solo ("new > blueprint"). hay una copia identica en
+# Scrum/Sprint7/luxor-proj/render.yaml que sirve de referencia.
 #
-# los paths de rootDir son relativos a la raiz del repo.
+# IMPORTANTE sobre paths en un monorepo:
+#   - rootDir es relativo a la raiz del repo. solo sirve para acotar que
+#     cambios disparan un build.
+#   - dockerfilePath y dockerContext SON RELATIVOS A LA RAIZ DEL REPO
+#     (no a rootDir). por eso van con el path completo.
 
 databases:
   - name: luxor-db
     databaseName: habibi_parfums
-    user: postgres
+    # sin "user:": render no acepta "postgres" (nombre reservado) y genera uno
+    # solo. el backend lo toma via fromDatabase -> property: user, asi que
+    # queda cableado igual.
     plan: free
     region: oregon
 
@@ -24,7 +27,8 @@ services:
     plan: free
     region: oregon
     rootDir: Scrum/Sprint7/luxor-proj/backend
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: Scrum/Sprint7/luxor-proj/backend/Dockerfile
+    dockerContext: Scrum/Sprint7/luxor-proj/backend
     # se corre el seed antes del server. seed.js usa CREATE TABLE IF NOT EXISTS
     # y ON CONFLICT DO NOTHING, asi que es idempotente y no rompe si se ejecuta
     # en cada arranque.
@@ -70,7 +74,8 @@ services:
     plan: free
     region: oregon
     rootDir: Scrum/Sprint7/luxor-proj/backend/chatbot
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: Scrum/Sprint7/luxor-proj/backend/chatbot/Dockerfile
+    dockerContext: Scrum/Sprint7/luxor-proj/backend/chatbot
     healthCheckPath: /
     envVars:
       # url publica del backend node. si render le pone un sufijo al nombre
