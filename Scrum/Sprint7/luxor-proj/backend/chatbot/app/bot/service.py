@@ -4,9 +4,9 @@ from app.bot.models import ChatRequest
 from app.bot.models import ChatResponse
 from app.bot.models import MessageRole
 from app.llm.base import LLMProvider
-from app.services.productService import ProductService
+from app.services.product_service import ProductService
 from difflib import get_close_matches
-from app.services.chatLogService import ChatLogService
+from app.services.chat_log_service import ChatLogService
 
 
 class ChatService:

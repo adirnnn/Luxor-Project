@@ -3,8 +3,8 @@ from app.bot.models import ChatRequest
 from app.bot.models import ChatResponse
 from app.bot.service import ChatService
 from app.llm.factory import get_provider
-from app.services.productService import ProductService
-from app.services.chatLogService import ChatLogService
+from app.services.product_service import ProductService
+from app.services.chat_log_service import ChatLogService
 
 router = APIRouter(
     prefix="/chat",
