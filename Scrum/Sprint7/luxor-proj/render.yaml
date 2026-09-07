@@ -5,10 +5,9 @@
 # Scrum/Sprint7/luxor-proj/render.yaml que sirve de referencia.
 #
 # IMPORTANTE sobre paths en un monorepo:
-#   - rootDir es relativo a la raiz del repo. solo sirve para acotar que
-#     cambios disparan un build.
-#   - dockerfilePath y dockerContext SON RELATIVOS A LA RAIZ DEL REPO
-#     (no a rootDir). por eso van con el path completo.
+#   - rootDir es relativo a la raiz del repo.
+#   - dockerfilePath y dockerContext se resuelven DENTRO de rootDir
+#     (render los concatena), asi que van como "./Dockerfile" y ".".
 
 databases:
   - name: luxor-db
@@ -27,8 +26,8 @@ services:
     plan: free
     region: oregon
     rootDir: Scrum/Sprint7/luxor-proj/backend
-    dockerfilePath: Scrum/Sprint7/luxor-proj/backend/Dockerfile
-    dockerContext: Scrum/Sprint7/luxor-proj/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     # se corre el seed antes del server. seed.js usa CREATE TABLE IF NOT EXISTS
     # y ON CONFLICT DO NOTHING, asi que es idempotente y no rompe si se ejecuta
     # en cada arranque.
@@ -74,8 +73,8 @@ services:
     plan: free
     region: oregon
     rootDir: Scrum/Sprint7/luxor-proj/backend/chatbot
-    dockerfilePath: Scrum/Sprint7/luxor-proj/backend/chatbot/Dockerfile
-    dockerContext: Scrum/Sprint7/luxor-proj/backend/chatbot
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /
     envVars:
       # url publica del backend node. si render le pone un sufijo al nombre
