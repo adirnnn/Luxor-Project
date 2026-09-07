@@ -129,9 +129,10 @@ Compilación de producción del frontend:
 npm run build
 ```
 
-## Despliegue en Vercel
+## Despliegue
 
-El frontend se publica en Vercel como sitio estático (build de Vite). La configuración del build está en `vercel.json` y la única variable que necesita es `VITE_API_URL` (URL del backend en producción). El paso a paso está en [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+- **Frontend (Vercel):** sitio estático (build de Vite). La configuración está en `vercel.json` (incluye el rewrite a `index.html` para que funcione el enrutado del SPA) y necesita `VITE_API_URL` y `VITE_CHATBOT_URL` (URLs del backend y del chatbot en producción). El *root directory* del proyecto en Vercel es `Scrum/Sprint7/luxor-proj`.
+- **Backend + chatbot (Render):** dos servicios Docker y un PostgreSQL administrado. El chatbot usa un proveedor de LLM compatible con OpenAI (Groq) en producción porque Render no puede correr Ollama; se selecciona con `LLM_PROVIDER` (por defecto `ollama` para desarrollo). El blueprint de referencia está en `render.yaml` y el paso a paso en [docs/DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md).
 
 ## Rutas principales
 
