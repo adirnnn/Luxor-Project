@@ -87,7 +87,7 @@ services:
         value: https://api.groq.com/openai/v1
       # verificar el id exacto del modelo en la consola de groq.
       - key: LLM_MODEL
-        value: llama-3.1-8b-instant
+        value: openai/gpt-oss-20b
       # token de groq. secreto: se carga a mano en el panel de render.
       - key: LLM_API_KEY
         sync: false
