@@ -155,13 +155,39 @@ app.get("/products/:id", async (req, res) => {
   }
 });
 
+const PRODUCT_ID_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
+const PRICE_REGEX = /^\d+(?:\.\d{1,2})?$/;
+const STOCK_REGEX = /^\d+$/;
+
+function validateProductPayload(body, { requireId }) {
+  const { id, name, price, stock, notes, category_id } = body ?? {};
+
+  if (requireId && (!id || typeof id !== "string" || !PRODUCT_ID_REGEX.test(id.trim()))) {
+    return "El id es obligatorio y solo puede tener letras, números y guiones.";
+  }
+  if (!name || typeof name !== "string" || !name.trim() || name.length > 200) {
+    return "El nombre es obligatorio y debe tener hasta 200 caracteres.";
+  }
+  if (price === undefined || price === null || !PRICE_REGEX.test(String(price))) {
+    return "El precio debe ser un número no negativo con hasta dos decimales.";
+  }
+  if (stock !== undefined && stock !== null && !STOCK_REGEX.test(String(stock))) {
+    return "El stock debe ser un número entero no negativo.";
+  }
+  if (category_id !== undefined && category_id !== null && !Number.isInteger(Number(category_id))) {
+    return "category_id debe ser un número entero.";
+  }
+  if (notes !== undefined && notes !== null && (typeof notes !== "object" || Array.isArray(notes))) {
+    return "notes debe ser un objeto con salida, corazon y fondo.";
+  }
+  return null;
+}
+
 app.post("/products", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { id, name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
-  if (!id || !id.trim() || !name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
-    return res.status(400).json({ success: false, message: "ID, nombre y precio son obligatorios." });
-  }
-  if (Number(price) < 0 || (stock !== undefined && stock !== null && Number(stock) < 0)) {
-    return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
+  const validationError = validateProductPayload(req.body, { requireId: true });
+  if (validationError) {
+    return res.status(400).json({ success: false, message: validationError });
   }
   try {
     await pool.query(
@@ -534,9 +560,31 @@ app.get("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), 
   }
 });
 
+function validateCartItems(items) {
+  if (!Array.isArray(items)) {
+    return "El body debe ser un arreglo de items del carrito.";
+  }
+  for (const item of items) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return "Cada item del carrito debe ser un objeto con product_id y quantity.";
+    }
+    if (!item.product_id || typeof item.product_id !== "string") {
+      return "Cada item debe traer un product_id válido.";
+    }
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      return "La cantidad de cada item debe ser un entero mayor a 0.";
+    }
+  }
+  return null;
+}
+
 app.post("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   const userId = req.params.userId;
   const items = req.body;
+  const validationError = validateCartItems(items);
+  if (validationError) {
+    return res.status(400).json({ success: false, message: validationError });
+  }
   try {
     let cartResult = await pool.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
     if (cartResult.rows.length === 0)
