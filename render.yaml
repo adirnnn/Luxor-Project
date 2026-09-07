@@ -30,8 +30,9 @@ services:
     dockerContext: .
     # se corre el seed antes del server. seed.js usa CREATE TABLE IF NOT EXISTS
     # y ON CONFLICT DO NOTHING, asi que es idempotente y no rompe si se ejecuta
-    # en cada arranque.
-    dockerCommand: sh -c "node seed.js && node server.js"
+    # en cada arranque. render ya lo corre dentro de un shell, no hace falta
+    # envolverlo en "sh -c" (eso rompe el parseo del &&).
+    dockerCommand: node seed.js && node server.js
     healthCheckPath: /products
     envVars:
       # datos de conexion a la base, tomados del servicio de postgres de arriba.
@@ -77,10 +78,10 @@ services:
     dockerContext: .
     healthCheckPath: /
     envVars:
-      # url publica del backend node. si render le pone un sufijo al nombre
-      # del servicio, corregir esta url despues del primer deploy.
+      # url publica del backend node. render le puso el sufijo -9ov9 al nombre
+      # del servicio (luxor-backend ya estaba tomado a nivel global).
       - key: NODE_API_URL
-        value: https://luxor-backend.onrender.com
+        value: https://luxor-backend-9ov9.onrender.com
       # proveedor de llm. en render se usa groq porque no hay forma de correr
       # ollama (no hay gpu). ver backend/chatbot/app/llm/factory.py.
       - key: LLM_PROVIDER
