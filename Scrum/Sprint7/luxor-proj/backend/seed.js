@@ -135,7 +135,9 @@ const seedUsers = async () => {
       console.log('Nota: no se pudo verificar category_id (probablemente ya existe).');
     }
 
+    
     // integracion PerfumAPI: marca + metadatos de sincronizacion (columnas nuevas en bases ya existentes)
+    
     try {
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(150)`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS external_source VARCHAR(50)`);
@@ -145,6 +147,33 @@ const seedUsers = async () => {
     } catch (e) {
       console.log('Nota: no se pudieron verificar las columnas de PerfumAPI (probablemente ya existen).');
     }
+
+    
+    try {
+      await pool.query(`ALTER TABLE products ADD CONSTRAINT products_price_check CHECK (price >= 0)`);
+      console.log('CHECK de price >= 0 agregado en products');
+    } catch (e) {
+      console.log('Nota: el CHECK de price ya existía.');
+    }
+    try {
+      await pool.query(`ALTER TABLE products ADD CONSTRAINT products_stock_check CHECK (stock >= 0)`);
+      console.log('CHECK de stock >= 0 agregado en products');
+    } catch (e) {
+      console.log('Nota: el CHECK de stock ya existía.');
+    }
+
+    
+    try {
+      const orphans = await pool.query(`DELETE FROM cart_items WHERE product_id NOT IN (SELECT id FROM products)`);
+      if (orphans.rowCount > 0) {
+        console.log(`Se limpiaron ${orphans.rowCount} items de carrito huérfanos (sin producto asociado)`);
+      }
+      await pool.query(`ALTER TABLE cart_items ADD CONSTRAINT cart_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE`);
+      console.log('FK real de cart_items.product_id -> products agregada');
+    } catch (e) {
+      console.log('Nota: la FK de cart_items.product_id ya existía.');
+    }
+
 
     // Tablas para reportes (SFTWRKEY-163+)
     await pool.query(`

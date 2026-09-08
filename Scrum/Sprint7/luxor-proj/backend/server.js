@@ -99,11 +99,14 @@ app.get("/products/search", async (req, res) => {
       `SELECT p.*, c.nombre AS category_name
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
-       WHERE p.name ILIKE $1
-          OR p.description ILIKE $1
-          OR p.salida ILIKE $1
-          OR p.corazon ILIKE $1
-          OR p.fondo ILIKE $1
+       WHERE p.stock > 0
+         AND (
+           p.name ILIKE $1
+           OR p.description ILIKE $1
+           OR p.salida ILIKE $1
+           OR p.corazon ILIKE $1
+           OR p.fondo ILIKE $1
+         )
        ORDER BY p.created_at DESC`,
       [`%${busqueda}%`]
     );
@@ -152,13 +155,39 @@ app.get("/products/:id", async (req, res) => {
   }
 });
 
+const PRODUCT_ID_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
+const PRICE_REGEX = /^\d+(?:\.\d{1,2})?$/;
+const STOCK_REGEX = /^\d+$/;
+
+function validateProductPayload(body, { requireId }) {
+  const { id, name, price, stock, notes, category_id } = body ?? {};
+
+  if (requireId && (!id || typeof id !== "string" || !PRODUCT_ID_REGEX.test(id.trim()))) {
+    return "El id es obligatorio y solo puede tener letras, números y guiones.";
+  }
+  if (!name || typeof name !== "string" || !name.trim() || name.length > 200) {
+    return "El nombre es obligatorio y debe tener hasta 200 caracteres.";
+  }
+  if (price === undefined || price === null || !PRICE_REGEX.test(String(price))) {
+    return "El precio debe ser un número no negativo con hasta dos decimales.";
+  }
+  if (stock !== undefined && stock !== null && !STOCK_REGEX.test(String(stock))) {
+    return "El stock debe ser un número entero no negativo.";
+  }
+  if (category_id !== undefined && category_id !== null && !Number.isInteger(Number(category_id))) {
+    return "category_id debe ser un número entero.";
+  }
+  if (notes !== undefined && notes !== null && (typeof notes !== "object" || Array.isArray(notes))) {
+    return "notes debe ser un objeto con salida, corazon y fondo.";
+  }
+  return null;
+}
+
 app.post("/products", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { id, name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
-  if (!id || !id.trim() || !name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
-    return res.status(400).json({ success: false, message: "ID, nombre y precio son obligatorios." });
-  }
-  if (Number(price) < 0 || (stock !== undefined && stock !== null && Number(stock) < 0)) {
-    return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
+  const validationError = validateProductPayload(req.body, { requireId: true });
+  if (validationError) {
+    return res.status(400).json({ success: false, message: validationError });
   }
   try {
     await pool.query(
@@ -182,12 +211,16 @@ app.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) =
     return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
   }
   try {
-    await pool.query(
+    const result = await pool.query(
       `UPDATE products
        SET name = $1, price = $2, image = $3, description = $4, stock = $5, salida = $6, corazon = $7, fondo = $8, category_id = $9, brand = $10, external_source = $11, external_id = $12, synced_at = $13
        WHERE id = $14`,
       [name, price, image, description, stock, notes?.salida, notes?.corazon, notes?.fondo, category_id || null, brand || null, external_source || null, external_id || null, synced_at || null, req.params.id]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Producto no encontrado" });
+    }
     res.json({ success: true, message: "Producto actualizado" });
   } catch (err) {
     console.error(err);
@@ -197,7 +230,11 @@ app.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) =
 
 app.delete("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) => {
   try {
-    await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+    const result = await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Producto no encontrado" });
+    }
     res.json({ success: true, message: "Producto eliminado" });
   } catch (err) {
     console.error(err);
@@ -523,21 +560,51 @@ app.get("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), 
   }
 });
 
+function validateCartItems(items) {
+  if (!Array.isArray(items)) {
+    return "El body debe ser un arreglo de items del carrito.";
+  }
+  for (const item of items) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return "Cada item del carrito debe ser un objeto con product_id y quantity.";
+    }
+    if (!item.product_id || typeof item.product_id !== "string") {
+      return "Cada item debe traer un product_id válido.";
+    }
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      return "La cantidad de cada item debe ser un entero mayor a 0.";
+    }
+  }
+  return null;
+}
+
 app.post("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   const userId = req.params.userId;
   const items = req.body;
+  const validationError = validateCartItems(items);
+  if (validationError) {
+    return res.status(400).json({ success: false, message: validationError });
+  }
+  
+  const client = await pool.connect();
   try {
-    let cartResult = await pool.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
+    await client.query('BEGIN');
+    let cartResult = await client.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
     if (cartResult.rows.length === 0)
-      cartResult = await pool.query('INSERT INTO carts (user_id) VALUES ($1) RETURNING id', [userId]);
+      cartResult = await client.query('INSERT INTO carts (user_id) VALUES ($1) RETURNING id', [userId]);
     const cartId = cartResult.rows[0].id;
-    await pool.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+    await client.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
     for (const item of items) {
-      await pool.query('INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3)', [cartId, item.product_id, item.quantity]);
+      await client.query('INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3)', [cartId, item.product_id, item.quantity]);
     }
+    await client.query('COMMIT');
     res.json({ success: true });
   } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error("Error al sincronizar carrito:", err);
     res.status(500).json({ message: "Error" });
+  } finally {
+    client.release();
   }
 });
 
