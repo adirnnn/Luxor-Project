@@ -898,8 +898,7 @@ app.post("/chatbot/queries", async (req, res) => {
     }
 });
 
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
 }
 
