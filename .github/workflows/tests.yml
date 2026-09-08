@@ -1,0 +1,64 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - "Scrum/Sprint7/luxor-proj/**"
+      - ".github/workflows/tests.yml"
+  pull_request:
+    branches: [main, staging]
+    paths:
+      - "Scrum/Sprint7/luxor-proj/**"
+      - ".github/workflows/tests.yml"
+
+defaults:
+  run:
+    working-directory: Scrum/Sprint7/luxor-proj
+
+jobs:
+  backend-tests:
+    name: Backend (node --test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Scrum/Sprint7/luxor-proj/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: Scrum/Sprint7/luxor-proj/backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Correr pruebas
+        run: npm test
+
+  frontend-tests:
+    name: Frontend (vitest + build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: Scrum/Sprint7/luxor-proj/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Correr pruebas
+        run: npm run test:run
+
+      - name: Verificar build
+        run: npm run build
