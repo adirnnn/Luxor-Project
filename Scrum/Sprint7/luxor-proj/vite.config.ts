@@ -32,9 +32,6 @@ export default defineConfig({
       // lcov -> coverage/lcov.info, el formato que consumen las herramientas de CI.
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      // sin esto vitest solo mide los archivos que algun test llego a importar,
-      // y el reporte da un porcentaje enganosamente alto.
-      all: true,
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.{test,spec}.{ts,tsx}',
@@ -46,4 +43,3 @@ export default defineConfig({
     },
   },
 })
-

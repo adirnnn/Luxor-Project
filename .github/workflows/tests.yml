@@ -62,3 +62,26 @@ jobs:
 
       - name: Verificar build
         run: npm run build
+
+  chatbot-tests:
+    name: Chatbot (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Scrum/Sprint7/luxor-proj/backend/chatbot
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: Scrum/Sprint7/luxor-proj/backend/chatbot/requirements-dev.txt
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+
+      - name: Correr pruebas
+        run: pytest -v
