@@ -32,7 +32,8 @@ export const authenticate = (req, res, next) => {
 // El usuario autenticado debe coincidir con :paramName de la URL, o tener uno de los roles permitidos.
 export const authorizeSelfOrRoles = (paramName, ...allowedRoles) => (req, res, next) => {
   const targetId = String(req.params[paramName]);
-  const isSelf = String(req.user.id) === targetId;
+  // SFTWRKEY-378: sin id en el token, String(undefined) === "undefined" daba acceso a /user/undefined.
+  const isSelf = req.user.id != null && String(req.user.id) === targetId;
   const isAllowedRole = allowedRoles.includes(req.user.role);
   if (!isSelf && !isAllowedRole) {
     return res.status(403).json({ success: false, message: 'No tienes permiso para acceder a este recurso.' });

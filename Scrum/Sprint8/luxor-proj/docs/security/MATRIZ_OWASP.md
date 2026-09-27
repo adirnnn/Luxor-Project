@@ -24,7 +24,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | Categoría | Filas | Pasa | Falla | Pendiente |
 |---|---|---|---|---|
-| A01 Pérdida de control de acceso | 5 | 4 | 0 | 1 |
+| A01 Pérdida de control de acceso | 6 | 5 | 0 | 1 |
 | A02 Configuración de seguridad incorrecta | 9 | 1 | 8 | 0 |
 | A03 Cadena de suministro de software | 2 | 0 | 0 | 2 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
@@ -34,7 +34,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | A08 Integridad de software y datos | 3 | 2 | 1 | 0 |
 | A09 Registro y alertas | 2 | 1 | 1 | 0 |
 | A10 Condiciones excepcionales | 3 | 1 | 1 | 1 |
-| **Total** | **44** | **18** | **20** | **6** |
+| **Total** | **45** | **19** | **20** | **6** |
 
 **Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 3 Altas · 10 Medias · 5 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
@@ -42,10 +42,10 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | ID | Cat. | Componente | Endpoint / archivo | Riesgo | Prueba | Resultado | Método | Severidad | Ticket | Estado |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SEC-01 | A01 | Backend | `GET/PUT /user/:userId`, `GET /user/:userId/orders`, `PUT /user/:userId/password` | Un cliente lee o modifica el perfil, pedidos o contraseña de otro usuario (IDOR) | Con el token del cliente A, pedir los recursos del cliente B → 403 | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
-| SEC-02 | A01 | Backend | `GET/POST /cart/:userId`, `POST /checkout/:userId` | Un cliente ve o altera el carrito de otro, o compra a su nombre | Con el token del cliente A, usar el id del cliente B → 403 | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
-| SEC-03 | A01 | Backend | `POST/PUT/DELETE /products`, `/report*`, `/users/search`, `/imports/*`, `/external-perfumes/*`, `/admin/perfum-sync-logs` | Un CLIENTE usa funciones de administrador | Llamar a cada ruta con el token de un CLIENTE → 403 | Pasa | RC | Crítica | SFTWRKEY-378 | Abierto |
-| SEC-04 | A01 | Backend | `services/auth.js` (`authenticate`) | Acceso con un token ausente, vencido, firmado con otro secreto o con un esquema distinto de `Bearer` | Cada caso → 401 | Pasa | RC | Crítica | SFTWRKEY-378 | Abierto |
+| SEC-01 | A01 | Backend | `GET/PUT /user/:userId`, `GET /user/:userId/orders`, `PUT /user/:userId/password` | Un cliente lee o modifica el perfil, pedidos o contraseña de otro usuario (IDOR) | IDOR: cliente 7 contra `/user/999`, `/user/999/orders` y `/user/999/password` → 403; ids alterados (`/user/07`, `/user/7abc`, `/user/%207`) → 403; `PUT /user/7` ignora `role` e `id` del body (`security.accessControl.test.js`, `authorization.test.js`) | Pasa | PA | Alta | SFTWRKEY-378 | Verificado |
+| SEC-02 | A01 | Backend | `GET/POST /cart/:userId`, `POST /checkout/:userId` | Un cliente ve o altera el carrito de otro, o compra a su nombre | Cliente 7 contra `/cart/999` (GET/POST) y `/checkout/999` → 403; ids alterados (`/cart/7.0`, `/cart/-7`) → 403; un VENDEDOR tampoco accede → 403 (`security.accessControl.test.js`, `authorization.test.js`) | Pasa | PA | Alta | SFTWRKEY-378 | Verificado |
+| SEC-03 | A01 | Backend | `POST/PUT/DELETE /products`, `/report*`, `/users/search`, `/imports/*`, `/external-perfumes/*`, `/admin/perfum-sync-logs` | Un CLIENTE usa funciones de administrador | CLIENTE y VENDEDOR contra productos, `/report/*` (las 6 rutas), `/users/search`, `/imports/*` (incluida la plantilla) y `/external-perfumes/*` → 403 sin consultar la BD; `/register` siempre crea CLIENTE (`security.accessControl.test.js`, `authorization.test.js`) | Pasa | PA | Crítica | SFTWRKEY-378 | Verificado |
+| SEC-04 | A01 | Backend | `services/auth.js` (`authenticate`) | Acceso con un token ausente, vencido, firmado con otro secreto o con un esquema distinto de `Bearer` | Sin token, token alterado, firmado con otra clave, vencido, `alg: none`, rol cambiado en el payload, esquemas `Basic`/`Token`/`Bearer` vacío → 401 (`security.accessControl.test.js`, `authorization.test.js`) | Pasa | PA | Crítica | SFTWRKEY-378 | Verificado |
 | SEC-05 | A01 | Frontend | Páginas `/admin*`, `/reporte` | La interfaz de admin se muestra a un cliente (el control real está en el backend) | Entrar como CLIENTE y abrir cada ruta; ninguna llamada de admin responde 200 | Pendiente | — | Baja | SFTWRKEY-378 | Abierto |
 | SEC-06 | A02 | Backend | `server.js` | Faltan cabeceras de seguridad (HSTS, nosniff, frameguard) y se expone `X-Powered-By` | Revisar las cabeceras de `GET /products` | Falla | RC | Media | SFTWRKEY-380 | Abierto |
 | SEC-07 | A02 | Backend | `server.js`, `services/rateLimit.js` | Sin `trust proxy`, en Render todas las peticiones comparten la IP del proxy: el rate limit bloquea a todos a la vez y no identifica al atacante | 11 logins desde IPs distintas (`X-Forwarded-For`) → solo se bloquea la IP que abusa | Falla | RC | Alta | SFTWRKEY-380 | Abierto |
@@ -86,6 +86,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-42 | A10 | Backend | `server.js` (sin manejador global de errores) | Sin `NODE_ENV=production`, el manejador por defecto de Express devuelve el stack trace ante un JSON malformado u otro error no controlado | Enviar un JSON malformado → 400 genérico, sin stack | Falla | RC | Media | SFTWRKEY-380 | Abierto |
 | SEC-43 | A10 | Backend | Checkout, carrito, importación CSV | Datos inconsistentes si falla una operación a la mitad | `BEGIN`/`COMMIT`/`ROLLBACK` en las tres operaciones | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
 | SEC-44 | A10 | Chatbot / Backend | Pasarela de pago, PerfumAPI, proveedor del LLM | Una caída de un servicio externo produce errores 500 o respuestas colgadas | Pasarela y PerfumAPI → 502 controlado (RC). Falta probar la caída del LLM (Groq u Ollama) | Pendiente | — | Media | SFTWRKEY-379 | Abierto |
+| SEC-45 | A01 | Backend | `services/auth.js` (`authorizeSelfOrRoles`) | Un token válido sin `id` autorizaba `/user/undefined`, porque `String(undefined) === "undefined"`. Se corrigió exigiendo `id` | Token sin `id` contra `/user/7` y `/user/undefined` → 403 (`security.accessControl.test.js`) | Pasa | PA | Baja | SFTWRKEY-378 | Verificado |
 
 ## Escaneo dinámico
 
