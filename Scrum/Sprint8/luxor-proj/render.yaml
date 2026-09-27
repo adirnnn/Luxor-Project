@@ -1,0 +1,96 @@
+# blueprint de render para el backend + chatbot + base de datos.
+#
+# este archivo tiene que estar en la RAIZ del repositorio para que render lo
+# detecte solo ("new > blueprint"). hay una copia identica en
+# Scrum/Sprint7/luxor-proj/render.yaml que sirve de referencia.
+#
+# IMPORTANTE sobre paths en un monorepo:
+#   - rootDir es relativo a la raiz del repo.
+#   - dockerfilePath y dockerContext se resuelven DENTRO de rootDir
+#     (render los concatena), asi que van como "./Dockerfile" y ".".
+
+databases:
+  - name: luxor-db
+    databaseName: habibi_parfums
+    # sin "user:": render no acepta "postgres" (nombre reservado) y genera uno
+    # solo. el backend lo toma via fromDatabase -> property: user, asi que
+    # queda cableado igual.
+    plan: free
+    region: oregon
+
+services:
+  # ---------- backend node (express) ----------
+  - type: web
+    name: luxor-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: Scrum/Sprint7/luxor-proj/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # el seed + server los encadena el CMD del Dockerfile (sh -c "..."), porque
+    # render corre dockerCommand con exec y el "&&" no se interpreta.
+    healthCheckPath: /products
+    envVars:
+      # datos de conexion a la base, tomados del servicio de postgres de arriba.
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: luxor-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: luxor-db
+          property: port
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: luxor-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: luxor-db
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: luxor-db
+          property: database
+      # secreto para firmar los jwt. render genera uno solo la primera vez.
+      - key: JWT_SECRET
+        generateValue: true
+      # url del frontend en vercel, para el cors del backend.
+      - key: FRONTEND_URL
+        value: https://luxor-project-green.vercel.app
+      - key: PERFUM_API_BASE_URL
+        value: https://perfumapidatabase.onrender.com
+      - key: PAYMENT_GATEWAY_API_KEY
+        value: sandbox_dev_key
+
+  # ---------- chatbot (fastapi) ----------
+  - type: web
+    name: luxor-chatbot
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: Scrum/Sprint7/luxor-proj/backend/chatbot
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      # url publica del backend node. render le puso el sufijo -9ov9 al nombre
+      # del servicio (luxor-backend ya estaba tomado a nivel global).
+      - key: NODE_API_URL
+        value: https://luxor-backend-9ov9.onrender.com
+      # proveedor de llm. en render se usa groq porque no hay forma de correr
+      # ollama (no hay gpu). ver backend/chatbot/app/llm/factory.py.
+      - key: LLM_PROVIDER
+        value: groq
+      - key: LLM_API_BASE_URL
+        value: https://api.groq.com/openai/v1
+      # verificar el id exacto del modelo en la consola de groq.
+      - key: LLM_MODEL
+        value: openai/gpt-oss-20b
+      # token de groq. secreto: se carga a mano en el panel de render.
+      - key: LLM_API_KEY
+        sync: false
+      # origen del frontend en vercel, para el cors del chatbot.
+      - key: CHATBOT_ALLOWED_ORIGINS
+        value: https://luxor-project-green.vercel.app

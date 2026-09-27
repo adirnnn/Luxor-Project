@@ -1,0 +1,66 @@
+services:
+  frontend:
+    build: .
+    container_name: luxor-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: luxor-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    # Espera que la DB esté lista y luego corre seed + server
+    command: sh -c "node seed.js && node server.js"
+
+  db:
+    image: postgres:16
+    container_name: luxor-postgres
+    restart: always
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chatbot:
+    build: ./backend/chatbot
+    container_name: luxor-chatbot
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Dentro de la red de Docker Compose el backend se resuelve por el nombre
+      # del servicio, no por localhost (que dentro de este contenedor apuntaría
+      # al propio contenedor del chatbot).
+      - NODE_API_URL=http://backend:3000
+      # Ollama corre en el host (no como servicio de este compose). En Docker
+      # Desktop se accede a él vía host.docker.internal. Si Ollama corre en otra
+      # máquina, sobreescribe OLLAMA_URL en .env.
+      - OLLAMA_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
