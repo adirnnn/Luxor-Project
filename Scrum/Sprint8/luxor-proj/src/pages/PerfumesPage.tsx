@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
-import { H1, Text } from "../components/ui/Typography";
+import { PageTitle, Text } from "../components/ui/Typography";
 import { ProductCard } from "../features/perfumes/ProductCard";
 import { fetchProducts, fetchCategories } from "../services/productService";
 import type { Product, Category } from "../services/productService";
@@ -38,12 +38,12 @@ export default function PerfumesPage() {
 
   return (
     <MainLayout>
-      <Section size="lg" className="pt-32 md:pt-40 pb-20 bg-primary-black">
+      <Section className="pt-0 pb-20 bg-primary-black">
         <Container>
           <div className="flex flex-col gap-16">
             <div className="max-w-xl flex flex-col gap-4">
+              <PageTitle>Nuestros Perfumes</PageTitle>
               <span className="text-[10px] tracking-[0.3em] uppercase text-primary-gold font-bold">Colección</span>
-              <H1 className="text-3xl md:text-5xl font-heading font-black text-primary-champagne">Nuestros Perfumes</H1>
               <Text className="text-primary-champagne/70 text-sm md:text-base leading-relaxed">
                 Explora nuestra selección completa de fragancias árabes e internacionales, curadas con la máxima sofisticación y excelencia.
               </Text>

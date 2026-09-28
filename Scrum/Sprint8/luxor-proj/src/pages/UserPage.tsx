@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
-import { H1, H2, H3, Text } from "../components/ui/Typography";
+import { H2, H3, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
 import { API_URL, authHeaders, getToken } from "../services/apiClient";
 
@@ -219,8 +219,9 @@ export default function UserPage() {
 
   return (
     <MainLayout>
-      <Container className="py-12">
-        <H1 className="mb-10">Mi Cuenta</H1>
+        <Container className="pb-12">
+        <PageTitle className="mb-10">Mi Cuenta</PageTitle>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 

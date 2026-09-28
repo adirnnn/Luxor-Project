@@ -29,7 +29,7 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   const { addToCart } = useCart();
 
   return (
-    <Section size="lg" className="py-24">
+    <Section className="pt-0 pb-24">
       <Container>
         <div
           className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] [grid-template-areas:'img_head'_'body_body'] gap-x-5 gap-y-10 items-center

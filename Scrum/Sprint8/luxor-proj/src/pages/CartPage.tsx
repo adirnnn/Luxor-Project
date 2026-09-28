@@ -1,6 +1,6 @@
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
-import { H1, H3, Text } from "../components/ui/Typography";
+import { H3, PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -25,10 +25,10 @@ export default function CartPage() {
   };
   return (
     <MainLayout>
-      <Container className="py-24 md:py-32 px-4 md:px-6">
-        <H1 className="mb-8 md:mb-16 text-4xl md:text-7xl font-heading font-black italic text-primary-gold uppercase tracking-tighter">
+      <Container className="pb-24 md:pb-32 px-4 md:px-6">
+        <PageTitle className="mb-8 md:mb-16">
           Tu Selección
-        </H1>
+        </PageTitle>
         {cart.length === 0 ? (
           <div className="py-16 md:py-24 text-center glass-card p-8 md:p-12 backdrop-blur-3xl">
             <Text className="mb-8 text-primary-champagne/50 text-base md:text-2xl font-black uppercase tracking-widest">

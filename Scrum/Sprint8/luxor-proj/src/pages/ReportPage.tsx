@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
-import { H1, H3, Text } from "../components/ui/Typography";
+import { H3, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
 import { BarChart } from "../components/charts/BarChart";
 import { DonutChart } from "../components/charts/DonutChart";
@@ -113,12 +113,12 @@ export default function ReportPage() {
 
     return (
         <MainLayout>
-            <Section size="lg">
+            <Section size="lg" className="pt-0">
                 <Container>
                     <div className="flex flex-col gap-10">
                         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                             <div className="flex flex-col gap-2">
-                                <H1>Reporte general</H1>
+                                <PageTitle>Reporte general</PageTitle>
                                 <Text>Resumen del estado actual del negocio.</Text>
                                 {lastUpdated && (
                                     <span className="text-xs text-primary-champagne/50">

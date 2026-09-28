@@ -3,7 +3,7 @@ import { Navigate, Link } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
-import { H1, H3, Text } from "../components/ui/Typography";
+import { H3, PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { fetchProducts, deleteProduct } from "../services/productService";
@@ -50,12 +50,12 @@ export default function AdminDashboard() {
 
     return (
         <MainLayout>
-            <Section size="lg" className="min-h-screen pt-32 pb-20">
+            <Section className="min-h-screen pt-0 pb-20">
                 <Container>
                     <div className="flex flex-col gap-16">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-10">
                             <div className="flex flex-col gap-2">
-                                <H1 className="text-primary-gold mb-2 font-light italic uppercase tracking-tighter">Panel Maestro</H1>
+                                <PageTitle className="mb-2">Panel Maestro</PageTitle>
                                 <Text className="text-primary-champagne/40 font-black uppercase tracking-[0.3em] text-xs italic">Gestión de Inventario y Operaciones</Text>
                             </div>
 

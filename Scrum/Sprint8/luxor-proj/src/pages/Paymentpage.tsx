@@ -3,7 +3,7 @@ import { Navigate, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
-import { H1, H3, Text } from "../components/ui/Typography";
+import { H1, H3, PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -63,7 +63,7 @@ export default function PaymentPage() {
     if (confirmedOrder) {
         return (
         <MainLayout>
-            <Container className="py-24 md:py-32 px-4 md:px-6">
+            <Container className="pb-24 md:pb-32 px-4 md:px-6">
             <AnimatePresence>
                 <motion.div
                 initial={{ opacity: 0, y: 24 }}
@@ -152,7 +152,7 @@ export default function PaymentPage() {
 // Pagina de pago 
     return (
         <MainLayout>
-        <Container className="py-24 md:py-32 px-4 md:px-6">
+        <Container className="pb-24 md:pb-32 px-4 md:px-6">
             <button
             onClick={() => navigate("/cart")}
             className="mb-6 flex items-center gap-2 text-xs text-primary-champagne/40 hover:text-primary-gold uppercase tracking-[0.2em] font-black transition-all"
@@ -163,9 +163,9 @@ export default function PaymentPage() {
             Volver al carrito
             </button>
 
-            <H1 className="mb-8 md:mb-16 text-4xl md:text-7xl font-heading font-black italic text-primary-gold uppercase tracking-tighter">
+            <PageTitle className="mb-8 md:mb-16">
             Pago Seguro
-            </H1>
+            </PageTitle>
 
             <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 md:gap-12">
             {/* Formulario de pago */}

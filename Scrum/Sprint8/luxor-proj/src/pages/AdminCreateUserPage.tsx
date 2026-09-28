@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
-import { H1, Text } from "../components/ui/Typography";
+import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import clsx from "clsx";
@@ -84,11 +84,11 @@ export default function AdminCreateUserPage() {
 
   return (
     <MainLayout>
-      <Section size="lg" className="min-h-screen pt-32 pb-20">
+      <Section className="min-h-screen pt-0 pb-20">
         <Container>
           <div className="max-w-2xl mx-auto flex flex-col gap-12">
             <div className="flex flex-col gap-2">
-              <H1 className="text-primary-gold mb-2 font-light italic uppercase tracking-tighter">Registrar Cliente</H1>
+              <PageTitle className="mb-2">Registrar Cliente</PageTitle>
               <Text className="text-primary-champagne/40 font-black uppercase tracking-[0.3em] text-xs italic">Añadir a la Comunidad Habibi</Text>
             </div>
 

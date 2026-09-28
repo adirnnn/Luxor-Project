@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
-import { H1, Text } from "../components/ui/Typography";
+import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { fetchProductById, createProduct, updateProduct, fetchCategories } from "../services/productService";
@@ -174,7 +174,7 @@ if (loading) {
 
 return (
     <MainLayout>
-        <Section size="lg" className="min-h-screen pt-28 md:pt-32 pb-20">
+        <Section className="min-h-screen pt-0 pb-20">
         <Container>
             <div className="max-w-3xl mx-auto flex flex-col gap-8">
 
@@ -191,9 +191,9 @@ return (
                 </svg>
             </button>
             <div>
-                <H1 className="text-2xl md:text-5xl text-primary-gold font-light italic uppercase tracking-tighter leading-none">
+                <PageTitle>
                     {isEditing ? "Editar Fragancia" : "Nueva Fragancia"}
-                </H1>
+                </PageTitle>
                 <p className="text-[10px] text-primary-champagne/30 uppercase tracking-[0.3em] font-black italic mt-1">
                     {isEditing ? "Actualizar datos del producto" : "Añadir a la colección Habibi"}
                 </p>
