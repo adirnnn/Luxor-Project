@@ -31,15 +31,20 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   return (
     <Section size="lg" className="py-24">
       <Container>
-        <div className="grid md:grid-cols-2 gap-16 md:gap-32 items-center">
+        <div
+          className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] [grid-template-areas:'img_head'_'body_body'] gap-x-5 gap-y-10 items-center
+                    md:grid-cols-2 md:grid-rows-[1fr_auto_auto_1fr] md:[grid-template-areas:'img_.'_'img_head'_'img_body'_'img_.'] md:gap-x-32 md:gap-y-10"
+        >
 
-          <div className="flex flex-col gap-10 max-w-2xl md:order-2">
-            <span className="text-sm tracking-[0.4em] uppercase text-primary-gold font-black">Habibi Exclusive</span>
-            <div className="flex flex-col gap-4">
-              <H1 className="leading-none tracking-tighter uppercase italic">{name}</H1>
-              <span className="text-4xl font-black tracking-tight text-primary-gold">Q{price}.00</span>
+          <div className="[grid-area:head] flex flex-col gap-3 md:gap-10 max-w-2xl">
+            <span className="text-[10px] md:text-sm tracking-[0.3em] md:tracking-[0.4em] uppercase text-primary-gold font-black">Habibi Exclusive</span>
+            <div className="flex flex-col gap-2 md:gap-4">
+              <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words">{name}</H1>
+              <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">Q{price}.00</span>
             </div>
-            
+          </div>
+
+          <div className="[grid-area:body] flex flex-col gap-10 max-w-2xl">
             <Text className="max-w-xl text-xl md:text-2xl leading-tight text-primary-champagne/60 font-medium">{description}</Text>
             
             <div className="flex flex-col gap-6 py-8 border-y border-white/5">
