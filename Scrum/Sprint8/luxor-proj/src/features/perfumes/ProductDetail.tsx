@@ -33,13 +33,14 @@ export const ProductDetail: FC<ProductDetailProps> = ({
       <Container>
         <div
           className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] [grid-template-areas:'img_head'_'body_body'] gap-x-5 gap-y-10 items-center
-                    md:grid-cols-2 md:grid-rows-[1fr_auto_auto_1fr] md:[grid-template-areas:'img_.'_'img_head'_'img_body'_'img_.'] md:gap-x-32 md:gap-y-10"
+                    md:grid-cols-2 md:[grid-template-areas:'img_text'] md:gap-32"
         >
+          <div className="contents md:[grid-area:text] md:flex md:flex-col md:gap-10 md:max-w-2xl">
 
           <div className="[grid-area:head] flex flex-col gap-3 md:gap-10 max-w-2xl">
             <span className="text-[10px] md:text-sm tracking-[0.3em] md:tracking-[0.4em] uppercase text-primary-gold font-black">Habibi Exclusive</span>
             <div className="flex flex-col gap-2 md:gap-4">
-              <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words">{name}</H1>
+              <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words md:break-normal">{name}</H1>
               <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">Q{price}.00</span>
             </div>
           </div>
@@ -72,8 +73,10 @@ export const ProductDetail: FC<ProductDetailProps> = ({
             </div>
           </div>
 
-          <div className="relative md:order-1">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] border border-white/5 bg-primary-black group">
+          </div>
+
+          <div className="[grid-area:img] relative">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[40px] shadow-[0_20px_40px_rgba(0,0,0,0.6)] md:shadow-[0_50px_100px_rgba(0,0,0,0.8)] border border-white/5 bg-primary-black group">
               <img src={image} alt={name} fetchPriority="high" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
               <div className="absolute inset-0 cinematic-overlay opacity-30 pointer-events-none" />
             </div>
