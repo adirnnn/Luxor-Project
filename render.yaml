@@ -25,7 +25,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    rootDir: Scrum/Sprint7/luxor-proj/backend
+    rootDir: Scrum/Sprint8/luxor-proj/backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
     # el seed + server los encadena el CMD del Dockerfile (sh -c "..."), porque
@@ -70,7 +70,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    rootDir: Scrum/Sprint7/luxor-proj/backend/chatbot
+    rootDir: Scrum/Sprint8/luxor-proj/backend/chatbot
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /
