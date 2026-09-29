@@ -41,6 +41,25 @@ class ChatRequest(BaseModel):
             raise ValueError("El mensaje no puede estar vacío ni contener solo espacios.")
         return cleaned
 
+    # SFTWRKEY-393: últimos mensajes de la conversación, para entender seguimientos
+    # como "¿y cuánto cuesta?". Es opcional: las peticiones sin historial siguen igual.
+    history: list[ChatMessage] = Field(
+        default_factory=list,
+        max_length=10,
+        description="Mensajes anteriores de la conversación (solo user y assistant)."
+    )
+
+    @field_validator("history")
+    @classmethod
+    def history_solo_user_y_assistant(cls, value: list[ChatMessage]) -> list[ChatMessage]:
+        for mensaje in value:
+            # El cliente nunca puede mandar instrucciones de sistema (prompt injection).
+            if mensaje.role == MessageRole.SYSTEM:
+                raise ValueError("El historial solo puede tener mensajes de user o assistant.")
+            if len(mensaje.content) > 1000:
+                raise ValueError("Cada mensaje del historial puede tener hasta 1000 caracteres.")
+        return value
+
 # Respuesta que devuelve el chatbot
 class ChatResponse(BaseModel):
     response: str = Field(
