@@ -13,6 +13,8 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
+      # vite no recibe los eventos de cambio del volumen montado: revisa los archivos por sondeo.
+      VITE_USE_POLLING: "true"
     depends_on:
       - backend
 

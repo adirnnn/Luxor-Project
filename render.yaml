@@ -2,7 +2,7 @@
 #
 # este archivo tiene que estar en la RAIZ del repositorio para que render lo
 # detecte solo ("new > blueprint"). hay una copia identica en
-# Scrum/Sprint7/luxor-proj/render.yaml que sirve de referencia.
+# Scrum/Sprint8/luxor-proj/render.yaml que sirve de referencia.
 #
 # IMPORTANTE sobre paths en un monorepo:
 #   - rootDir es relativo a la raiz del repo.
@@ -25,7 +25,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    rootDir: Scrum/Sprint7/luxor-proj/backend
+    rootDir: Scrum/Sprint8/luxor-proj/backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
     # el seed + server los encadena el CMD del Dockerfile (sh -c "..."), porque
@@ -74,7 +74,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    rootDir: Scrum/Sprint7/luxor-proj/backend/chatbot
+    rootDir: Scrum/Sprint8/luxor-proj/backend/chatbot
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /

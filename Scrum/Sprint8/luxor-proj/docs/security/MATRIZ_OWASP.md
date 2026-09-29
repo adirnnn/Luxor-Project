@@ -29,14 +29,14 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | A03 Cadena de suministro de software | 2 | 0 | 0 | 2 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
 | A05 Inyección | 6 | 6 | 0 | 0 |
-| A06 Diseño inseguro | 4 | 2 | 1 | 1 |
+| A06 Diseño inseguro | 4 | 3 | 0 | 1 |
 | A07 Fallas de autenticación | 7 | 2 | 4 | 1 |
 | A08 Integridad de software y datos | 3 | 2 | 1 | 0 |
 | A09 Registro y alertas | 2 | 1 | 1 | 0 |
 | A10 Condiciones excepcionales | 3 | 2 | 0 | 1 |
-| **Total** | **45** | **32** | **7** | **6** |
+| **Total** | **45** | **33** | **6** | **6** |
 
-**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 3 Medias · 2 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
+**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 3 Medias · 1 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
 ## Matriz
 
@@ -69,7 +69,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-25 | A05 | Backend | `POST /imports/products` | Inyección a través de los campos del CSV | Los valores del CSV se insertan como parámetros, y una fila con imagen `javascript:` queda marcada con error (`security.injection.test.js`) | Pasa | PA | Media | SFTWRKEY-379 | Verificado |
 | SEC-26 | A06 | Backend | `POST /checkout/:userId` | El cliente manipula el precio o el total | El total se recalcula con `products.price` de la BD | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
 | SEC-27 | A06 | Backend | `POST /checkout/:userId` | Sobreventa por compras simultáneas | `UPDATE ... WHERE stock >= $1` dentro de una transacción | Pasa | RC | Media | SFTWRKEY-387 | Abierto |
-| SEC-28 | A06 | Backend | `POST /cart/:userId` (`validateCartItems`) | Sin tope de cantidad por producto | `quantity: 11` → 400 | Falla | RC | Baja | SFTWRKEY-391 | Abierto |
+| SEC-28 | A06 | Backend | `POST /cart/:userId` (`validateCartItems`) | Sin tope de cantidad por producto | `quantity: 11` → 400 y `quantity: 10` → 200 (`cartLimits.test.js`). El frontend aplica el mismo tope y el stock real (`cartLimits.ts`, `CartContext.test.tsx`) | Pasa | PA | Baja | SFTWRKEY-391 | Verificado |
 | SEC-29 | A06 | Backend | `POST /checkout/guest` (nuevo) | Abuso del checkout público: prueba de tarjetas robadas, precio manipulado, pedidos masivos | Rate limit, bloqueo tras 3 rechazos, precio de la BD | Pendiente | — | Alta | SFTWRKEY-395 | Abierto |
 | SEC-30 | A07 | BD / Seed | `backend/seed.js` | `admin@luxor.com` con contraseña `123456` (publicada en el repo) se crea en cada deploy de producción | Intentar entrar en producción con esas credenciales → 401 | Falla | RC | Crítica | SFTWRKEY-381 | Abierto |
 | SEC-31 | A07 | Backend | `POST /login` | Fuerza bruta: el límite de 10/min existe pero no funciona por IP en Render (ver SEC-07) | Con `trust proxy` (SEC-07), 11 intentos desde la misma IP → 429 solo para esa IP (`security.config.test.js`, `authorization.test.js`) | Pasa | PA | Alta | SFTWRKEY-381 | Verificado |

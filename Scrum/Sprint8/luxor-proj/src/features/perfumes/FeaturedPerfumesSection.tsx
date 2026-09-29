@@ -37,6 +37,7 @@ export const FeaturedPerfumesSection = () => {
                     name={product.name}
                     price={product.price}
                     image={product.image}
+                    stock={product.stock}
                     description={product.notes ? `${product.notes.salida} · ${product.notes.corazon}` : product.description}
                   />
                 ))}

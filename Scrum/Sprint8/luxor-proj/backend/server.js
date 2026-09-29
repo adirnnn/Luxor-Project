@@ -521,6 +521,8 @@ app.get("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), 
   }
 });
 
+const MAX_QTY_PER_ITEM = 10;
+
 function validateCartItems(items) {
   if (!Array.isArray(items)) {
     return "El body debe ser un arreglo de items del carrito.";
@@ -534,6 +536,10 @@ function validateCartItems(items) {
     }
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
       return "La cantidad de cada item debe ser un entero mayor a 0.";
+    }
+    // SFTWRKEY-391: mismo tope que el selector de cantidad del frontend (MAX_QTY_PER_ITEM).
+    if (item.quantity > MAX_QTY_PER_ITEM) {
+      return `La cantidad máxima por producto es ${MAX_QTY_PER_ITEM}.`;
     }
   }
   return null;

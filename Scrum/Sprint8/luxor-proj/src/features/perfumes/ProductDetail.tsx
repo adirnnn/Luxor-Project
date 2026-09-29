@@ -1,9 +1,11 @@
-import { type FC } from "react";
+import { useState, type FC } from "react";
 import { Section } from "../../components/ui/Section";
 import { Container } from "../../components/ui/Container";
 import { H1, Text } from "../../components/ui/Typography";
 import { Button } from "../../components/ui/Button";
 import { useCart } from "../../context/CartContext";
+import { maxQuantityFor } from "../../context/cartLimits";
+import { QuantitySelector } from "../../components/ui/QuantitySelector";
 
 export type ProductDetailProps = {
   id: string;
@@ -11,6 +13,7 @@ export type ProductDetailProps = {
   price: number;
   image: string;
   description: string;
+  stock?: number;
   notes: {
     salida: string;
     corazon: string;
@@ -24,9 +27,19 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   price,
   image,
   description,
+  stock,
   notes,
 }) => {
   const { addToCart } = useCart();
+  // SFTWRKEY-391: cantidad a agregar de una vez (máximo: stock real, tope de 10).
+  const [qty, setQty] = useState(1);
+  const max = maxQuantityFor({ stock });
+  const agotado = max === 0;
+
+  const handleAdd = () => {
+    const result = addToCart({ id, name, price, image, description, stock, notes }, qty);
+    if (result.ok) setQty(1);
+  };
 
   return (
     <Section className="pt-0 pb-24">
@@ -63,12 +76,14 @@ export const ProductDetail: FC<ProductDetailProps> = ({
               </div>
             </div>
 
-            <div className="pt-8">
+            <div className="pt-8 flex flex-col gap-5">
+              <QuantitySelector value={Math.min(qty, Math.max(max, 1))} max={Math.max(max, 1)} onChange={setQty} disabled={agotado} />
               <Button 
-                onClick={() => addToCart({ id, name, price, image, description, notes })}
-                className="w-full md:w-auto px-20 py-6 shadow-[0_20px_60px_rgba(224,179,84,0.3)]"
+                onClick={handleAdd}
+                disabled={agotado}
+                className="w-full md:w-auto px-20 py-6 shadow-[0_20px_60px_rgba(224,179,84,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                AGREGAR AL CARRITO
+                {agotado ? "AGOTADO" : "AGREGAR AL CARRITO"}
               </Button>
             </div>
           </div>
