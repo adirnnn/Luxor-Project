@@ -89,7 +89,7 @@ export default function AdminCreateUserPage() {
           <div className="max-w-2xl mx-auto flex flex-col gap-12">
             <div className="flex flex-col gap-2">
               <PageTitle className="mb-2">Registrar Cliente</PageTitle>
-              <Text className="text-primary-champagne/40 font-black uppercase tracking-[0.3em] text-xs italic">Añadir a la Comunidad Habibi</Text>
+              <Text className="text-primary-champagne/40 font-black uppercase tracking-[0.3em] text-xs italic">Añadir a la Comunidad Victoria</Text>
             </div>
 
             {success && (

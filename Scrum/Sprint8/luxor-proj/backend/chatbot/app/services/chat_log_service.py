@@ -28,6 +28,10 @@ class ChatLogService:
                         "query": consulta,
                         "response": respuesta
                     },
+                    # SFTWRKEY-380: el backend solo acepta registros con la clave interna.
+                    headers={
+                        "X-Internal-Key": os.getenv("CHATBOT_INTERNAL_KEY", "")
+                    },
                     timeout=5.0,
                 )
                 response.raise_for_status()

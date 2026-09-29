@@ -30,7 +30,7 @@ export const BrandSection = () => {
             </Text>
 
             <Text className="text-lg md:text-2xl text-primary-champagne/60 leading-relaxed font-medium italic">
-              Habibi Parfums no sigue tendencias.
+              Perfumería Victoria no sigue tendencias.
               Define estándares para quienes entienden que el aroma también es identidad.
             </Text>
           </div>

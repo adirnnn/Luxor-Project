@@ -3,12 +3,14 @@ import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
+import { maxQuantityFor } from "../context/cartLimits";
+import { QuantitySelector } from "../components/ui/QuantitySelector";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CartPage() {
-  const { cart, totalPrice, incrementQuantity, decrementQuantity, removeFromCart } = useCart();
+  const { cart, totalPrice, setQuantity, removeFromCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const outOfStockItems = cart.filter(
@@ -94,25 +96,12 @@ export default function CartPage() {
                           Q{item.product.price}
                         </span>
                         <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center gap-0 border border-white/10 rounded-full overflow-hidden">
-                            <button
-                              onClick={() => decrementQuantity(item.product.id)}
-                              className="w-9 h-9 flex items-center justify-center text-primary-champagne/60 hover:text-primary-gold hover:bg-white/5 transition-all text-lg font-black"
-                              aria-label="Disminuir cantidad"
-                            >
-                              −
-                            </button>
-                            <span className="w-8 text-center text-sm font-black text-primary-champagne tabular-nums">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => incrementQuantity(item.product.id)}
-                              className="w-9 h-9 flex items-center justify-center text-primary-champagne/60 hover:text-primary-gold hover:bg-white/5 transition-all text-lg font-black"
-                              aria-label="Aumentar cantidad"
-                            >
-                              +
-                            </button>
-                          </div>
+                          <QuantitySelector
+                            size="sm"
+                            value={item.quantity}
+                            max={Math.max(maxQuantityFor(item.product), item.quantity)}
+                            onChange={(n) => setQuantity(item.product.id, n)}
+                          />
                           <span className="text-xs text-primary-champagne/40 uppercase tracking-widest font-black">
                             Subtotal{" "}
                             <span className="text-primary-champagne/70">

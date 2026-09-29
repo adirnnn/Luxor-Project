@@ -10,6 +10,7 @@ export type ProductCardProps = {
   price: number;
   image: string;
   description?: string;
+  stock?: number;
   className?: string;
 };
 
@@ -19,6 +20,7 @@ export const ProductCard: FC<ProductCardProps> = ({
   price,
   image,
   description,
+  stock,
   className,
 }) => {
   const { addToCart } = useCart();
@@ -32,6 +34,7 @@ export const ProductCard: FC<ProductCardProps> = ({
       price, 
       image, 
       description: description || "", 
+      stock,
       notes: { salida: "", corazon: "", fondo: "" } 
     });
   };

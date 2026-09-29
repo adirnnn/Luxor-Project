@@ -161,6 +161,7 @@ export default function PerfumesPage() {
                         name={product.name}
                         price={product.price}
                         image={product.image}
+                        stock={product.stock}
                         description={product.notes?.corazon}
                       />
                     ))}

@@ -2,7 +2,7 @@
 #
 # este archivo tiene que estar en la RAIZ del repositorio para que render lo
 # detecte solo ("new > blueprint"). hay una copia identica en
-# Scrum/Sprint7/luxor-proj/render.yaml que sirve de referencia.
+# Scrum/Sprint8/luxor-proj/render.yaml que sirve de referencia.
 #
 # IMPORTANTE sobre paths en un monorepo:
 #   - rootDir es relativo a la raiz del repo.
@@ -63,6 +63,10 @@ services:
         value: https://perfumapidatabase.onrender.com
       - key: PAYMENT_GATEWAY_API_KEY
         value: sandbox_dev_key
+      # clave compartida con el chatbot para POST /chatbot/queries. render la genera
+      # la primera vez y el chatbot la copia con fromService (no viaja por git).
+      - key: CHATBOT_INTERNAL_KEY
+        generateValue: true
 
   # ---------- chatbot (fastapi) ----------
   - type: web
@@ -94,3 +98,9 @@ services:
       # origen del frontend en vercel, para el cors del chatbot.
       - key: CHATBOT_ALLOWED_ORIGINS
         value: https://luxor-project-green.vercel.app
+      # misma clave que el backend (ver CHATBOT_INTERNAL_KEY en luxor-backend).
+      - key: CHATBOT_INTERNAL_KEY
+        fromService:
+          type: web
+          name: luxor-backend
+          envVarKey: CHATBOT_INTERNAL_KEY

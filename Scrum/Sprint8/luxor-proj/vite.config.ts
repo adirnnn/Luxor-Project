@@ -7,6 +7,9 @@ export default defineConfig({
   // ojo: este proxy solo funciona con `npm run dev`. en el build de produccion
   // (vercel) no existe, ahi el frontend pega directo a VITE_API_URL.
   server: {
+    // en docker (windows/mac) los cambios de archivos del volumen montado no llegan
+    // como eventos, asi que vite no se entera. docker-compose define VITE_USE_POLLING.
+    watch: process.env.VITE_USE_POLLING === 'true' ? { usePolling: true, interval: 300 } : undefined,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',

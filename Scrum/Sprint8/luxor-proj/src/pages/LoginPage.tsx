@@ -45,11 +45,11 @@ export default function LoginPage() {
                 <div className="relative z-10 flex flex-col justify-between p-20 w-full">
                     <div className="flex flex-col leading-none">
                         <span className="text-primary-gold font-heading text-4xl font-light uppercase tracking-tight">
-                            Habibi
+                            Victoria
                         </span>
 
                         <span className="text-primary-champagne/30 font-heading text-lg font-light uppercase tracking-[0.25em] ml-1 mt-2">
-                            Parfums
+                            Perfumería
                         </span>
                     </div>
 
@@ -77,11 +77,11 @@ export default function LoginPage() {
                         className="flex flex-col leading-none"
                     >
                         <span className="text-primary-gold font-heading text-2xl font-light uppercase tracking-tight">
-                            Habibi
+                            Victoria
                         </span>
 
                         <span className="text-primary-champagne/30 font-heading text-[8px] font-light uppercase tracking-[0.25em] ml-0.5 mt-1">
-                            Parfums
+                            Perfumería
                         </span>
                     </Link>
 

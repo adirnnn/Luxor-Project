@@ -64,15 +64,17 @@ async def test_pregunta_por_categoria_sin_resultados(chat_service):
 
 
 @pytest.mark.asyncio
-async def test_consulta_no_relacionada_con_el_catalogo(chat_service):
+async def test_consulta_no_relacionada_con_el_catalogo(chat_service, fake_provider):
+    # SFTWRKEY-393: ya no responde un texto fijo; usa la conversación general,
+    # que redirige con amabilidad y solo recomienda perfumes del catálogo.
     request = ChatRequest(message="¿Cuál es el clima en Guatemala hoy?")
     respuesta = await chat_service.generar_respuesta(request)
 
-    assert respuesta.response == (
-        "No encontré información relacionada con tu consulta "
-        "en nuestro catálogo. Puedes preguntarme por un perfume, "
-        "una marca, una categoría o una nota aromática."
-    )
+    assert respuesta.response == fake_provider.respuesta_fija
+    prompt = fake_provider.mensajes_recibidos[-1][0].content
+    assert "Perfumería Victoria" in prompt
+    assert "no tiene relación con perfumes" in prompt
+    assert "Lattafa Khamrah" in prompt
 
 
 @pytest.mark.asyncio

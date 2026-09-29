@@ -1,5 +1,12 @@
+// SFTWRKEY-393: el historial es opcional; el chatbot acepta como máximo 10 mensajes.
+export interface ChatHistoryMessage {
+    role: "user" | "assistant";
+    content: string;
+}
+
 export interface ChatRequest {
     message: string;
+    history?: ChatHistoryMessage[];
 }
 
 export interface ChatResponse {

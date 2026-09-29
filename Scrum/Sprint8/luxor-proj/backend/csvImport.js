@@ -1,5 +1,9 @@
 import { isSafeImage, IMAGE_ERROR_MESSAGE } from "./services/imageValidation.js";
 
+// SFTWRKEY-380: error de validación del archivo. Su mensaje sí se muestra al usuario;
+// cualquier otro error (por ejemplo, de la base de datos) responde con un mensaje genérico.
+export class CsvValidationError extends Error {}
+
 export const CSV_COLUMNS = [
   "id", "name", "price", "image", "description", "stock", "salida", "corazon", "fondo",
 ];
@@ -9,7 +13,7 @@ export const CSV_TEMPLATE = `${CSV_COLUMNS.join(",")}\n` +
 
 /** Parses RFC-4180-style CSV, including quoted commas, quotes and new lines. */
 export function parseCsv(source) {
-  if (typeof source !== "string" || !source.trim()) throw new Error("El archivo CSV está vacío.");
+  if (typeof source !== "string" || !source.trim()) throw new CsvValidationError("El archivo CSV está vacío.");
   const rows = [];
   let row = [], field = "", quoted = false;
   for (let index = 0; index < source.length; index += 1) {
@@ -19,7 +23,7 @@ export function parseCsv(source) {
       else if (character === '"') quoted = false;
       else field += character;
     } else if (character === '"') {
-      if (field) throw new Error("Comillas inválidas en el CSV.");
+      if (field) throw new CsvValidationError("Comillas inválidas en el CSV.");
       quoted = true;
     } else if (character === ",") { row.push(field); field = ""; }
     else if (character === "\n" || character === "\r") {
@@ -29,7 +33,7 @@ export function parseCsv(source) {
       row = []; field = "";
     } else field += character;
   }
-  if (quoted) throw new Error("Falta cerrar una comilla en el CSV.");
+  if (quoted) throw new CsvValidationError("Falta cerrar una comilla en el CSV.");
   row.push(field);
   if (row.some((value) => value.trim())) rows.push(row);
   return rows;
@@ -37,11 +41,11 @@ export function parseCsv(source) {
 
 export function validateCsv(source) {
   const rows = parseCsv(source);
-  if (!rows.length) throw new Error("El archivo CSV no contiene encabezados.");
+  if (!rows.length) throw new CsvValidationError("El archivo CSV no contiene encabezados.");
   const headers = rows[0].map((header) => header.trim().replace(/^\uFEFF/, "").toLowerCase());
   const expected = CSV_COLUMNS.join(", ");
   if (headers.length !== CSV_COLUMNS.length || headers.some((header, index) => header !== CSV_COLUMNS[index])) {
-    throw new Error(`Encabezados inválidos. Se espera exactamente: ${expected}.`);
+    throw new CsvValidationError(`Encabezados inválidos. Se espera exactamente: ${expected}.`);
   }
   const ids = new Set();
   const products = [], errors = [];
@@ -65,6 +69,6 @@ export function validateCsv(source) {
     ["salida", "corazon", "fondo"].forEach((field) => { if (value[field].length > 200) addError(field, "No puede superar 200 caracteres."); });
     products.push({ ...value, price: Number(value.price), stock: Number(value.stock), row });
   });
-  if (!products.length) throw new Error("El archivo CSV no contiene registros.");
+  if (!products.length) throw new CsvValidationError("El archivo CSV no contiene registros.");
   return { products, errors, totalRows: products.length };
 }

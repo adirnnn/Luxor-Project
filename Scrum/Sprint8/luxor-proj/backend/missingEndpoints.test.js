@@ -5,6 +5,7 @@ import { once } from 'node:events';
 process.env.JWT_SECRET = 'test-secret';
 process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 process.env.PERFUM_API_BASE_URL = 'https://fake-perfumapi.test';
+process.env.CHATBOT_INTERNAL_KEY = 'test-internal-key';
 
 const { default: pool } = await import('./db.js');
 const { signToken } = await import('./services/auth.js');
@@ -499,27 +500,27 @@ test('POST /imports/products: importación válida inserta el producto y guarda 
   assert.ok(log.some((entry) => Q.insertarProducto.test(entry.sql)));
 });
 
-// ── POST /chatbot/queries (pública) ─────────────────────────────────────────
+// ── POST /chatbot/queries (solo con X-Internal-Key, SFTWRKEY-380) ─────────────────────────────────────────
 
 test('POST /chatbot/queries: sin "query" responde 400', async (t) => {
   const { restore } = fakeDb();
   t.after(restore);
   const res = await fetch(`${baseUrl}/chatbot/queries`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Internal-Key': 'test-internal-key' },
     body: JSON.stringify({}),
   });
   assert.equal(res.status, 400);
 });
 
-test('POST /chatbot/queries: guarda la consulta y responde 201 sin requerir autenticación', async (t) => {
+test('POST /chatbot/queries: con la clave interna guarda la consulta y responde 201', async (t) => {
   const { log, restore } = fakeDb([
     [Q.chatbotInsert, { rows: [{ id: 1, query: '¿Tienen Khamrah?', response: null, created_at: '2026-01-01' }] }],
   ]);
   t.after(restore);
   const res = await fetch(`${baseUrl}/chatbot/queries`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Internal-Key': 'test-internal-key' },
     body: JSON.stringify({ query: '¿Tienen Khamrah?' }),
   });
   const body = await res.json();

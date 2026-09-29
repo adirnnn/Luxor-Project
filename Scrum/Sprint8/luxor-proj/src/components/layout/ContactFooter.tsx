@@ -3,8 +3,8 @@ export const ContactFooter = () => (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-20 md:grid-cols-3">
       <div className="flex flex-col gap-8">
         <div className="flex flex-col leading-[0.8]">
-          <span className="text-primary-gold font-brand text-5xl font-normal lowercase tracking-tight">Habibi</span>
-          <span className="text-primary-champagne/30 font-brand text-xl font-normal lowercase tracking-[0.1em] mt-1">Parfums</span>
+          <span className="text-primary-gold font-brand text-5xl font-normal lowercase tracking-tight">Victoria</span>
+          <span className="text-primary-champagne/30 font-brand text-xl font-normal lowercase tracking-[0.1em] mt-1">Perfumería</span>
         </div>
         <p className="leading-relaxed text-lg text-primary-champagne/60 font-medium max-w-xs italic">
           Nuestra selección de perfumes árabes auténticos, curados con precisión y sofisticación por El Joyero Arabe.
@@ -29,7 +29,7 @@ export const ContactFooter = () => (
       </div>
     </div>
     <div className="mt-12 border-t border-white/[0.06] pt-6 pb-2 text-center text-[10px] tracking-wider text-primary-champagne/40">
-      © {new Date().getFullYear()} Habibi Parfums. Todos los derechos reservados.
+      © {new Date().getFullYear()} Perfumería Victoria. Todos los derechos reservados.
     </div>
   </footer>
 );
