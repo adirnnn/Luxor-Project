@@ -18,7 +18,7 @@ export const PageTitle = ({ children, className }: Props) => (
   </h1>
 );
 
-export const H2 = ({ children, className }: Props) => (
+export const H2 =({ children, className }: Props) => (
   <h2 className={clsx("text-3xl sm:text-4xl md:text-h2 font-heading font-light uppercase tracking-wide", className)}>
     {children}
   </h2>
