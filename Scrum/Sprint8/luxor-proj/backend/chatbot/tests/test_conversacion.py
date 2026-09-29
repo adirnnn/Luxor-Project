@@ -113,9 +113,11 @@ async def test_info_tienda_usa_solo_la_informacion_de_la_tienda(chat_service, fa
 
 
 def test_store_info_no_inventa_datos_sin_confirmar():
-    # Horarios y teléfono no están confirmados por el cliente: no deben aparecer.
+    # Los horarios no están confirmados por el cliente: no deben aparecer.
     assert "horario" not in STORE_INFO.lower()
+    # El único número es el WhatsApp de soporte confirmado, no el de relleno del sitio.
     assert "40000000" not in STORE_INFO
+    assert "+502 4714 3882" in STORE_INFO
 
 
 # ── Saludo + consulta de producto ───────────────────────────────────────────

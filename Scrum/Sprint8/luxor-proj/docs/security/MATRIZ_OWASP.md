@@ -26,17 +26,17 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 |---|---|---|---|---|
 | A01 Pérdida de control de acceso | 6 | 5 | 0 | 1 |
 | A02 Configuración de seguridad incorrecta | 9 | 9 | 0 | 0 |
-| A03 Cadena de suministro de software | 2 | 0 | 0 | 2 |
+| A03 Cadena de suministro de software | 2 | 2 | 0 | 0 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
 | A05 Inyección | 6 | 6 | 0 | 0 |
 | A06 Diseño inseguro | 4 | 3 | 0 | 1 |
 | A07 Fallas de autenticación | 7 | 2 | 4 | 1 |
-| A08 Integridad de software y datos | 3 | 2 | 1 | 0 |
+| A08 Integridad de software y datos | 3 | 3 | 0 | 0 |
 | A09 Registro y alertas | 2 | 2 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 2 | 0 | 1 |
-| **Total** | **45** | **34** | **5** | **6** |
+| **Total** | **45** | **37** | **4** | **4** |
 
-**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 2 Medias · 1 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
+**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 2 Medias · 0 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
 ## Matriz
 
@@ -56,8 +56,8 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-12 | A02 | Infraestructura | `backend/Dockerfile` | El contenedor corre como `root` y usa `npm install`, que instala dependencias de desarrollo en producción | El Dockerfile usa `NODE_ENV=production`, `npm ci --omit=dev` y `USER node`, y se agregó `backend/.dockerignore`. En Docker, `whoami` → `node` | Pasa | PM | Baja | SFTWRKEY-380 | Verificado |
 | SEC-13 | A02 | Chatbot | `app/main.py` (CORS) | CORS con `allow_credentials=True` y métodos y cabeceras `*`, más permisivo de lo necesario | Ahora `allow_credentials=False`, métodos `GET, POST` y cabecera `Content-Type`. Preflight desde `localhost:5173` → 200 con esos valores (verificado en Docker) | Pasa | PM | Baja | SFTWRKEY-380 | Verificado |
 | SEC-14 | A02 | Backend | `server.js` (CORS) | Otros orígenes llaman a la API desde el navegador | `Origin` distinto de `FRONTEND_URL` → sin cabecera CORS | Pasa | RC | Media | SFTWRKEY-380 | Abierto |
-| SEC-15 | A03 | Frontend / Backend | `package.json`, `backend/package.json` | Dependencias npm con vulnerabilidades conocidas | `npm audit --audit-level=high --omit=dev` | Pendiente | — | Media | SFTWRKEY-382 | Abierto |
-| SEC-16 | A03 | Chatbot | `backend/chatbot/requirements.txt` | Dependencias pip con vulnerabilidades conocidas | `pip-audit -r requirements.txt` | Pendiente | — | Media | SFTWRKEY-382 | Abierto |
+| SEC-15 | A03 | Frontend / Backend | `package.json`, `backend/package.json` | Dependencias npm con vulnerabilidades conocidas | Frontend: 12 vulnerabilidades (8 altas; en producción, `react-router` y `react-router-dom`) → 0 con `npm audit fix` sin `--force` (react-router 7.18.4, vite 8.3.1). Backend: 0. Pruebas y build siguen pasando (`anexos/npm-audit-*.txt`) | Pasa | AUD | Media | SFTWRKEY-382 | Verificado |
+| SEC-16 | A03 | Chatbot | `backend/chatbot/requirements.txt` | Dependencias pip con vulnerabilidades conocidas | `pip-audit -r requirements.txt` → "No known vulnerabilities found" (`anexos/pip-audit-chatbot.txt`) | Pasa | AUD | Media | SFTWRKEY-382 | Verificado |
 | SEC-17 | A04 | Backend | `services/authHandlers.js` | Contraseñas guardadas en claro o con un hash débil | bcrypt con 12 rondas en registro y cambio de contraseña | Pasa | RC | Crítica | SFTWRKEY-381 | Abierto |
 | SEC-18 | A04 | Backend | `services/auth.js` | Tokens JWT falsificables (secreto débil o `alg: none`) | HS256 con `JWT_SECRET` generado por Render, 8 h de validez; un token `alg: none` → 401 | Pasa | RC | Crítica | SFTWRKEY-381 | Abierto |
 | SEC-19 | A04 | Infraestructura | Vercel, Render | Tráfico sin cifrar | Todo el tráfico es HTTPS (lo gestiona cada proveedor) | Pasa | RC | Alta | SFTWRKEY-380 | Abierto |
@@ -78,7 +78,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-34 | A07 | Backend | `POST /login`, `POST /register` | Enumeración de usuarios | Login: mismo 401 y tiempo similar (`DUMMY_HASH`) con usuario inexistente o clave incorrecta. Registro: responde 409 si el correo existe | Pasa | RC | Baja | SFTWRKEY-381 | Aceptado |
 | SEC-35 | A07 | Frontend | `AuthContext.tsx`, `apiClient.ts` | JWT en `localStorage`: un XSS podría robarlo | Mitigado con la CSP (SEC-11) y el escape de React (SEC-21). La migración a cookie `httpOnly` queda para un sprint futuro | Falla | RC | Media | SFTWRKEY-380 | Aceptado |
 | SEC-36 | A07 | Backend | `POST /auth/google` (nuevo), `users.password` NULL | Login con Google: token no verificado, correo no verificado, o login con contraseña vacía en cuentas de Google | Token inválido → 401; `email_verified: false` → 401; cuenta de Google con clave vacía → 401 | Pendiente | — | Alta | SFTWRKEY-398 | Abierto |
-| SEC-37 | A08 | Chatbot | `backend/chatbot/requirements.txt` | Dependencias sin versión fija: builds no reproducibles | Todas las dependencias con `==versión` | Falla | RC | Baja | SFTWRKEY-382 | Abierto |
+| SEC-37 | A08 | Chatbot | `backend/chatbot/requirements.txt` | Dependencias sin versión fija: builds no reproducibles | Versiones fijadas con `==` en `requirements.txt` (las que resolvía pip el 29/09/2026); las 74 pruebas del chatbot pasan con esas versiones | Pasa | PA | Baja | SFTWRKEY-382 | Verificado |
 | SEC-38 | A08 | CI | `.github/workflows/tests.yml`, `package-lock.json` | Instalaciones no reproducibles o sin pruebas | `npm ci` con lockfile y 3 jobs de pruebas en cada push | Pasa | RC | Baja | SFTWRKEY-382 | Abierto |
 | SEC-39 | A08 | Backend | `services/perfumValidation.js`, `perfumMapper.js`, `csvImport.js` | Datos externos (PerfumAPI, CSV) guardados sin validar | Se validan URL, tipos y campos antes de guardar | Pasa | RC | Media | SFTWRKEY-379 | Abierto |
 | SEC-40 | A09 | Backend | `authHandlers.js`, `rateLimit.js` | Los logins fallidos y los bloqueos no se registran ni generan alertas: un ataque pasa desapercibido | Cada login fallido y cada bloqueo del rate limit se guardan en `security_events` (IP, correo y ruta; nunca la contraseña), en `services/securityEvents.js`. 10 logins fallidos desde una IP, o contra una misma cuenta, en 15 minutos → alerta en `GET /admin/security-alerts` y en el panel (`SecurityAlerts.tsx`). Solo ADMIN (CLIENTE/VENDEDOR → 403). Si falla el registro, el login responde igual (`security.alerts.test.js`, `SecurityAlerts.test.tsx`; SQL verificado en PostgreSQL 16) | Pasa | PA | Media | SFTWRKEY-401 | Verificado |
@@ -92,7 +92,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | ID | Alcance | Prueba | Resultado | Ticket |
 |---|---|---|---|---|
-| ZAP-01 | Frontend (`localhost:5173`) | `zap-baseline.py` | Pendiente | SFTWRKEY-383 |
-| ZAP-02 | API (`localhost:3000`) | `zap-full-scan.py` | Pendiente | SFTWRKEY-383 |
+| ZAP-01 | Frontend en producción (`luxor-project-green.vercel.app`) | `zap-baseline.py` | Pasa: 0 FAIL, 0 altos; 4 medios aceptados o mitigados (ver informe) | SFTWRKEY-383 |
+| ZAP-02 | API local (`localhost:3000`, mismo código que producción) | `zap-baseline.py` antes y después | Pasa: de 3 medios + 2 bajos a 0 medios; queda 1 bajo aceptado (COEP) | SFTWRKEY-383 |
 
 Las alertas de ZAP que no estén ya cubiertas por la matriz se agregan como filas nuevas (`SEC-45` en adelante).
