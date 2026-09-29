@@ -1,6 +1,6 @@
 # SFTWRKEY-393: información de la tienda que el bot puede usar para dudas generales.
 # Tomada del footer del sitio (src/components/layout/ContactFooter.tsx y SocialLinks.tsx).
-# Horarios, teléfono y políticas de cambio están pendientes de confirmar con el cliente:
+# Horarios y políticas de cambio están pendientes de confirmar con el cliente:
 # mientras no se confirmen, NO se agregan aquí (el bot debe decir que no tiene ese dato).
 STORE_INFO = """\
 Tienda: Perfumería Victoria, perfumes árabes auténticos seleccionados por El Joyero Árabe.
@@ -16,7 +16,7 @@ Pagos en el sitio web: con tarjeta de crédito o débito. También se puede comp
 
 Autenticidad: todos los perfumes son originales y se entregan con certificado de autenticidad.
 
-Redes: Instagram @eljoyeroarabe.
+Contacto y soporte: WhatsApp +502 4714 3882. Instagram @eljoyeroarabe.
 """
 
-CONTACTO_SUGERIDO = "escribirnos por Instagram (@eljoyeroarabe) o visitar uno de nuestros locales"
+CONTACTO_SUGERIDO = "escribirnos por WhatsApp al +502 4714 3882 o visitar uno de nuestros locales"

@@ -38,7 +38,23 @@ const PORT = process.env.PORT || 3000;
 // y el rate limit bloquea a todos los usuarios a la vez.
 app.set("trust proxy", 1);
 // Cabeceras de seguridad (HSTS, nosniff, frameguard, etc.) y sin X-Powered-By.
-app.use(helmet());
+// SFTWRKEY-384: la API solo devuelve JSON, así que su CSP no permite cargar nada
+// (hallazgos de ZAP "CSP: Wildcard Directive" y "Failure to Define Directive").
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["'none'"],
+      baseUri: ["'none'"],
+      formAction: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+}));
+app.use((_req, res, next) => {
+  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: "2mb" }));
 
@@ -940,6 +956,11 @@ app.post("/chatbot/queries", requireInternalKey, async (req, res) => {
 // middleware prepara las tablas en cada petición que entra al router: así solo lo
 // alcanzan las rutas que no atendió ninguna de las anteriores.
 app.use(commerceRouter);
+
+// SFTWRKEY-384: 404 en JSON (el 404 por defecto de Express es HTML y trae su propia CSP).
+app.use((_req, res) => {
+  res.status(404).json({ success: false, message: "Recurso no encontrado." });
+});
 
 // SFTWRKEY-380: manejador global de errores. Nunca devuelve mensajes internos ni el
 // stack trace (sin él, Express los muestra cuando NODE_ENV no es "production").
