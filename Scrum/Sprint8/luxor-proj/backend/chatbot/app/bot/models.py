@@ -25,6 +25,8 @@ class ChatRequest(BaseModel):
     message: str = Field(
         ...,
         min_length=1,
+        # SFTWRKEY-379: límite para evitar abuso del LLM (costo) y prompts de inyección largos.
+        max_length=500,
         description="Mensaje enviado por el usuario."
     )
 
