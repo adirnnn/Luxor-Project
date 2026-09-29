@@ -86,7 +86,7 @@ export const Navbar = () => {
         <Container className="flex items-center justify-between h-16 md:h-20 px-8">
 
           <Link to="/" className="flex items-center hover:scale-105 transition-all duration-700 py-1 shrink-0">
-            <span className="text-primary-gold font-brand text-4xl md:text-5xl font-normal lowercase tracking-tight">Habibi</span>
+            <span className="text-primary-gold font-brand text-4xl md:text-5xl font-normal lowercase tracking-tight">Victoria</span>
           </Link>
 
           <AnimatePresence>

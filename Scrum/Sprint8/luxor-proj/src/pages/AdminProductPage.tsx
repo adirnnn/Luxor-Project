@@ -195,7 +195,7 @@ return (
                     {isEditing ? "Editar Fragancia" : "Nueva Fragancia"}
                 </PageTitle>
                 <p className="text-[10px] text-primary-champagne/30 uppercase tracking-[0.3em] font-black italic mt-1">
-                    {isEditing ? "Actualizar datos del producto" : "Añadir a la colección Habibi"}
+                    {isEditing ? "Actualizar datos del producto" : "Añadir a la colección Victoria"}
                 </p>
                 </div>
             </div>

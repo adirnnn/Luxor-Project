@@ -51,7 +51,7 @@ export const ProductDetail: FC<ProductDetailProps> = ({
           <div className="contents md:[grid-area:text] md:flex md:flex-col md:gap-10 md:max-w-2xl">
 
           <div className="[grid-area:head] flex flex-col gap-3 md:gap-10 max-w-2xl">
-            <span className="text-[10px] md:text-sm tracking-[0.3em] md:tracking-[0.4em] uppercase text-primary-gold font-black">Habibi Exclusive</span>
+            <span className="text-[10px] md:text-sm tracking-[0.3em] md:tracking-[0.4em] uppercase text-primary-gold font-black">Colección Victoria</span>
             <div className="flex flex-col gap-2 md:gap-4">
               <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words md:break-normal">{name}</H1>
               <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">Q{price}.00</span>

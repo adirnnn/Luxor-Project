@@ -240,7 +240,7 @@ class ChatService:
             ChatMessage(
                 role=MessageRole.SYSTEM,
                 content=(
-                    "Eres el asistente virtual de Luxor. "
+                    "Eres el asistente virtual de Perfumería Victoria. "
                     "Responde utilizando únicamente la información "
                     "del catálogo proporcionado. "
                     "No inventes productos ni disponibilidad.\n\n"

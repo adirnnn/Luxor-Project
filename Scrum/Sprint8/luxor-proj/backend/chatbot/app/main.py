@@ -5,8 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.bot.router import router as chat_router
 
 app = FastAPI(
-    title="Luxor Chatbot API",
-    description="API del chatbot experto en perfumes para HABIBI PARFUMS",
+    title="Perfumería Victoria - Chatbot API",
+    description="API del chatbot experto en perfumes de Perfumería Victoria",
     version="1.0.0"
 )
 
