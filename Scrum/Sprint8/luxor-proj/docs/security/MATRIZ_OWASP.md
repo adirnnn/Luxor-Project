@@ -1,6 +1,6 @@
 # Matriz de riesgos OWASP Top 10 — Perfumería Victoria
 
-**Marco:** OWASP Top 10 (2025) · **Última actualización:** 27/09/2026
+**Marco:** OWASP Top 10 (2025) · **Última actualización:** 29/09/2026
 
 Documento vivo del Sprint 8. Se actualiza cada vez que se termina una tarea de seguridad y al cierre se exporta a PDF como anexo del informe.
 
@@ -32,11 +32,11 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | A06 Diseño inseguro | 4 | 3 | 0 | 1 |
 | A07 Fallas de autenticación | 7 | 2 | 4 | 1 |
 | A08 Integridad de software y datos | 3 | 2 | 1 | 0 |
-| A09 Registro y alertas | 2 | 1 | 1 | 0 |
+| A09 Registro y alertas | 2 | 2 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 2 | 0 | 1 |
-| **Total** | **45** | **33** | **6** | **6** |
+| **Total** | **45** | **34** | **5** | **6** |
 
-**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 3 Medias · 1 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
+**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 2 Medias · 1 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
 ## Matriz
 
@@ -81,7 +81,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-37 | A08 | Chatbot | `backend/chatbot/requirements.txt` | Dependencias sin versión fija: builds no reproducibles | Todas las dependencias con `==versión` | Falla | RC | Baja | SFTWRKEY-382 | Abierto |
 | SEC-38 | A08 | CI | `.github/workflows/tests.yml`, `package-lock.json` | Instalaciones no reproducibles o sin pruebas | `npm ci` con lockfile y 3 jobs de pruebas en cada push | Pasa | RC | Baja | SFTWRKEY-382 | Abierto |
 | SEC-39 | A08 | Backend | `services/perfumValidation.js`, `perfumMapper.js`, `csvImport.js` | Datos externos (PerfumAPI, CSV) guardados sin validar | Se validan URL, tipos y campos antes de guardar | Pasa | RC | Media | SFTWRKEY-379 | Abierto |
-| SEC-40 | A09 | Backend | `authHandlers.js`, `rateLimit.js` | Los logins fallidos y los bloqueos no se registran ni generan alertas: un ataque pasa desapercibido | 10 logins fallidos → evento registrado y alerta al admin | Falla | RC | Media | SFTWRKEY-401 | Abierto |
+| SEC-40 | A09 | Backend | `authHandlers.js`, `rateLimit.js` | Los logins fallidos y los bloqueos no se registran ni generan alertas: un ataque pasa desapercibido | Cada login fallido y cada bloqueo del rate limit se guardan en `security_events` (IP, correo y ruta; nunca la contraseña), en `services/securityEvents.js`. 10 logins fallidos desde una IP, o contra una misma cuenta, en 15 minutos → alerta en `GET /admin/security-alerts` y en el panel (`SecurityAlerts.tsx`). Solo ADMIN (CLIENTE/VENDEDOR → 403). Si falla el registro, el login responde igual (`security.alerts.test.js`, `SecurityAlerts.test.tsx`; SQL verificado en PostgreSQL 16) | Pasa | PA | Media | SFTWRKEY-401 | Verificado |
 | SEC-41 | A09 | Backend | `console.error` en rutas | Datos sensibles (tarjeta, contraseñas) en los logs | Ningún log imprime `req.body` (búsqueda: 0 coincidencias) | Pasa | RC | Alta | SFTWRKEY-380 | Abierto |
 | SEC-42 | A10 | Backend | `server.js` (sin manejador global de errores) | Sin `NODE_ENV=production`, el manejador por defecto de Express devuelve el stack trace ante un JSON malformado u otro error no controlado | Manejador global de errores y `NODE_ENV=production` en el Dockerfile: un JSON malformado → 400 genérico y un body de 3 MB → 413 genérico, sin stack trace (`security.config.test.js`) | Pasa | PA | Media | SFTWRKEY-380 | Verificado |
 | SEC-43 | A10 | Backend | Checkout, carrito, importación CSV | Datos inconsistentes si falla una operación a la mitad | `BEGIN`/`COMMIT`/`ROLLBACK` en las tres operaciones | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |

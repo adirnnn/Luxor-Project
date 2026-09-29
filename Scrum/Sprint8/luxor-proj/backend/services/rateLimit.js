@@ -1,7 +1,8 @@
 // Limitador de intentos en memoria (suficiente para una sola instancia del backend).
 const attempts = new Map();
 
-export const rateLimit = ({ windowMs, max }) => (req, res, next) => {
+// SFTWRKEY-401: onBlock avisa cuando se bloquea una ip (una vez)
+export const rateLimit = ({ windowMs, max, onBlock }) => (req, res, next) => {
   const key = `${req.ip}:${req.path}`;
   const now = Date.now();
   const entry = attempts.get(key);
@@ -12,6 +13,10 @@ export const rateLimit = ({ windowMs, max }) => (req, res, next) => {
   }
 
   if (entry.count >= max) {
+    if (!entry.blocked) {
+      entry.blocked = true;
+      onBlock?.(req);
+    }
     return res.status(429).json({ success: false, message: 'Demasiados intentos. Intenta de nuevo más tarde.' });
   }
 

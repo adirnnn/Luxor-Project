@@ -4,7 +4,8 @@ export const DEFAULT_SALT_ROUNDS = 12;
 
 const DUMMY_HASH = '$2a$12$invalidhashforcomparisononlyx';
 
-export const createLoginHandler = ({ pool, bcrypt, signToken }) => async (req, res) => {
+// SFTWRKEY-401: onLoginFailed guarda el intento fallido
+export const createLoginHandler = ({ pool, bcrypt, signToken, onLoginFailed = async () => {} }) => async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ success: false, message: "Requerido" });
   try {
@@ -15,7 +16,10 @@ export const createLoginHandler = ({ pool, bcrypt, signToken }) => async (req, r
     );
     const storedHash = result.rows.length > 0 ? result.rows[0].password_hash : DUMMY_HASH;
     const match = await bcrypt.compare(password, storedHash);
-    if (result.rows.length === 0 || !match) return res.status(401).json({ success: false, message: "Error" });
+    if (result.rows.length === 0 || !match) {
+      await onLoginFailed({ email, req });
+      return res.status(401).json({ success: false, message: "Error" });
+    }
     const user = result.rows[0];
     const publicUser = { id: user.id, name: user.name, role: user.role };
     const token = signToken(publicUser);

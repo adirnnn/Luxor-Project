@@ -8,6 +8,7 @@ import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { fetchProducts, deleteProduct } from "../services/productService";
 import type { Product } from "../services/productService";
+import { SecurityAlerts } from "../features/admin/SecurityAlerts";
 
 export default function AdminDashboard() {
     const { isAuthenticated, user } = useAuth();
@@ -88,6 +89,8 @@ export default function AdminDashboard() {
                                 </Link>
                             </div>
                         </div>
+
+                        <SecurityAlerts />
 
                         {loading ? (
                             <div className="py-32 flex flex-col items-center gap-6">

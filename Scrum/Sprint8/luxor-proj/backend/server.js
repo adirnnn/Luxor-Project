@@ -25,6 +25,7 @@ import { rateLimit } from './services/rateLimit.js';
 import commerceRouter from './commerce.js';
 import helmet from 'helmet';
 import { requireInternalKey } from './services/internalKey.js';
+import { recordSecurityEvent, getSecurityAlerts, SECURITY_EVENT_TYPES } from './services/securityEvents.js';
 
 const SALT_ROUNDS = 12;
 
@@ -384,7 +385,13 @@ app.post("/imports/products", authenticate, requireRoles("ADMIN"), async (req, r
 app.get("/", (req, res) => res.send("Backend Luxor funcionando"));
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-app.post("/login", rateLimit({ windowMs: 60_000, max: 10 }), createLoginHandler({ pool, bcrypt, signToken }));
+// SFTWRKEY-401: guardar logins fallidos y bloqueos
+const onLoginFailed = ({ email, req }) =>
+  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.LOGIN_FAILED, ip: req.ip, email, path: req.path });
+const onRateLimitBlock = (req) =>
+  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: req.ip, path: req.path });
+
+app.post("/login", rateLimit({ windowMs: 60_000, max: 10, onBlock: onRateLimitBlock }), createLoginHandler({ pool, bcrypt, signToken, onLoginFailed }));
 
 // SFTWRKEY-220 + SFTWRKEY-223: Register con validación de campos y email duplicado
 app.post("/register", createRegisterHandler({ pool, bcrypt, saltRounds: SALT_ROUNDS }));
@@ -465,7 +472,7 @@ app.put("/user/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), 
 });
 
 // SFTWRKEY-322: Cambiar contraseña
-app.put("/user/:userId/password", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
+app.put("/user/:userId/password", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), rateLimit({ windowMs: 60_000, max: 10, onBlock: onRateLimitBlock }), async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: "Debes ingresar la contraseña actual y la nueva." });
@@ -653,6 +660,17 @@ app.get("/report/inventory", authenticate, requireRoles("ADMIN"), async (_req, r
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error al obtener el inventario por categoría." });
+  }
+});
+
+// alertas de seguridad del panel admin
+app.get("/admin/security-alerts", authenticate, requireRoles("ADMIN"), async (_req, res) => {
+  try {
+    const data = await getSecurityAlerts();
+    res.set("Cache-Control", "no-store").json({ success: true, ...data });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "No se pudieron obtener las alertas de seguridad." });
   }
 });
 
