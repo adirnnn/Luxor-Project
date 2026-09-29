@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Container } from "../ui/Container";
+import { SOCIAL_LINKS } from "./SocialLinks";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
@@ -255,7 +256,7 @@ export const Navbar = () => {
             </button>
 
             {/* Carrito */}
-            <Link to="/cart" className="relative text-primary-champagne/80 hover:text-primary-gold transition-all hover:scale-110">
+            <Link to="/cart" aria-label="Carrito" className="relative w-11 h-11 md:w-auto md:h-auto flex items-center justify-center text-primary-champagne/80 hover:text-primary-gold transition-all hover:scale-110">
               <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
                 <path d="M3 6h18"></path>
@@ -294,8 +295,11 @@ export const Navbar = () => {
               )}
             </div>
             <button
-              className="md:hidden text-primary-champagne flex items-center justify-center"
+              type="button"
+              className="md:hidden w-11 h-11 -mr-2 text-primary-champagne flex items-center justify-center"
               onClick={() => setOpen(!open)}
+              aria-label={open ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={open}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="4" x2="20" y1="12" y2="12"></line>
@@ -316,8 +320,8 @@ export const Navbar = () => {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="md:hidden absolute top-24 left-4 right-4 bg-primary-black/95 backdrop-blur-2xl border border-white/[0.08] rounded-3xl shadow-2xl overflow-hidden"
           >
-            <div className="p-6 flex flex-col gap-4 items-center">
-              <div className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/[0.06] border border-white/[0.10]">
+            <div className="p-6 flex flex-col gap-1 items-center">
+              <div className="w-full flex items-center gap-3 px-5 rounded-2xl bg-white/[0.06] border border-white/[0.10]">
                 <svg className="text-primary-gold shrink-0" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -333,7 +337,7 @@ export const Navbar = () => {
                     }
                   }}
                   placeholder="Buscar fragancia..."
-                  className="flex-1 bg-transparent text-primary-champagne placeholder:text-primary-champagne/30 text-sm focus:outline-none"
+                  className="flex-1 min-w-0 py-3 bg-transparent text-primary-champagne placeholder:text-primary-champagne/30 text-base focus:outline-none"
                 />
               </div>
 
@@ -359,14 +363,14 @@ export const Navbar = () => {
                 </div>
               )}
 
-              <div className="w-full h-px bg-white/5" />
+              <div className="w-full h-px bg-white/5 my-3" />
 
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
                   to={link.href}
                   onClick={() => setOpen(false)}
-                  className={`text-xs tracking-[0.2em] uppercase font-black transition-all ${
+                  className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
                     isActive(link.href)
                       ? "text-primary-champagne"
                       : "text-primary-gold"
@@ -383,7 +387,7 @@ export const Navbar = () => {
                   <Link
                     to="/admin"
                     onClick={() => setOpen(false)}
-                    className={`text-xs tracking-[0.2em] uppercase font-black transition-all ${
+                    className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
                       isActive("/admin")
                         ? "text-primary-champagne"
                         : "text-primary-gold"
@@ -397,7 +401,7 @@ export const Navbar = () => {
                   <Link
                     to="/reporte"
                     onClick={() => setOpen(false)}
-                    className={`text-xs tracking-[0.2em] uppercase font-black transition-all ${
+                    className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
                       isActive("/reporte")
                         ? "text-primary-champagne"
                         : "text-primary-gold"
@@ -415,13 +419,13 @@ export const Navbar = () => {
                   <Link
                     to="/mi-cuenta"
                     onClick={() => setOpen(false)}
-                    className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
+                    className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
                   >
                     Mi Cuenta
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
+                    className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
                   >
                     Cerrar sesión
                   </button>
@@ -435,6 +439,16 @@ export const Navbar = () => {
                   Entrar
                 </Link>
               )}
+
+              <div className="w-full h-px bg-white/5 my-3" />
+              <div className="flex items-center gap-3">
+                {SOCIAL_LINKS.map((link) => (
+                  <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label}
+                    className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center text-primary-gold hover:bg-primary-gold hover:text-primary-black transition-all">
+                    {link.icon}
+                  </a>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
