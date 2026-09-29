@@ -28,13 +28,3 @@ service = ChatService(
 async def chat(request: ChatRequest):
 
     return await service.generar_respuesta(request)
-
-# Prueba de historial de chat
-@router.post("/test-log")
-async def test_log():
-    await chat_log_service.registrar_consulta(
-        "¿Tienen Khamrah?",
-        "Sí, tenemos Khamrah."
-    )
-
-    return {"success": True}

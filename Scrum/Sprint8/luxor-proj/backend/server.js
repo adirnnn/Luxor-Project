@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pool from './db.js';
 import bcrypt from 'bcryptjs';
-import { CSV_TEMPLATE, validateCsv } from './csvImport.js';
+import { CSV_TEMPLATE, validateCsv, CsvValidationError } from './csvImport.js';
 import { listSyncLogs, logSyncError } from './services/perfumSyncLog.js';
 import { searchExternalPerfumes, PerfumApiError } from './services/perfumApiClient.js';
 import { getKnownBrands } from './services/perfumBrands.js';
@@ -23,6 +23,8 @@ import { createLoginHandler, createRegisterHandler } from './services/authHandle
 import { isSafeImage, IMAGE_ERROR_MESSAGE } from './services/imageValidation.js';
 import { rateLimit } from './services/rateLimit.js';
 import commerceRouter from './commerce.js';
+import helmet from 'helmet';
+import { requireInternalKey } from './services/internalKey.js';
 
 const SALT_ROUNDS = 12;
 
@@ -31,6 +33,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// SFTWRKEY-380: Render pone un proxy delante; sin esto req.ip es la IP del proxy
+// y el rate limit bloquea a todos los usuarios a la vez.
+app.set("trust proxy", 1);
+// Cabeceras de seguridad (HSTS, nosniff, frameguard, etc.) y sin X-Powered-By.
+app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: "2mb" }));
 
@@ -366,9 +373,11 @@ app.post("/imports/products", authenticate, requireRoles("ADMIN"), async (req, r
     const history = await saveImportHistory({ fileName: fileName.slice(0, 255), totalRows: parsed.totalRows, importedRows: validProducts.length, errors });
     res.status(201).json({ success: true, message: "Importación procesada.", summary: history });
   } catch (err) {
+    if (err instanceof CsvValidationError) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
     console.error(err);
-    const message = err instanceof Error ? err.message : "No se pudo procesar el archivo CSV.";
-    res.status(400).json({ success: false, message });
+    res.status(500).json({ success: false, message: "No se pudo procesar el archivo CSV." });
   }
 });
 
@@ -868,7 +877,8 @@ const ensureChatbotQueriesTable = () => pool.query(`
   )
 `);
 
-app.post("/chatbot/queries", async (req, res) => {
+// SFTWRKEY-380: solo el chatbot puede registrar consultas (cabecera X-Internal-Key).
+app.post("/chatbot/queries", requireInternalKey, async (req, res) => {
     const { query, response } = req.body;
 
     if (!query || !query.trim()) {
@@ -906,6 +916,19 @@ app.post("/chatbot/queries", async (req, res) => {
 // middleware prepara las tablas en cada petición que entra al router: así solo lo
 // alcanzan las rutas que no atendió ninguna de las anteriores.
 app.use(commerceRouter);
+
+// SFTWRKEY-380: manejador global de errores. Nunca devuelve mensajes internos ni el
+// stack trace (sin él, Express los muestra cuando NODE_ENV no es "production").
+app.use((err, _req, res, _next) => {
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ success: false, message: "El cuerpo de la solicitud no es un JSON válido." });
+  }
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({ success: false, message: "La solicitud es demasiado grande." });
+  }
+  console.error(err);
+  res.status(500).json({ success: false, message: "Error interno del servidor." });
+});
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
