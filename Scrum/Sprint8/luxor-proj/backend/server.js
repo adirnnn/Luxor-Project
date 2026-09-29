@@ -22,6 +22,7 @@ import { signToken, authenticate, authorizeSelfOrRoles, requireRoles } from './s
 import { createLoginHandler, createRegisterHandler } from './services/authHandlers.js';
 import { isSafeImage, IMAGE_ERROR_MESSAGE } from './services/imageValidation.js';
 import { rateLimit } from './services/rateLimit.js';
+import commerceRouter from './commerce.js';
 
 const SALT_ROUNDS = 12;
 
@@ -901,7 +902,12 @@ app.post("/chatbot/queries", async (req, res) => {
     }
 });
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Checkout de invitado, login con Google y alertas del admin. Va al final porque su
+// middleware prepara las tablas en cada petición que entra al router: así solo lo
+// alcanzan las rutas que no atendió ninguna de las anteriores.
+app.use(commerceRouter);
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
 }
 
