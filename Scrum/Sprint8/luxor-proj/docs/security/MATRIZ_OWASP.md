@@ -28,15 +28,15 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | A02 Configuración de seguridad incorrecta | 9 | 1 | 8 | 0 |
 | A03 Cadena de suministro de software | 2 | 0 | 0 | 2 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
-| A05 Inyección | 6 | 3 | 3 | 0 |
+| A05 Inyección | 6 | 5 | 0 | 1 |
 | A06 Diseño inseguro | 4 | 2 | 1 | 1 |
 | A07 Fallas de autenticación | 7 | 1 | 5 | 1 |
 | A08 Integridad de software y datos | 3 | 2 | 1 | 0 |
 | A09 Registro y alertas | 2 | 1 | 1 | 0 |
 | A10 Condiciones excepcionales | 3 | 1 | 1 | 1 |
-| **Total** | **45** | **19** | **20** | **6** |
+| **Total** | **45** | **21** | **17** | **7** |
 
-**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 3 Altas · 10 Medias · 5 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
+**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 3 Altas · 8 Medias · 4 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
 ## Matriz
 
@@ -61,12 +61,12 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-17 | A04 | Backend | `services/authHandlers.js` | Contraseñas guardadas en claro o con un hash débil | bcrypt con 12 rondas en registro y cambio de contraseña | Pasa | RC | Crítica | SFTWRKEY-381 | Abierto |
 | SEC-18 | A04 | Backend | `services/auth.js` | Tokens JWT falsificables (secreto débil o `alg: none`) | HS256 con `JWT_SECRET` generado por Render, 8 h de validez; un token `alg: none` → 401 | Pasa | RC | Crítica | SFTWRKEY-381 | Abierto |
 | SEC-19 | A04 | Infraestructura | Vercel, Render | Tráfico sin cifrar | Todo el tráfico es HTTPS (lo gestiona cada proveedor) | Pasa | RC | Alta | SFTWRKEY-380 | Abierto |
-| SEC-20 | A05 | Backend | Todo el SQL de `server.js` y `services/` | Inyección SQL | Búsqueda de SQL con `${}` interpolado: 0 coincidencias. Payloads `' OR '1'='1` en `/products/search`, `/login` y `/users/search` | Pasa | RC | Crítica | SFTWRKEY-379 | Abierto |
-| SEC-21 | A05 | Frontend | Catálogo, detalle, carrito, admin, chatbot | XSS almacenado desde nombre o descripción del producto, CSV o respuestas del bot | Crear un producto con `<script>` y `<img onerror>`: se muestra como texto. No hay `dangerouslySetInnerHTML` | Pasa | RC | Alta | SFTWRKEY-379 | Abierto |
-| SEC-22 | A05 | Backend | `POST/PUT /products`, `csvImport.js` (campo `image`) | `image` acepta cualquier cadena (`javascript:`, `data:`, `http:`) | `image: "javascript:alert(1)"` → 400 | Falla | RC | Baja | SFTWRKEY-379 | Abierto |
-| SEC-23 | A05 | Backend | `PUT /products/:id` | No usa `validateProductPayload` (el POST sí): acepta tipos y longitudes inválidos | `PUT` con un `stock` no numérico o un `name` de 500 caracteres → 400 | Falla | RC | Media | SFTWRKEY-379 | Abierto |
-| SEC-24 | A05 | Chatbot | `POST /chat` (`app/bot/models.py`, `service.py`) | Prompt injection y mensajes sin límite de tamaño (costo y abuso del LLM) | Mensaje de 501 caracteres → 422; pedir el prompt de sistema no lo revela | Falla | RC | Media | SFTWRKEY-379 | Abierto |
-| SEC-25 | A05 | Backend | `POST /imports/products` | Inyección a través de los campos del CSV | Los valores del CSV se insertan como parámetros | Pasa | RC | Media | SFTWRKEY-379 | Abierto |
+| SEC-20 | A05 | Backend | Todo el SQL de `server.js` y `services/` | Inyección SQL | 6 payloads (`' OR '1'='1`, `DROP TABLE`, `UNION SELECT`, `pg_sleep`…) contra `/products/search`, `/login`, `/users/search` y `/products/:id`: viajan como parámetro y nunca en el texto SQL (`security.injection.test.js`). Búsqueda de SQL con `${}` interpolado: 0 coincidencias | Pasa | PA | Crítica | SFTWRKEY-379 | Verificado |
+| SEC-21 | A05 | Frontend | Catálogo, detalle, carrito, admin, chatbot | XSS almacenado desde nombre o descripción del producto, CSV o respuestas del bot | `<script>` e `<img onerror>` en nombre, descripción y notas de `ProductCard` y `ProductDetail`, y en una respuesta del chatbot: se muestran como texto, sin crear elementos ni ejecutar código (`src/test/xss.test.tsx`). No hay `dangerouslySetInnerHTML` | Pasa | PA | Alta | SFTWRKEY-379 | Verificado |
+| SEC-22 | A05 | Backend | `POST/PUT /products`, `csvImport.js` (campo `image`) | `image` acepta cualquier cadena (`javascript:`, `data:`, `http:`) | `javascript:`, `data:`, `http:`, `//host`, rutas sin `/` y más de 500 caracteres → 400 en POST y PUT, y error de fila en el CSV. Vacío, `/ruta` y `https://` → aceptados. Se corrigió con `services/imageValidation.js` (`security.injection.test.js`) | Pasa | PA | Baja | SFTWRKEY-379 | Verificado |
+| SEC-23 | A05 | Backend | `PUT /products/:id` | No usa `validateProductPayload` (el POST sí): acepta tipos y longitudes inválidos | Ahora usa `validateProductPayload`: `stock: "abc"` y un nombre de 201 caracteres → 400 (`security.injection.test.js`); las pruebas anteriores del PUT siguen pasando | Pasa | PA | Media | SFTWRKEY-379 | Verificado |
+| SEC-24 | A05 | Chatbot | `POST /chat` (`app/bot/models.py`, `service.py`) | Prompt injection y mensajes sin límite de tamaño (costo y abuso del LLM) | Se agregó `max_length=500` a `message` y una regla contra prompt injection al prompt final. Pruebas escritas en `tests/test_security.py` (501 caracteres → 422; la regla está en el prompt de sistema y el texto del usuario va separado); falta ejecutarlas y hacer la prueba manual con el LLM real | Pendiente | RC | Media | SFTWRKEY-379 | Corregido |
+| SEC-25 | A05 | Backend | `POST /imports/products` | Inyección a través de los campos del CSV | Los valores del CSV se insertan como parámetros, y una fila con imagen `javascript:` queda marcada con error (`security.injection.test.js`) | Pasa | PA | Media | SFTWRKEY-379 | Verificado |
 | SEC-26 | A06 | Backend | `POST /checkout/:userId` | El cliente manipula el precio o el total | El total se recalcula con `products.price` de la BD | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
 | SEC-27 | A06 | Backend | `POST /checkout/:userId` | Sobreventa por compras simultáneas | `UPDATE ... WHERE stock >= $1` dentro de una transacción | Pasa | RC | Media | SFTWRKEY-387 | Abierto |
 | SEC-28 | A06 | Backend | `POST /cart/:userId` (`validateCartItems`) | Sin tope de cantidad por producto | `quantity: 11` → 400 | Falla | RC | Baja | SFTWRKEY-391 | Abierto |

@@ -1,3 +1,5 @@
+import { isSafeImage, IMAGE_ERROR_MESSAGE } from "./services/imageValidation.js";
+
 export const CSV_COLUMNS = [
   "id", "name", "price", "image", "description", "stock", "salida", "corazon", "fondo",
 ];
@@ -58,6 +60,7 @@ export function validateCsv(source) {
     if (!/^\d+(?:\.\d{1,2})?$/.test(value.price) || Number(value.price) < 0) addError("price", "Debe ser un precio numérico no negativo con hasta dos decimales.");
     if (!/^\d+$/.test(value.stock) || Number(value.stock) < 0) addError("stock", "Debe ser un número entero no negativo.");
     if (value.image.length > 500) addError("image", "No puede superar 500 caracteres.");
+    else if (!isSafeImage(value.image)) addError("image", IMAGE_ERROR_MESSAGE);
     if (value.description.length > 5000) addError("description", "No puede superar 5000 caracteres.");
     ["salida", "corazon", "fondo"].forEach((field) => { if (value[field].length > 200) addError(field, "No puede superar 200 caracteres."); });
     products.push({ ...value, price: Number(value.price), stock: Number(value.stock), row });

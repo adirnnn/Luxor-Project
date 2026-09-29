@@ -1,3 +1,7 @@
+# Entorno de desarrollo local. Funciona sin .env: cada variable tiene un valor
+# por defecto pensado solo para local (${VAR:-valor}). Si existe un .env en esta
+# carpeta, sus valores tienen prioridad. En producción las variables se cargan en
+# Render y Vercel, nunca desde aquí.
 services:
   frontend:
     build: .
@@ -8,7 +12,7 @@ services:
       - .:/app
       - /app/node_modules
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
     depends_on:
       - backend
 
@@ -18,7 +22,21 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      # Dentro de la red de Docker la base siempre es db:5432, aunque el .env diga otra cosa.
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-habibi_parfums}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-solo-para-docker-local}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      PERFUM_API_BASE_URL: ${PERFUM_API_BASE_URL:-https://perfumapidatabase.onrender.com}
+      PAYMENT_GATEWAY_API_KEY: ${PAYMENT_GATEWAY_API_KEY:-sandbox_dev_key}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      LOW_STOCK_THRESHOLD: ${LOW_STOCK_THRESHOLD:-3}
     depends_on:
       db:
         condition: service_healthy
@@ -31,8 +49,10 @@ services:
     restart: always
     ports:
       - "5433:5432"
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-habibi_parfums}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -47,16 +67,20 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      # Aquí van LLM_API_KEY y demás variables del LLM si se quiere usar Groq.
+      - path: .env
+        required: false
     environment:
       # Dentro de la red de Docker Compose el backend se resuelve por el nombre
       # del servicio, no por localhost (que dentro de este contenedor apuntaría
       # al propio contenedor del chatbot).
-      - NODE_API_URL=http://backend:3000
+      NODE_API_URL: http://backend:3000
       # Ollama corre en el host (no como servicio de este compose). En Docker
-      # Desktop se accede a él vía host.docker.internal. Si Ollama corre en otra
-      # máquina, sobreescribe OLLAMA_URL en .env.
-      - OLLAMA_URL=http://host.docker.internal:11434
+      # Desktop se accede a él vía host.docker.internal.
+      OLLAMA_URL: http://host.docker.internal:11434
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:4b}
+      CHATBOT_ALLOWED_ORIGINS: ${CHATBOT_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

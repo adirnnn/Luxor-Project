@@ -20,7 +20,9 @@ import {
 } from './services/reportMetrics.js';
 import { signToken, authenticate, authorizeSelfOrRoles, requireRoles } from './services/auth.js';
 import { createLoginHandler, createRegisterHandler } from './services/authHandlers.js';
+import { isSafeImage, IMAGE_ERROR_MESSAGE } from './services/imageValidation.js';
 import { rateLimit } from './services/rateLimit.js';
+import commerceRouter from './commerce.js';
 
 const SALT_ROUNDS = 12;
 
@@ -182,6 +184,9 @@ function validateProductPayload(body, { requireId }) {
   if (notes !== undefined && notes !== null && (typeof notes !== "object" || Array.isArray(notes))) {
     return "notes debe ser un objeto con salida, corazon y fondo.";
   }
+  if (!isSafeImage(body?.image)) {
+    return IMAGE_ERROR_MESSAGE;
+  }
   return null;
 }
 
@@ -206,11 +211,10 @@ app.post("/products", authenticate, requireRoles("ADMIN"), async (req, res) => {
 
 app.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res) => {
   const { name, price, image, description, stock, notes, category_id, brand, external_source, external_id, synced_at } = req.body;
-  if (!name || !name.trim() || price === undefined || price === null || Number.isNaN(Number(price))) {
-    return res.status(400).json({ success: false, message: "Nombre y precio son obligatorios." });
-  }
-  if (Number(price) < 0 || (stock !== undefined && stock !== null && Number(stock) < 0)) {
-    return res.status(400).json({ success: false, message: "El precio y el stock no pueden ser negativos." });
+  // SFTWRKEY-379: el PUT usa la misma validación que el POST (antes aceptaba tipos y largos inválidos).
+  const validationError = validateProductPayload(req.body, { requireId: false });
+  if (validationError) {
+    return res.status(400).json({ success: false, message: validationError });
   }
   try {
     const result = await pool.query(
@@ -898,7 +902,12 @@ app.post("/chatbot/queries", async (req, res) => {
     }
 });
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Checkout de invitado, login con Google y alertas del admin. Va al final porque su
+// middleware prepara las tablas en cada petición que entra al router: así solo lo
+// alcanzan las rutas que no atendió ninguna de las anteriores.
+app.use(commerceRouter);
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
 }
 
