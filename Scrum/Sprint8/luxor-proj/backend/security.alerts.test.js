@@ -180,6 +180,22 @@ test('A09: el ADMIN recibe alertas por IP y por cuenta con umbral 10 en 15 minut
   assert.deepEqual(porIp.params, ['LOGIN_FAILED', 15, 10]);
 });
 
+test('A09: el umbral se toma de SECURITY_ALERT_THRESHOLD y si no es válido vuelve a 10', async (t) => {
+  const { log, restore } = fakeDb();
+  t.after(restore);
+  t.after(() => { delete process.env.SECURITY_ALERT_THRESHOLD; });
+  const admin = signToken({ id: 1, role: 'ADMIN' });
+
+  process.env.SECURITY_ALERT_THRESHOLD = '5';
+  assert.equal((await (await alertas(admin)).json()).threshold, 5);
+  assert.deepEqual(log.find((entry) => /GROUP BY ip/i.test(entry.sql)).params, ['LOGIN_FAILED', 15, 5]);
+
+  for (const valor of ['0', '-3', 'abc', '2.5']) {
+    process.env.SECURITY_ALERT_THRESHOLD = valor;
+    assert.equal((await (await alertas(admin)).json()).threshold, 10, `valor "${valor}"`);
+  }
+});
+
 test('A09: un error de la BD en las alertas responde 500 genérico', async (t) => {
   const { restore } = fakeDb([[/GROUP BY ip/i, () => { throw new Error('detalle interno de postgres'); }]]);
   t.after(restore);

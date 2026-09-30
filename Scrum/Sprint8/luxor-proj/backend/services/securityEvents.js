@@ -11,6 +11,12 @@ export const FAILED_LOGIN_THRESHOLD = 10;
 export const ALERT_WINDOW_MINUTES = 15;
 const RECENT_EVENTS_LIMIT = 50;
 
+// se puede cambiar con SECURITY_ALERT_THRESHOLD, si no viene o no es valido se queda en 10
+const getThreshold = () => {
+  const configured = Number(process.env.SECURITY_ALERT_THRESHOLD ?? FAILED_LOGIN_THRESHOLD);
+  return Number.isInteger(configured) && configured > 0 ? configured : FAILED_LOGIN_THRESHOLD;
+};
+
 let tableReady;
 
 const ensureSecurityEventsTable = () => {
@@ -51,7 +57,7 @@ export async function recordSecurityEvent({ type, ip, email, path }) {
 }
 
 export async function getSecurityAlerts({
-  threshold = FAILED_LOGIN_THRESHOLD,
+  threshold = getThreshold(),
   windowMinutes = ALERT_WINDOW_MINUTES,
 } = {}) {
   await ensureSecurityEventsTable();

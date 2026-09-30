@@ -201,25 +201,52 @@ const seedUsers = async () => {
     // SFTWRKEY-273: category_id asignado según el nombre insertado arriba
     // 1 = Árabe, 2 = Oriental, 3 = Femenino, 4 = Masculino, 5 = Fresco, 6 = Dulce
     const initialProducts = [
-      { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', price: 390, image: '/assets/products/cdnIntense.png', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar', category_id: 4 },
-      { id: 'khamrah', name: 'Lattafa Khamrah', price: 390, image: '/assets/products/lattafaKhamrah.png', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar', category_id: 6 },
-      { id: 'yara', name: 'Lattafa Yara', price: 330, image: '/assets/products/lattafaYara.png', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle', category_id: 3 },
-      { id: 'oud-mood', name: 'Lattafa Oud Mood', price: 228, image: '/assets/products/lattafaOudMood.png', description: 'Intenso y profundo con esencia oriental.', stock: 7, salida: 'Especias', corazon: 'Oud', fondo: 'Ámbar', category_id: 2 },
-      { id: '9pm', name: 'Afnan 9PM', price: 420, image: '/assets/products/afnan9PM.png', description: 'Dulce, nocturna y seductora.', stock: 2, salida: 'Manzana, canela', corazon: 'Lavanda', fondo: 'Vainilla', category_id: 6 },
-      { id: 'hawas', name: 'Rasasi Hawas', price: 390, image: '/assets/products/rasawiHawas.png', description: 'Fresca y moderna con gran proyección.', stock: 4, salida: 'Bergamota', corazon: 'Canela', fondo: 'Almizcle', category_id: 5 },
-      { id: 'amber-oud', name: 'Al Haramain Amber Oud', price: 570, image: '/assets/products/amberOudHaramain.png', description: 'Lujo puro con carácter fuerte.', stock: 6, salida: 'Cítricos', corazon: 'Ámbar', fondo: 'Oud', category_id: 1 },
-      { id: 'fakhar', name: 'Lattafa Fakhar', price: 390, image: '/assets/products/lattafaFakhar.png', description: 'Elegancia moderna con toque oriental.', stock: 8, salida: 'Manzana', corazon: 'Lavanda', fondo: 'Madera', category_id: 2 },
+      { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', brand: 'Armaf', price: 390, image: '/assets/products/cdnIntense.png', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar', category_id: 4 },
+      { id: 'khamrah', name: 'Lattafa Khamrah', brand: 'Lattafa', price: 390, image: '/assets/products/lattafaKhamrah.png', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar', category_id: 6 },
+      { id: 'yara', name: 'Lattafa Yara', brand: 'Lattafa', price: 330, image: '/assets/products/lattafaYara.png', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle', category_id: 3 },
+      { id: 'oud-mood', name: 'Lattafa Oud Mood', brand: 'Lattafa', price: 228, image: '/assets/products/lattafaOudMood.png', description: 'Intenso y profundo con esencia oriental.', stock: 7, salida: 'Especias', corazon: 'Oud', fondo: 'Ámbar', category_id: 2 },
+      { id: '9pm', name: 'Afnan 9PM', brand: 'Afnan', price: 420, image: '/assets/products/afnan9PM.png', description: 'Dulce, nocturna y seductora.', stock: 2, salida: 'Manzana, canela', corazon: 'Lavanda', fondo: 'Vainilla', category_id: 6 },
+      { id: 'hawas', name: 'Rasasi Hawas', brand: 'Rasasi', price: 390, image: '/assets/products/rasawiHawas.png', description: 'Fresca y moderna con gran proyección.', stock: 4, salida: 'Bergamota', corazon: 'Canela', fondo: 'Almizcle', category_id: 5 },
+      { id: 'amber-oud', name: 'Al Haramain Amber Oud', brand: 'Al Haramain', price: 570, image: '/assets/products/amberOudHaramain.png', description: 'Lujo puro con carácter fuerte.', stock: 6, salida: 'Cítricos', corazon: 'Ámbar', fondo: 'Oud', category_id: 1 },
+      { id: 'fakhar', name: 'Lattafa Fakhar', brand: 'Lattafa', price: 390, image: '/assets/products/lattafaFakhar.png', description: 'Elegancia moderna con toque oriental.', stock: 8, salida: 'Manzana', corazon: 'Lavanda', fondo: 'Madera', category_id: 2 },
     ];
 
+    // si el perfume ya existe solo se actualiza categoria, imagen y marca
     for (const p of initialProducts) {
       await pool.query(
-        `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         ON CONFLICT (id) DO UPDATE SET category_id = EXCLUDED.category_id, image = EXCLUDED.image`,
-        [p.id, p.name, p.price, p.image, p.description, p.stock, p.salida, p.corazon, p.fondo, p.category_id]
+        `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id, brand)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO UPDATE SET category_id = EXCLUDED.category_id, image = EXCLUDED.image, brand = EXCLUDED.brand`,
+        [p.id, p.name, p.price, p.image, p.description, p.stock, p.salida, p.corazon, p.fondo, p.category_id, p.brand]
       );
     }
-    console.log('Productos iniciales insertados/actualizados con categoría');
+    console.log('Productos iniciales insertados/actualizados con categoría y marca');
+
+    // SFTWRKEY-402: perfumes nuevos (y marcas nuevas: Maison Alhambra, Swiss Arabian, French Avenue)
+    // todavia no tienen foto, usan sin-imagen.svg hasta que se cambie desde el panel
+    const newProducts = [
+      { id: 'asad', name: 'Lattafa Asad', brand: 'Lattafa', price: 300, image: '/assets/products/sin-imagen.svg', description: 'Especiada y ambarada, muy masculina.', stock: 6, salida: 'Pimienta negra, tabaco', corazon: 'Café, iris', fondo: 'Ámbar, vainilla', category_id: 4 },
+      { id: 'club-de-nuit-woman', name: 'Club de Nuit Woman', brand: 'Armaf', price: 350, image: '/assets/products/sin-imagen.svg', description: 'Floral y elegante para la noche.', stock: 5, salida: 'Naranja, bergamota', corazon: 'Rosa, jazmín', fondo: 'Pachulí, vainilla', category_id: 3 },
+      { id: 'mandarin-sky', name: 'Armaf Odyssey Mandarin Sky', brand: 'Armaf', price: 330, image: '/assets/products/sin-imagen.svg', description: 'Dulce y cítrica, fácil de llevar.', stock: 8, salida: 'Mandarina, naranja', corazon: 'Caramelo, haba tonka', fondo: 'Ámbar, vetiver', category_id: 6 },
+      { id: 'laventure', name: "Al Haramain L'Aventure", brand: 'Al Haramain', price: 360, image: '/assets/products/sin-imagen.svg', description: 'Fresca y cítrica para el día.', stock: 5, salida: 'Limón, bergamota', corazon: 'Elemí, jazmín', fondo: 'Almizcle, ámbar', category_id: 5 },
+      { id: 'salvo', name: 'Maison Alhambra Salvo', brand: 'Maison Alhambra', price: 260, image: '/assets/products/sin-imagen.svg', description: 'Fresca y aromática, buena para diario.', stock: 10, salida: 'Bergamota, pimienta', corazon: 'Lavanda, geranio', fondo: 'Ambroxan, cedro', category_id: 5 },
+      { id: 'shaghaf-oud', name: 'Swiss Arabian Shaghaf Oud', brand: 'Swiss Arabian', price: 480, image: '/assets/products/sin-imagen.svg', description: 'Oud dulce con azafrán y rosa.', stock: 4, salida: 'Azafrán, rosa', corazon: 'Praliné, oud', fondo: 'Vainilla, ámbar', category_id: 1 },
+      { id: 'liquid-brun', name: 'French Avenue Liquid Brun', brand: 'French Avenue', price: 380, image: '/assets/products/sin-imagen.svg', description: 'Cálida y especiada con vainilla.', stock: 6, salida: 'Canela, cardamomo', corazon: 'Vainilla, elemí', fondo: 'Praliné, guayaco', category_id: 6 },
+    ];
+
+    // con DO NOTHING se insertan una sola vez, asi no se pisan los cambios que haga el admin
+    let insertados = 0;
+    for (const p of newProducts) {
+      const result = await pool.query(
+        `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id, brand)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO NOTHING`,
+        [p.id, p.name, p.price, p.image, p.description, p.stock, p.salida, p.corazon, p.fondo, p.category_id, p.brand]
+      );
+      // rowCount es 0 cuando el perfume ya existia
+      insertados += result.rowCount;
+    }
+    console.log(`Perfumes nuevos: ${insertados} insertados, ${newProducts.length - insertados} ya existian`);
 
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA
     // await pool.query(`DELETE FROM users;`);
