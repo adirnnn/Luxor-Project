@@ -235,15 +235,18 @@ const seedUsers = async () => {
     ];
 
     // con DO NOTHING se insertan una sola vez, asi no se pisan los cambios que haga el admin
+    let insertados = 0;
     for (const p of newProducts) {
-      await pool.query(
+      const result = await pool.query(
         `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id, brand)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          ON CONFLICT (id) DO NOTHING`,
         [p.id, p.name, p.price, p.image, p.description, p.stock, p.salida, p.corazon, p.fondo, p.category_id, p.brand]
       );
+      // rowCount es 0 cuando el perfume ya existia
+      insertados += result.rowCount;
     }
-    console.log('Perfumes nuevos insertados');
+    console.log(`Perfumes nuevos: ${insertados} insertados, ${newProducts.length - insertados} ya existian`);
 
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA
     // await pool.query(`DELETE FROM users;`);
