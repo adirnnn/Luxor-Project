@@ -1,0 +1,114 @@
+name: Pruebas de integración y regresión
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "Scrum/Sprint9/luxor-proj/backend/**"
+      - ".github/workflows/integration-regression.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "Scrum/Sprint9/luxor-proj/backend/**"
+      - ".github/workflows/integration-regression.yml"
+  workflow_dispatch:
+
+jobs:
+  integracion-regresion:
+    name: API + PostgreSQL (node --test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Scrum/Sprint9/luxor-proj/backend
+
+    # Base de datos real y desechable para cada ejecución.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: luxor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d luxor_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Valores solo para CI (no son credenciales reales).
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: luxor_test
+      JWT_SECRET: ci-integration-secret
+      PAYMENT_GATEWAY_API_KEY: sandbox_ci_key
+      PAYMENT_GATEWAY_LATENCY_MS: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: Scrum/Sprint9/luxor-proj/backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Preparar base de datos (esquema + datos semilla)
+        id: seed
+        run: npm run test:db:seed
+
+      - name: Pruebas de integración
+        id: integracion
+        shell: bash
+        run: |
+          mkdir -p reports
+          node --test --test-concurrency=1 \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=junit --test-reporter-destination=reports/integracion-junit.xml \
+            "integration-tests/*.integration.js" | tee reports/integracion.log
+
+      - name: Pruebas de regresión
+        id: regresion
+        if: ${{ !cancelled() && steps.seed.outcome == 'success' }}
+        shell: bash
+        run: |
+          mkdir -p reports
+          node --test --test-concurrency=1 \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=junit --test-reporter-destination=reports/regresion-junit.xml \
+            "integration-tests/*.regression.js" | tee reports/regresion.log
+
+      - name: Resumen de resultados
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          contar() { grep -E "^ℹ $2 " "reports/$1.log" 2>/dev/null | awk '{print $3}' || true; }
+          {
+            echo "## Pruebas de integración y regresión"
+            echo ""
+            echo "| Suite | Resultado | Pruebas | Aprobadas | Fallidas |"
+            echo "|---|---|---|---|---|"
+            echo "| Integración | ${{ steps.integracion.outcome }} | $(contar integracion tests) | $(contar integracion pass) | $(contar integracion fail) |"
+            echo "| Regresión | ${{ steps.regresion.outcome }} | $(contar regresion tests) | $(contar regresion pass) | $(contar regresion fail) |"
+            echo ""
+            echo "Commit: \`${{ github.sha }}\` — evento: \`${{ github.event_name }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Subir reportes (JUnit + logs)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas-${{ github.run_number }}
+          path: Scrum/Sprint9/luxor-proj/backend/reports/
+          retention-days: 30
+          if-no-files-found: warn

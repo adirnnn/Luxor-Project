@@ -9,6 +9,11 @@
     "seed": "node seed.js",
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage",
+    "test:db:up": "docker run -d --rm --name luxor-test-db -p 5434:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=luxor_test postgres:16",
+    "test:db:down": "docker stop luxor-test-db",
+    "test:db:seed": "node integration-tests/setup-db.js",
+    "test:integration": "node --test --test-concurrency=1 \"integration-tests/*.integration.js\"",
+    "test:regression": "node --test --test-concurrency=1 \"integration-tests/*.regression.js\"",
     "test:coverage:lcov": "node -e \"require('fs').mkdirSync('coverage',{recursive:true})\" && node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info"
   },
   "keywords": [],
