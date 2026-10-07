@@ -1,0 +1,7 @@
+# versiones fijadas para builds reproducibles (SFTWRKEY-382). auditadas con pip-audit.
+fastapi==0.142.0
+uvicorn[standard]==0.54.0
+python-dotenv==1.2.3
+httpx==0.28.1
+pydantic==2.13.5
+ollama==0.6.3

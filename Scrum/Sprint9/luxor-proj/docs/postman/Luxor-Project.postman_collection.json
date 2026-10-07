@@ -1,0 +1,1137 @@
+{
+  "info": {
+    "name": "Luxor Project - API",
+    "description": "Colección de Postman para el backend Node/Express y el chatbot FastAPI de Habibi Parfums (Luxor Project). Correr 'Login (guarda token)' primero para poblar {{token}} y {{user_id}} automáticamente antes de probar los endpoints protegidos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "chatbot_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    },
+    {
+      "key": "product_id",
+      "value": "khamrah"
+    }
+  ],
+  "item": [
+    {
+      "name": "Node Backend (Express)",
+      "item": [
+        {
+          "name": "Misc",
+          "item": [
+            {
+              "name": "Health check backend",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": []
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "Register",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "register"
+                  ]
+                },
+                "description": "Crea un usuario nuevo con rol CLIENTE por defecto.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Diego Test\",\n  \"email\": \"diego.test@luxor.com\",\n  \"password\": \"test123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Login (guarda token)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "login"
+                  ]
+                },
+                "description": "Login. El test script guarda automáticamente {{token}} y {{user_id}} para las demás requests.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@luxor.com\",\n  \"password\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const data = pm.response.json();",
+                      "    if (data.token) {",
+                      "        pm.collectionVariables.set('token', data.token);",
+                      "    }",
+                      "    if (data.user && data.user.id) {",
+                      "        pm.collectionVariables.set('user_id', data.user.id);",
+                      "    }",
+                      "}",
+                      "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "description": "Registro y login. El login corre un script que guarda el token JWT en la variable de colección {{token}}."
+        },
+        {
+          "name": "Products",
+          "item": [
+            {
+              "name": "Listar productos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/products",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Buscar productos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/products/search?busqueda=khamrah",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "busqueda",
+                      "value": "khamrah"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Obtener producto por ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear producto (ADMIN)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/products",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"nuevo-perfume-test\",\n  \"name\": \"Perfume de prueba\",\n  \"price\": 199.99,\n  \"stock\": 10,\n  \"image\": \"/src/assets/products/test.png\",\n  \"description\": \"Producto de prueba para Postman\",\n  \"notes\": {\n    \"salida\": \"C\\u00edtricos\",\n    \"corazon\": \"Rosa\",\n    \"fondo\": \"Almizcle\"\n  },\n  \"category_id\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Actualizar producto (ADMIN)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Perfume de prueba actualizado\",\n  \"price\": 249.99,\n  \"stock\": 8,\n  \"notes\": {\n    \"salida\": \"C\\u00edtricos\",\n    \"corazon\": \"Rosa\",\n    \"fondo\": \"Almizcle\"\n  },\n  \"category_id\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Eliminar producto (ADMIN)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "description": "CRUD de productos. Crear/Actualizar/Eliminar requieren token de un usuario ADMIN."
+        },
+        {
+          "name": "Categories",
+          "item": [
+            {
+              "name": "Listar categorías",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/categories",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "categories"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "External Perfumes (PerfumAPI, ADMIN)",
+          "item": [
+            {
+              "name": "Buscar perfumes externos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/external-perfumes/search?q=oud",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "external-perfumes",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "oud"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Listar marcas conocidas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/external-perfumes/brands",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "external-perfumes",
+                    "brands"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Historial de errores de sync",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/perfum-sync-logs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "perfum-sync-logs"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "CSV Imports (ADMIN)",
+          "item": [
+            {
+              "name": "Descargar plantilla CSV",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/imports/products/template",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "imports",
+                    "products",
+                    "template"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Historial de importaciones",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/imports/products",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "imports",
+                    "products"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Importar productos vía CSV",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/imports/products",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "imports",
+                    "products"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fileName\": \"importacion.csv\",\n  \"csv\": \"id,name,price,stock,image,description,salida,corazon,fondo\\\\nperfume-x,Perfume X,199.99,5,,Descripcion,Citricos,Rosa,Almizcle\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "Obtener usuario por ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/user/{{user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{user_id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Actualizar info personal",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/user/{{user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{user_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Admin Luxor\",\n  \"email\": \"admin@luxor.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Cambiar contraseña",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/user/{{user_id}}/password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{user_id}}",
+                    "password"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"123456\",\n  \"newPassword\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Historial de pedidos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/user/{{user_id}}/orders",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{user_id}}",
+                    "orders"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Buscar usuarios (ADMIN)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/users/search?q=juan",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "users",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "juan"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cart",
+          "item": [
+            {
+              "name": "Obtener carrito",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/cart/{{user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "cart",
+                    "{{user_id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Sincronizar carrito",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/cart/{{user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "cart",
+                    "{{user_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  {\n    \"product_id\": \"khamrah\",\n    \"quantity\": 2\n  }\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Checkout",
+          "item": [
+            {
+              "name": "Procesar pago",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/checkout/{{user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "checkout",
+                    "{{user_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cardholderName\": \"Admin Luxor\",\n  \"cardNumber\": \"4111111111111111\",\n  \"expiryMonth\": \"12\",\n  \"expiryYear\": \"2030\",\n  \"cvv\": \"123\",\n  \"billingAddress\": \"Calle Falsa 123\",\n  \"city\": \"Guatemala\",\n  \"postalCode\": \"01001\",\n  \"country\": \"GT\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reports (ADMIN)",
+          "item": [
+            {
+              "name": "Reporte general (legacy)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/report",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "report"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Métricas generales",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/report/metrics",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "report",
+                    "metrics"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Ventas mensuales",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/report/sales-monthly?months=12",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "report",
+                    "sales-monthly"
+                  ],
+                  "query": [
+                    {
+                      "key": "months",
+                      "value": "12"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Ventas por categoría",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/report/sales-by-category",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "report",
+                    "sales-by-category"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Productos más vendidos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/report/top-products?limit=5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "report",
+                    "top-products"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Inventario por categoría",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/report/inventory",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "report",
+                    "inventory"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Chatbot Query Log (Node)",
+          "item": [
+            {
+              "name": "Registrar consulta del chatbot",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/chatbot/queries",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "chatbot",
+                    "queries"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"\\u00bfTienen Khamrah?\",\n  \"response\": \"S\\u00ed, tenemos Khamrah disponible.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Todos los endpoints de backend/server.js. Base URL: {{base_url}} (default http://localhost:3000)."
+    },
+    {
+      "name": "Chatbot API (FastAPI)",
+      "item": [
+        {
+          "name": "Health check chatbot",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{chatbot_url}}/",
+              "host": [
+                "{{chatbot_url}}"
+              ],
+              "path": []
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Enviar mensaje al chatbot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{chatbot_url}}/chat",
+              "host": [
+                "{{chatbot_url}}"
+              ],
+              "path": [
+                "chat"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"\\u00bfQu\\u00e9 perfumes \\u00e1rabes recomiendan?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Test log de conversación",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{chatbot_url}}/chat/test-log",
+              "host": [
+                "{{chatbot_url}}"
+              ],
+              "path": [
+                "chat",
+                "test-log"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ],
+      "description": "Endpoints del servicio de chatbot (backend/chatbot). Base URL: {{chatbot_url}} (default http://localhost:8000)."
+    }
+  ]
+}
