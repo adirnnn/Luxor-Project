@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
-import { useAuth } from "../context/AuthContext";
 import { fetchProducts, deleteProduct } from "../services/productService";
 import type { Product } from "../services/productService";
 import { SecurityAlerts } from "../features/admin/SecurityAlerts";
 
 export default function AdminDashboard() {
-    const { isAuthenticated, user } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -29,15 +27,10 @@ export default function AdminDashboard() {
         }
     };
 
+    // SFTWRKEY-422: el acceso de admin ya lo revisa AdminRoute
     useEffect(() => {
-        if (isAuthenticated && user?.role === 'ADMIN') {
-            loadProducts();
-        }
-    }, [isAuthenticated, user]);
-
-    if (!isAuthenticated || user?.role !== 'ADMIN') {
-        return <Navigate to="/" replace />;
-    }
+        loadProducts();
+    }, []);
 
     const handleDelete = async (id: string) => {
         if (!confirm("¿Seguro que quieres eliminar este producto?")) return;

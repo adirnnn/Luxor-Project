@@ -16,6 +16,8 @@ import AdminCreateUserPage from "../pages/AdminCreateUserPage";
 import ImportPerfumesPage from "../pages/ImportPerfumesPage";
 import PaymentPage from "../pages/Paymentpage";
 import UserPage from "../pages/UserPage";
+import { ProtectedRoute } from "../components/routing/ProtectedRoute";
+import { AdminRoute } from "../components/routing/AdminRoute";
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -40,14 +42,22 @@ function AnimatedRoutes() {
         <Route path="/producto/:id" element={<PageWrapper><ProductPage /></PageWrapper>} />
         <Route path="/cart" element={<PageWrapper><CartPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
-        <Route path="/reporte" element={<PageWrapper><ReportPage /></PageWrapper>} />
-        <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
-        <Route path="/admin/nuevo" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
-        <Route path="/admin/editar/:id" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
-        <Route path="/admin/nuevo-usuario" element={<PageWrapper><AdminCreateUserPage /></PageWrapper>} />
-        <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
-        <Route path="/mi-cuenta" element={<PageWrapper><UserPage /></PageWrapper>} />
+
+        {/* SFTWRKEY-422: solo ADMIN. Las rutas nuevas de admin (como /admin/pedidos) van aqui dentro */}
+        <Route element={<AdminRoute />}>
+          <Route path="/reporte" element={<PageWrapper><ReportPage /></PageWrapper>} />
+          <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
+          <Route path="/admin/nuevo" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
+          <Route path="/admin/editar/:id" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
+          <Route path="/admin/nuevo-usuario" element={<PageWrapper><AdminCreateUserPage /></PageWrapper>} />
+          <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
+        </Route>
+
+        {/* SFTWRKEY-422: cualquier usuario con sesion */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/mi-cuenta" element={<PageWrapper><UserPage /></PageWrapper>} />
+        </Route>
       </Routes>
     </AnimatePresence>
   );

@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { Button } from "../components/ui/Button";
 import { PageTitle, Text } from "../components/ui/Typography";
-import { useAuth } from "../context/AuthContext";
 import { downloadCsvTemplate, fetchImportHistory, importProducts, type ImportSummary } from "../services/importService";
 
 export default function ImportPerfumesPage() {
-  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -24,8 +22,8 @@ export default function ImportPerfumesPage() {
     catch { setError("No se pudo cargar el historial de importaciones."); }
     finally { setLoading(false); }
   };
-  useEffect(() => { if (isAuthenticated && user?.role === "ADMIN") void loadHistory(); }, [isAuthenticated, user]);
-  if (!isAuthenticated || user?.role !== "ADMIN") return <Navigate to="/" replace />;
+  // SFTWRKEY-422: el acceso de admin ya lo revisa AdminRoute
+  useEffect(() => { void loadHistory(); }, []);
 
   const selectFile = (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.target.files?.[0] ?? null;

@@ -1,11 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
-import { useAuth } from "../context/AuthContext";
 import clsx from "clsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -24,7 +23,6 @@ interface FormErrors {
 
 // SFTWRKEY-220: Crear usuario con inputs nombre/email/password
 export default function AdminCreateUserPage() {
-  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({ name: "", email: "", password: "" });
@@ -32,10 +30,6 @@ export default function AdminCreateUserPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  if (!isAuthenticated || user?.role !== "ADMIN") {
-    return <Navigate to="/" replace />;
-  }
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};

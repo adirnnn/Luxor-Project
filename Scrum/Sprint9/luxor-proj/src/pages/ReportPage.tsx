@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
-import { useAuth } from "../context/AuthContext";
 import { BarChart } from "../components/charts/BarChart";
 import { DonutChart } from "../components/charts/DonutChart";
 import { API_URL, authHeaders } from "../services/apiClient";
@@ -39,7 +37,6 @@ const formatCurrency = (value: number) => `Q${value.toLocaleString("es-GT", { ma
 const formatUnits = (value: number) => `${value} uds.`;
 
 export default function ReportPage() {
-    const { isAuthenticated, user } = useAuth();
     const [data, setData] = useState<ReportData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -54,9 +51,8 @@ export default function ReportPage() {
     const [refreshing, setRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+    // SFTWRKEY-422: el acceso de admin ya lo revisa AdminRoute
     const loadReport = useCallback(async () => {
-        if (!isAuthenticated || user?.role !== 'ADMIN') return;
-
         setError(null);
         setAnalyticsError(null);
 
@@ -86,7 +82,7 @@ export default function ReportPage() {
 
         await Promise.all([reportPromise, analyticsPromise]);
         setLastUpdated(new Date());
-    }, [isAuthenticated, user, monthsRange]);
+    }, [monthsRange]);
 
     useEffect(() => {
         setLoading(true);
@@ -101,15 +97,6 @@ export default function ReportPage() {
         setRefreshing(true);
         loadReport().finally(() => setRefreshing(false));
     };
-
-    // Solo ADMINs pueden ver el reporte
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
-
-    if (user?.role !== 'ADMIN') {
-        return <Navigate to="/" replace />;
-    }
 
     return (
         <MainLayout>

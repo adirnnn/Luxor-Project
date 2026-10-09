@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H2, H3, PageTitle, Text } from "../components/ui/Typography";
@@ -63,7 +63,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function UserPage() {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const navigate = useNavigate();
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -93,12 +93,9 @@ export default function UserPage() {
   // SFTWRKEY-322: Mostrar/ocultar contraseña, igual que en el login
   const [showPasswords, setShowPasswords] = useState(false);
 
-  // SFTWRKEY-233: Validar sesión activa
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
-  }
-
+  // SFTWRKEY-233 / SFTWRKEY-422: la sesion ya la exige ProtectedRoute
   const loadUserInfo = () => {
+    if (!user) return;
     setLoadingInfo(true);
     fetch(`${API_URL}/user/${user.id}`, { headers: authHeaders() })
       .then((res) => {
@@ -120,6 +117,7 @@ export default function UserPage() {
 
   // SFTWRKEY-230/231: Endpoint de historial + conectar frontend
   useEffect(() => {
+    if (!user) return;
     loadUserInfo();
 
     // SFTWRKEY-323: Historial real de pedidos (orders + order_items)
@@ -135,7 +133,10 @@ export default function UserPage() {
       .catch(() => setErrorOrders("Error de conexión al obtener historial."))
       .finally(() => setLoadingOrders(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.id]);
+  }, [user?.id]);
+
+  // SFTWRKEY-422: solo cubre el instante del logout, cuando user ya es null
+  if (!user) return null;
 
   const totalSpent = orders.reduce((sum, o) => sum + Number(o.total), 0);
 

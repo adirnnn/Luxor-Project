@@ -1,6 +1,7 @@
 import {
     Link,
     Navigate,
+    useLocation,
     useNavigate,
 } from "react-router-dom";
 
@@ -14,10 +15,14 @@ import { GoogleAccess } from "../features/CommerceFeatures";
 export default function LoginPage() {
     const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    // Si ya está autenticado, redirigir al inicio
+    // SFTWRKEY-422: si llego desde una ruta protegida, despues de entrar vuelve ahi
+    const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || "/";
+
+    // Si ya está autenticado (tambien despues de entrar con Google), redirigir
     if (isAuthenticated) {
-        return <Navigate to="/" replace />;
+        return <Navigate to={from} replace />;
     }
 
     const handleSuccess = (
@@ -25,7 +30,7 @@ export default function LoginPage() {
         token: string,
     ) => {
         login(user, token);
-        navigate("/");
+        navigate(from, { replace: true });
     };
 
     return (

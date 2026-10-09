@@ -1,11 +1,10 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
-import { useAuth } from "../context/AuthContext";
 import { fetchProductById, createProduct, updateProduct, fetchCategories } from "../services/productService";
 import type { Product, Category } from "../services/productService";
 import { PerfumApiSearch } from "../features/perfumes/PerfumApiSearch";
@@ -54,7 +53,6 @@ const Field = ({ label, name, value, onChange, type = "text", placeholder, disab
 );
 
 export default function AdminProductPage() {
-    const { isAuthenticated, user } = useAuth();
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditing = !!id;
@@ -83,17 +81,14 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-    if (isEditing && isAuthenticated && user?.role === "ADMIN") {
+    // SFTWRKEY-422: el acceso de admin ya lo revisa AdminRoute
+    if (isEditing) {
         fetchProductById(id!)
         .then((data) => setFormData(data))
         .catch(() => setError("No se pudo cargar el producto."))
         .finally(() => setLoading(false));
     }
-}, [id, isEditing, isAuthenticated, user]);
-
-if (!isAuthenticated || user?.role !== "ADMIN") {
-    return <Navigate to="/" replace />;
-}
+}, [id, isEditing]);
 
 const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

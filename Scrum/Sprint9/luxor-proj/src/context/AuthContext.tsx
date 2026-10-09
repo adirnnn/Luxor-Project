@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, startTransition, useContext, useState } from "react";
 import type { AuthUser } from "../validation/authService";
 import { TOKEN_KEY } from "../services/apiClient";
 
@@ -31,7 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = () => {
-        setUser(null);
+        // SFTWRKEY-422: react-router cambia de pagina en una transicion; si el logout no va
+        // en la misma, hay un render sin sesion en la pagina vieja y ProtectedRoute manda al login
+        startTransition(() => setUser(null));
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(TOKEN_KEY);
     };
