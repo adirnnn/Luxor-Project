@@ -23,18 +23,18 @@ export function fillMonthlySeries(rows, months, reference = new Date()) {
 }
 
 
-// matriz genearal de todas las ordenes completadas
+// matriz genearal de todas las ordenes (SFTWRKEY-417: cuenta todo lo que no esta cancelado)
 export async function getGeneralMetrics(db = pool) {
     const result = await db.query(
         `SELECT
         (SELECT COUNT(*) FROM users) AS total_users,
         (SELECT COUNT(*) FROM products) AS total_products,
-        (SELECT COUNT(*) FROM orders WHERE status = 'completed') AS total_orders,
-        (SELECT COALESCE(SUM(total), 0) FROM orders WHERE status = 'completed') AS total_revenue,
+        (SELECT COUNT(*) FROM orders WHERE status <> 'cancelado') AS total_orders,
+        (SELECT COALESCE(SUM(total), 0) FROM orders WHERE status <> 'cancelado') AS total_revenue,
         (SELECT COALESCE(SUM(oi.quantity), 0)
             FROM order_items oi
             JOIN orders o ON o.id = oi.order_id
-            WHERE o.status = 'completed') AS total_units_sold,
+            WHERE o.status <> 'cancelado') AS total_units_sold,
         (SELECT COALESCE(SUM(stock), 0) FROM products) AS total_stock`
     );
     const row = result.rows[0] ?? {};
@@ -55,7 +55,7 @@ export async function getMonthlySales(months = 12, db = pool) {
                 COUNT(*) AS orders,
                 COALESCE(SUM(total), 0) AS revenue
         FROM orders
-        WHERE status = 'completed'
+        WHERE status <> 'cancelado'
         AND created_at >= date_trunc('month', NOW()) - make_interval(months => $1 - 1)
         GROUP BY 1
         ORDER BY 1`,
@@ -71,7 +71,7 @@ export async function getSalesByCategory(db = pool) {
                 SUM(oi.quantity) AS units,
                 SUM(oi.quantity * oi.unit_price) AS revenue
         FROM order_items oi
-        JOIN orders o ON o.id = oi.order_id AND o.status = 'completed'
+        JOIN orders o ON o.id = oi.order_id AND o.status <> 'cancelado'
         JOIN products p ON p.id = oi.product_id
         LEFT JOIN categories c ON c.id = p.category_id
         GROUP BY 1
@@ -93,7 +93,7 @@ export async function getTopProducts(limit = 5, db = pool) {
                 SUM(oi.quantity) AS units,
                 SUM(oi.quantity * oi.unit_price) AS revenue
         FROM order_items oi
-        JOIN orders o ON o.id = oi.order_id AND o.status = 'completed'
+        JOIN orders o ON o.id = oi.order_id AND o.status <> 'cancelado'
         JOIN products p ON p.id = oi.product_id
         LEFT JOIN categories c ON c.id = p.category_id
         GROUP BY p.id, p.name, c.nombre

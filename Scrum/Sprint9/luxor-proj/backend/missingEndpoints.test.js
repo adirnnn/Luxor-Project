@@ -94,7 +94,7 @@ const Q = {
   ventasPorCategoria: /FROM order_items oi[\s\S]*LEFT JOIN categories c ON c\.id = p\.category_id[\s\S]*GROUP BY 1\s+ORDER BY revenue DESC/i,
   topProductosNuevo: /GROUP BY p\.id, p\.name, c\.nombre/i,
   inventarioPorCategoria: /FROM products p\s+LEFT JOIN categories c ON c\.id = p\.category_id/i,
-  ventasMensuales: /FROM orders\s+WHERE status = 'completed'\s+AND created_at/i,
+  ventasMensuales: /FROM orders\s+WHERE status <> 'cancelado'\s+AND created_at/i,
 };
 
 // ── PUT /user/:userId ────────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ test('GET /users/search: devuelve coincidencias por nombre o correo', async (t) 
 
 test('GET /user/:userId/orders: arma cada pedido con sus renglones (items)', async (t) => {
   const { restore } = fakeDb([
-    [Q.pedidosDelUsuario, { rows: [{ id: 'o1', total: '390.00', status: 'completed', created_at: '2026-01-01' }] }],
+    [Q.pedidosDelUsuario, { rows: [{ id: 'o1', total: '390.00', status: 'pagado', created_at: '2026-01-01' }] }],
     [Q.itemsDelPedido, { rows: [{ product_id: 'khamrah', quantity: 1, unit_price: '390.00', name: 'Khamrah', image: 'khamrah.png' }] }],
   ]);
   t.after(restore);

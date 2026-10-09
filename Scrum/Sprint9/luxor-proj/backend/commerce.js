@@ -98,7 +98,8 @@ async function migrate() {
       CREATE OR REPLACE FUNCTION luxor_notify_order()
       RETURNS trigger AS $$
       BEGIN
-        IF NEW.status = 'completed' THEN
+        -- SFTWRKEY-417: los pedidos nuevos ahora nacen como 'pagado'
+        IF NEW.status = 'pagado' THEN
           INSERT INTO admin_order_events(order_id)
           VALUES (NEW.id)
           ON CONFLICT (order_id) DO NOTHING;
@@ -411,11 +412,18 @@ router.post(
       const order = (
         await db.query(
           `INSERT INTO orders(user_id,total,status)
-           VALUES(NULL,$1,'completed')
+           VALUES(NULL,$1,'pagado')
            RETURNING id,total,created_at`,
           [cents / 100],
         )
       ).rows[0];
+
+      // SFTWRKEY-417: primera fila del historial de estados
+      await db.query(
+        `INSERT INTO order_status_history(order_id,from_status,to_status)
+         VALUES($1,NULL,'pagado')`,
+        [order.id],
+      );
 
       for (const item of cartItems) {
         await db.query(

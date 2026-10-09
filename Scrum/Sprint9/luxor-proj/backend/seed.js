@@ -197,6 +197,64 @@ const seedUsers = async () => {
     `);
     console.log('Tablas de ordenes listas');
 
+    // SFTWRKEY-417: estados del pedido (pagado, en_preparacion, enviado, entregado, cancelado).
+    // Los estados validos estan tambien en services/orderStatus.js.
+    // Primero se migran los datos y despues se pone el CHECK, si no el CHECK falla.
+    await pool.query(`UPDATE orders SET status = 'pagado' WHERE status = 'completed'`);
+    // lo que no sea un estado valido (por ejemplo 'pending') nunca se cobro, queda cancelado
+    await pool.query(`
+      UPDATE orders SET status = 'cancelado'
+      WHERE status IS NULL OR status NOT IN ('pagado', 'en_preparacion', 'enviado', 'entregado', 'cancelado')
+    `);
+    await pool.query(`ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pagado'`);
+    try {
+      await pool.query(`
+        ALTER TABLE orders ADD CONSTRAINT orders_status_check
+        CHECK (status IN ('pagado', 'en_preparacion', 'enviado', 'entregado', 'cancelado'))
+      `);
+      console.log('CHECK de status agregado en orders');
+    } catch (e) {
+      console.log('Nota: el CHECK de status ya existía.');
+    }
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS order_status_history (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        from_status VARCHAR(20),
+        to_status VARCHAR(20) NOT NULL,
+        changed_by INTEGER REFERENCES users(id),
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    // los pedidos que ya existian reciben su primera fila con la fecha en que se crearon
+    await pool.query(`
+      INSERT INTO order_status_history (order_id, from_status, to_status, changed_at)
+      SELECT o.id, NULL, o.status, COALESCE(o.created_at, NOW())
+      FROM orders o
+      WHERE NOT EXISTS (SELECT 1 FROM order_status_history h WHERE h.order_id = o.id)
+    `);
+    console.log('Estados de pedidos e historial listos');
+
+    // SFTWRKEY-417: el aviso de pedido nuevo al admin (trigger de commerce.js) buscaba
+    // 'completed'. Se actualiza aqui porque el seed corre antes del server en cada deploy;
+    // si no, los pedidos 'pagado' no avisan hasta que alguien entra a una ruta de commerce.
+    // Tiene que ser igual a la de migrate() en commerce.js.
+    await pool.query(`
+      CREATE OR REPLACE FUNCTION luxor_notify_order()
+      RETURNS trigger AS $$
+      BEGIN
+        IF NEW.status = 'pagado' THEN
+          INSERT INTO admin_order_events(order_id)
+          VALUES (NEW.id)
+          ON CONFLICT (order_id) DO NOTHING;
+        END IF;
+
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+
     // Insertar productos iniciales
     // SFTWRKEY-273: category_id asignado según el nombre insertado arriba
     // 1 = Árabe, 2 = Oriental, 3 = Femenino, 4 = Masculino, 5 = Fresco, 6 = Dulce

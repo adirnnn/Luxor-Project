@@ -53,7 +53,7 @@ test('pago aprobado: crea orden, items y pago, descuenta stock y vacía el carri
   const orderId = res.body.order.id;
 
   const orden = await pool.query('SELECT total, status FROM orders WHERE id = $1', [orderId]);
-  assert.deepEqual(orden.rows[0], { total: '300.00', status: 'completed' });
+  assert.deepEqual(orden.rows[0], { total: '300.00', status: 'pagado' });
 
   const items = await pool.query('SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = $1', [orderId]);
   assert.deepEqual(items.rows, [{ product_id: perfume.id, quantity: 2, unit_price: '150.00' }]);

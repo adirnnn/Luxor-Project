@@ -23,6 +23,7 @@ import { createLoginHandler, createRegisterHandler } from './services/authHandle
 import { isSafeImage, IMAGE_ERROR_MESSAGE } from './services/imageValidation.js';
 import { rateLimit } from './services/rateLimit.js';
 import commerceRouter from './commerce.js';
+import ordersRouter from './routes/orders.js';
 import helmet from 'helmet';
 import { requireInternalKey } from './services/internalKey.js';
 import { recordSecurityEvent, getSecurityAlerts, SECURITY_EVENT_TYPES } from './services/securityEvents.js';
@@ -605,7 +606,7 @@ app.get("/report", authenticate, requireRoles("ADMIN"), async (req, res) => {
     const items = await pool.query('SELECT SUM(quantity) as total FROM cart_items');
     const top = await pool.query(`SELECT oi.product_id, SUM(oi.quantity) as total_quantity
         FROM order_items oi
-        JOIN orders o ON o.id = oi.order_id AND o.status = 'completed'
+        JOIN orders o ON o.id = oi.order_id AND o.status <> 'cancelado'
         GROUP BY oi.product_id
         ORDER BY total_quantity DESC
         LIMIT 5`);
@@ -841,11 +842,16 @@ app.post("/checkout/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMI
       }
     }
 
+    // SFTWRKEY-417: el pedido nace como 'pagado' y queda la primera fila del historial
     const orderResult = await client.query(
-      `INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'completed') RETURNING id, created_at`,
+      `INSERT INTO orders (user_id, total, status) VALUES ($1, $2, 'pagado') RETURNING id, created_at`,
       [userId, total]
     );
     const orderId = orderResult.rows[0].id;
+    await client.query(
+      `INSERT INTO order_status_history (order_id, from_status, to_status) VALUES ($1, NULL, 'pagado')`,
+      [orderId]
+    );
 
     for (const item of itemsResult.rows) {
       await client.query(
@@ -951,6 +957,9 @@ app.post("/chatbot/queries", requireInternalKey, async (req, res) => {
       });
     }
 });
+
+// SFTWRKEY-417: rutas de pedidos del admin
+app.use(ordersRouter);
 
 // Checkout de invitado, login con Google y alertas del admin. Va al final porque su
 // middleware prepara las tablas en cada petición que entra al router: así solo lo

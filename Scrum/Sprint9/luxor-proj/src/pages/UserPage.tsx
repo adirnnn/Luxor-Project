@@ -45,16 +45,21 @@ const Spinner = () => (
 );
 
 // SFTWRKEY-325: Colores según el estado del pedido
+// SFTWRKEY-417: estados nuevos del pedido
 const statusStyles: Record<string, string> = {
-  pending: "bg-status-warning-bg text-status-warning border-status-warning/30",
-  completed: "bg-status-success-bg text-status-success border-status-success/30",
-  cancelled: "bg-status-error-bg text-status-error border-status-error/30",
+  pagado: "bg-status-info-bg text-status-info border-status-info/30",
+  en_preparacion: "bg-status-warning-bg text-status-warning border-status-warning/30",
+  enviado: "bg-status-warning-bg text-status-warning border-status-warning/30",
+  entregado: "bg-status-success-bg text-status-success border-status-success/30",
+  cancelado: "bg-status-error-bg text-status-error border-status-error/30",
 };
 
 const statusLabels: Record<string, string> = {
-  pending: "Pendiente",
-  completed: "Completado",
-  cancelled: "Cancelado",
+  pagado: "Pagado",
+  en_preparacion: "En preparación",
+  enviado: "Enviado",
+  entregado: "Entregado",
+  cancelado: "Cancelado",
 };
 
 export default function UserPage() {
