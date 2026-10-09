@@ -27,6 +27,7 @@ import ordersRouter from './routes/orders.js';
 import helmet from 'helmet';
 import { requireInternalKey } from './services/internalKey.js';
 import { recordSecurityEvent, getSecurityAlerts, SECURITY_EVENT_TYPES } from './services/securityEvents.js';
+import { validarPassword } from './services/passwordPolicy.js';
 
 const SALT_ROUNDS = 12;
 
@@ -494,8 +495,14 @@ app.put("/user/:userId/password", authenticate, authorizeSelfOrRoles("userId", "
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: "Debes ingresar la contraseña actual y la nueva." });
   }
-  if (newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: "La nueva contraseña debe tener al menos 6 caracteres." });
+  // Validar política de contraseñas
+  const passwordError = validarPassword(newPassword);
+
+  if (passwordError) {
+    return res.status(400).json({
+      success: false,
+      message: passwordError
+    });
   }
   try {
     const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [req.params.userId]);
