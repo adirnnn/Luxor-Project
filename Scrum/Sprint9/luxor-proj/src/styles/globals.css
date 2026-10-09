@@ -98,3 +98,100 @@ html {
 .cinematic-overlay {
   background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%);
 }
+
+
+/* Chatbot Markdown */
+
+.chatbot-markdown {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* Párrafos */
+.chatbot-markdown p {
+  margin-bottom: 0.65rem;
+}
+
+.chatbot-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+/* Texto en negrita */
+.chatbot-markdown strong {
+  font-weight: 700;
+  color: #D4AF37;
+}
+
+/* Encabezados */
+.chatbot-markdown h1,
+.chatbot-markdown h2,
+.chatbot-markdown h3 {
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0.75rem 0 0.4rem;
+  color: #D4AF37;
+}
+
+/* Listas */
+.chatbot-markdown ul,
+.chatbot-markdown ol {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.chatbot-markdown ul {
+  list-style-type: disc;
+}
+
+.chatbot-markdown ol {
+  list-style-type: decimal;
+}
+
+.chatbot-markdown li {
+  margin-bottom: 0.35rem;
+}
+
+/* Tablas */
+.chatbot-markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.75rem;
+}
+
+.chatbot-markdown th,
+.chatbot-markdown td {
+  padding: 0.5rem;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  text-align: left;
+  vertical-align: top;
+  min-width: 90px;
+}
+
+.chatbot-markdown th {
+  background: rgba(212, 175, 55, 0.12);
+  color: #D4AF37;
+  font-weight: 700;
+}
+
+/* Enlaces */
+.chatbot-markdown a {
+  color: #D4AF37;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+/* Bloques de código */
+.chatbot-markdown pre {
+  overflow-x: auto;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.chatbot-markdown code {
+  overflow-wrap: anywhere;
+}
