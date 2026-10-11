@@ -270,3 +270,98 @@ test('PATCH estado: si falla el INSERT del historial se hace ROLLBACK y nunca CO
   assert.equal(ran(log, Q.rollback), true);
   assert.equal(ran(log, Q.commit), false);
 });
+
+// ── SFTWRKEY-418: devolver stock al cancelar ─────────────────────────────────
+
+Q.devolverStock = /^UPDATE products p SET stock = p\.stock \+ oi\.quantity/i;
+const posicion = (log, re) => log.findIndex((e) => re.test(e.sql));
+
+test('cancelar: devuelve el stock del pedido dentro de la transacción', async (t) => {
+  const { log, restore } = fakeDb(pedidoEn('pagado'));
+  t.after(restore);
+
+  const res = await cambiarEstado(10, { status: 'cancelado' });
+  assert.equal(res.status, 200);
+
+  const devolver = first(log, Q.devolverStock);
+  assert.ok(devolver, 'debe ejecutarse la devolución de stock');
+  assert.deepEqual(devolver.params, [10]);
+  // suma por producto: si un perfume viene en dos renglones se devuelven las dos cantidades
+  assert.match(devolver.sql, /SUM\(quantity\)[\s\S]*WHERE order_id = \$1[\s\S]*GROUP BY product_id/i);
+  assert.ok(posicion(log, Q.begin) < posicion(log, Q.devolverStock), 'después de BEGIN');
+  assert.ok(posicion(log, Q.devolverStock) < posicion(log, Q.commit), 'antes de COMMIT');
+  assert.deepEqual(first(log, Q.historial).params, [10, 'pagado', 'cancelado', 1]);
+});
+
+test('cancelar: también desde en_preparacion devuelve el stock', async (t) => {
+  const { log, restore } = fakeDb(pedidoEn('en_preparacion'));
+  t.after(restore);
+
+  assert.equal((await cambiarEstado(10, { status: 'cancelado' })).status, 200);
+  assert.equal(ran(log, Q.devolverStock), true);
+});
+
+test('cancelar: los demás cambios de estado no tocan el stock', async (t) => {
+  for (const [desde, hacia] of [['pagado', 'en_preparacion'], ['en_preparacion', 'enviado'], ['enviado', 'entregado']]) {
+    const { log, restore } = fakeDb(pedidoEn(desde));
+    const res = await cambiarEstado(10, { status: hacia });
+    restore();
+    assert.equal(res.status, 200);
+    assert.equal(ran(log, Q.devolverStock), false, `${desde} → ${hacia}`);
+  }
+});
+
+test('cancelar dos veces: la segunda responde 400 y no devuelve el stock otra vez', async (t) => {
+  const { log, restore } = fakeDb(pedidoEn('cancelado'));
+  t.after(restore);
+
+  const res = await cambiarEstado(10, { status: 'cancelado' });
+  assert.equal(res.status, 400);
+  assert.equal(ran(log, Q.devolverStock), false);
+  assert.equal(ran(log, Q.actualizarPedido), false);
+  assert.equal(ran(log, Q.commit), false);
+});
+
+test('cancelar: el UPDATE del pedido exige que siga en el estado leído', async (t) => {
+  const { log, restore } = fakeDb(pedidoEn('pagado'));
+  t.after(restore);
+
+  await cambiarEstado(10, { status: 'cancelado' });
+  const update = first(log, Q.actualizarPedido);
+  assert.match(update.sql, /WHERE id = \$2 AND status = \$3/);
+  assert.deepEqual(update.params, ['cancelado', 10, 'pagado']);
+});
+
+test('cancelar: si el pedido cambió en medio (rowCount 0) responde 409 y no toca el stock', async (t) => {
+  const { log, restore } = fakeDb([
+    [Q.bloquearPedido, { rows: [{ status: 'pagado' }] }],
+    [Q.actualizarPedido, { rows: [], rowCount: 0 }],
+  ]);
+  t.after(restore);
+
+  const res = await cambiarEstado(10, { status: 'cancelado' });
+  assert.equal(res.status, 409);
+  assert.equal(ran(log, Q.devolverStock), false);
+  assert.equal(ran(log, Q.rollback), true);
+  assert.equal(ran(log, Q.commit), false);
+});
+
+test('cancelar: si falla la devolución del stock hay ROLLBACK y nunca COMMIT', async (t) => {
+  const { log, restore } = fakeDb([
+    ...pedidoEn('pagado'),
+    [Q.devolverStock, () => { throw new Error('fallo simulado del stock'); }],
+  ]);
+  t.after(restore);
+  const originalError = console.error;
+  console.error = () => {};
+  t.after(() => { console.error = originalError; });
+
+  const res = await cambiarEstado(10, { status: 'cancelado' });
+  const body = await res.json();
+
+  assert.equal(res.status, 500);
+  assert.ok(!JSON.stringify(body).includes('fallo simulado'));
+  assert.equal(ran(log, Q.rollback), true);
+  assert.equal(ran(log, Q.commit), false);
+  assert.equal(ran(log, Q.historial), false, 'no se guarda historial si falló el stock');
+});

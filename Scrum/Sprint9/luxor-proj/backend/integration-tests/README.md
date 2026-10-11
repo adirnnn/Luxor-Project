@@ -8,6 +8,7 @@ Corren la API Express real contra una base PostgreSQL real (sin dobles de `pool`
 | `products.integration.js` | Integración | CRUD de productos del admin + JOIN con `categories` |
 | `cart.integration.js` | Integración | carrito persistido, FK a `products` y ROLLBACK |
 | `checkout.integration.js` | Integración | pasarela de pago + `orders`, `order_items`, `payments` y stock |
+| `orders.integration.js` | Integración | el admin cambia el estado del pedido y al cancelar regresa el stock (SFTWRKEY-418) |
 | `search.regression.js` | Regresión | la búsqueda oculta agotados, ignora mayúsculas y busca en notas |
 | `checkout-stock.regression.js` | Regresión | sin sobreventa y total calculado con el precio de la base |
 | `access-control.regression.js` | Regresión | un cliente no accede a datos de otros ni a rutas de admin |

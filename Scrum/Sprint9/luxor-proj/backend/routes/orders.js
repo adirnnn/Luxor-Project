@@ -36,11 +36,33 @@ router.patch('/admin/orders/:id/status', authenticate, requireRoles('ADMIN'), as
       return res.status(400).json({ success: false, message: `No se puede pasar de '${from}' a '${status}'.` });
     }
 
+    // SFTWRKEY-418: solo se actualiza si sigue en el estado que se leyo; si no, no se toca nada
     const updated = await client.query(
-      `UPDATE orders SET status = $1 WHERE id = $2
+      `UPDATE orders SET status = $1 WHERE id = $2 AND status = $3
        RETURNING id, user_id, total, status, created_at`,
-      [status, id]
+      [status, id, from]
     );
+    if (updated.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ success: false, message: "El pedido cambió mientras se actualizaba. Intenta de nuevo." });
+    }
+
+    // SFTWRKEY-418: al cancelar, las unidades del pedido regresan al stock.
+    // Se suma por producto porque un pedido puede traer el mismo perfume en dos renglones.
+    // Como 'cancelado' es final, repetir la peticion da 400 y el stock no se devuelve dos veces.
+    if (status === 'cancelado') {
+      await client.query(
+        `UPDATE products p SET stock = p.stock + oi.quantity
+         FROM (
+           SELECT product_id, SUM(quantity) AS quantity
+           FROM order_items
+           WHERE order_id = $1
+           GROUP BY product_id
+         ) oi
+         WHERE p.id = oi.product_id`,
+        [id]
+      );
+    }
 
     await client.query(
       `INSERT INTO order_status_history (order_id, from_status, to_status, changed_by)
