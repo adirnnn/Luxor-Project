@@ -130,7 +130,7 @@ export default function PaymentPage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/user">
+                    <Link to="/mi-cuenta">
                     <Button className="w-full sm:w-auto px-10 py-4 font-black uppercase tracking-[0.3em] text-sm shadow-2xl">
                         Ver mis compras
                     </Button>
