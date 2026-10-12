@@ -1,8 +1,8 @@
 # Matriz de riesgos OWASP Top 10 — Perfumería Victoria
 
-**Marco:** OWASP Top 10 (2025) · **Última actualización:** 29/09/2026
+**Marco:** OWASP Top 10 (2025) · **Última actualización:** 11/10/2026
 
-Documento vivo del Sprint 8. Se actualiza cada vez que se termina una tarea de seguridad y al cierre se exporta a PDF como anexo del informe.
+Documento vivo de los Sprints 8 y 9. Se actualiza cada vez que se termina una tarea de seguridad y al cierre se exporta a PDF como anexo del informe.
 
 ## Cómo leer y actualizar la matriz
 
@@ -24,17 +24,17 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | Categoría | Filas | Pasa | Falla | Pendiente |
 |---|---|---|---|---|
-| A01 Pérdida de control de acceso | 6 | 5 | 0 | 1 |
-| A02 Configuración de seguridad incorrecta | 9 | 9 | 0 | 0 |
-| A03 Cadena de suministro de software | 2 | 2 | 0 | 0 |
+| A01 Pérdida de control de acceso | 7 | 6 | 0 | 1 |
+| A02 Configuración de seguridad incorrecta | 10 | 10 | 0 | 0 |
+| A03 Cadena de suministro de software | 3 | 3 | 0 | 0 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
-| A05 Inyección | 6 | 6 | 0 | 0 |
+| A05 Inyección | 7 | 7 | 0 | 0 |
 | A06 Diseño inseguro | 4 | 3 | 0 | 1 |
 | A07 Fallas de autenticación | 7 | 2 | 4 | 1 |
 | A08 Integridad de software y datos | 3 | 3 | 0 | 0 |
 | A09 Registro y alertas | 2 | 2 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 2 | 0 | 1 |
-| **Total** | **45** | **37** | **4** | **4** |
+| **Total** | **49** | **41** | **4** | **4** |
 
 **Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 2 Medias · 0 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
@@ -87,6 +87,10 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-43 | A10 | Backend | Checkout, carrito, importación CSV | Datos inconsistentes si falla una operación a la mitad | `BEGIN`/`COMMIT`/`ROLLBACK` en las tres operaciones | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
 | SEC-44 | A10 | Chatbot / Backend | Pasarela de pago, PerfumAPI, proveedor del LLM | Una caída de un servicio externo produce errores 500 o respuestas colgadas | Pasarela y PerfumAPI → 502 controlado (RC). Falta probar la caída del LLM (Groq u Ollama) | Pendiente | — | Media | SFTWRKEY-379 | Abierto |
 | SEC-45 | A01 | Backend | `services/auth.js` (`authorizeSelfOrRoles`) | Un token válido sin `id` autorizaba `/user/undefined`, porque `String(undefined) === "undefined"`. Se corrigió exigiendo `id` | Token sin `id` contra `/user/7` y `/user/undefined` → 403 (`security.accessControl.test.js`) | Pasa | PA | Baja | SFTWRKEY-378 | Verificado |
+| SEC-46 | A05 | Frontend (función de Vercel) | `api/product-preview.ts` | XSS o HTML inyectado en la vista previa para bots a partir del nombre, marca o notas del producto | Todo valor pasa por `escapeHtml`; un nombre `"><script>alert(1)</script>` sale escapado (`src/seo/seo.test.tsx`) | Pasa | PA | Media | SFTWRKEY-435 | Verificado |
+| SEC-47 | A01 | Frontend (funciones de Vercel) | `api/product-preview.ts`, `api/sitemap.ts` | SSRF o recorrido de rutas: el `id` de la URL se usa para consultar el backend | El `id` se valida con `^[A-Za-z0-9-]{1,100}$` y el host es fijo (`VITE_API_URL`); `../../admin` no llega al backend y los ids inválidos no entran al sitemap (`seo.test.tsx`, `sitemap.test.ts`) | Pasa | PA | Media | SFTWRKEY-435 / 436 | Verificado |
+| SEC-48 | A02 | Frontend | `public/robots.txt`, `components/seo/PageMeta.tsx` | Los buscadores indexan páginas privadas (admin, reportes, cuenta, carrito, pago) | `Disallow` en `robots.txt` y `noindex, nofollow` en cada página privada (`sitemap.test.ts`, `seo.test.tsx`) | Pasa | PA | Baja | SFTWRKEY-435 / 436 | Verificado |
+| SEC-49 | A03 | Backend | `backend/package-lock.json` (`proxy-addr`, dependencia de Express) | GHSA-jqcg-44mw-7w3h: suplantación de IP con direcciones IPv6 que contienen una IPv4 cuando se usa `trust proxy`; permitiría saltarse el rate limit por IP (SEC-07) | `npm audit --omit=dev` → 0 vulnerabilidades tras actualizar `proxy-addr` (11/10/2026); `security.config.test.js` sigue pasando | Pasa | AUD | Alta | Sin ticket | Verificado |
 
 ## Escaneo dinámico
 

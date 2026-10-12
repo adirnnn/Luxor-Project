@@ -32,9 +32,9 @@ const sections: LegalSection[] = [
       <>
         <p>Si prefieres, puedes acercarte a cualquiera de nuestros locales:</p>
         <ul className={lista}>
-          <li>Joyería Victoria — Metro Centro, 19 calle 3-31, Zona 1.</li>
-          <li>Joyería Glamour — C.C. El Pueblito, Zona 1.</li>
-          <li>Joyería Luxor — C.C. San Isidro, Zona 16.</li>
+          <li>Joyería Victoria: Metro Centro, 19 calle 3-31, Zona 1.</li>
+          <li>Joyería Glamour: C.C. El Pueblito, Zona 1.</li>
+          <li>Joyería Luxor: C.C. San Isidro, Zona 16.</li>
         </ul>
       </>
     ),
