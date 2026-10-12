@@ -89,6 +89,7 @@ const sections: LegalSection[] = [
 export default function TermsPage() {
   return (
     <LegalPage
+      description="Condiciones de uso del sitio y de compra en Perfumería Victoria: cuenta, precios, pagos y uso aceptable."
       title="Términos y condiciones"
       intro={<p>Estas son las reglas para usar el sitio de Perfumería Victoria y comprar en él.</p>}
       sections={sections}

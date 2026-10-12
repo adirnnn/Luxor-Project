@@ -85,6 +85,7 @@ const sections: LegalSection[] = [
 export default function PrivacyPage() {
   return (
     <LegalPage
+      description="Qué datos recopila Perfumería Victoria, para qué los usa, con quién los comparte y cómo los protege."
       title="Política de privacidad"
       intro={
         <p>

@@ -5,6 +5,7 @@ import { Container } from "../components/ui/Container";
 import { H2, H3, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
 import { API_URL, authHeaders, getToken } from "../services/apiClient";
+import { PageMeta } from "../components/seo/PageMeta";
 
 interface OrderItem {
   product_id: string;
@@ -225,6 +226,7 @@ export default function UserPage() {
 
   return (
     <MainLayout>
+        <PageMeta title="Mi cuenta" noindex />
         <Container className="pb-12">
         <PageTitle className="mb-10">Mi Cuenta</PageTitle>
 

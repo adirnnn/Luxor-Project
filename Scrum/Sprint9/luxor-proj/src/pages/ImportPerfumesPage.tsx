@@ -6,6 +6,7 @@ import { Container } from "../components/ui/Container";
 import { Button } from "../components/ui/Button";
 import { PageTitle, Text } from "../components/ui/Typography";
 import { downloadCsvTemplate, fetchImportHistory, importProducts, type ImportSummary } from "../services/importService";
+import { PageMeta } from "../components/seo/PageMeta";
 
 export default function ImportPerfumesPage() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export default function ImportPerfumesPage() {
     finally { setImporting(false); }
   };
 
-  return <MainLayout><Section className="min-h-screen pt-0 pb-20"><Container>
+  return <MainLayout><PageMeta title="Importar perfumes" noindex /><Section className="min-h-screen pt-0 pb-20"><Container>
     <div className="max-w-5xl mx-auto flex flex-col gap-8">
       <div className="flex items-center justify-between gap-4"><div><PageTitle>Importar perfumes</PageTitle><Text className="text-primary-champagne/40 text-xs uppercase tracking-[.25em]">Carga masiva de inventario</Text></div><Button variant="outline" onClick={() => navigate("/admin")}>Volver</Button></div>
       <div className="glass-card p-6 md:p-8 rounded-[28px] flex flex-col gap-5 border-white/5">

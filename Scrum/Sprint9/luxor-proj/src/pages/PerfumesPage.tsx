@@ -6,6 +6,7 @@ import { PageTitle, Text } from "../components/ui/Typography";
 import { ProductCard } from "../features/perfumes/ProductCard";
 import { fetchProducts, fetchCategories } from "../services/productService";
 import type { Product, Category } from "../services/productService";
+import { PageMeta } from "../components/seo/PageMeta";
 
 export default function PerfumesPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -38,6 +39,7 @@ export default function PerfumesPage() {
 
   return (
     <MainLayout>
+      <PageMeta title="Catálogo de perfumes" description="Explora nuestro catálogo de perfumes árabes y de diseñador: busca por nombre, marca, categoría o notas olfativas." />
       <Section className="pt-0 pb-20 bg-primary-black">
         <Container>
           <div className="flex flex-col gap-16">

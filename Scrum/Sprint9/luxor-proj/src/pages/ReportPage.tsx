@@ -18,6 +18,7 @@ import {
     type TopProduct,
     type CategoryInventory,
 } from "../services/reportService";
+import { PageMeta } from "../components/seo/PageMeta";
 
 const MONTH_RANGE_OPTIONS = [6, 12, 24];
 
@@ -100,6 +101,7 @@ export default function ReportPage() {
 
     return (
         <MainLayout>
+            <PageMeta title="Reportes" noindex />
             <Section size="lg" className="pt-0">
                 <Container>
                     <div className="flex flex-col gap-10">

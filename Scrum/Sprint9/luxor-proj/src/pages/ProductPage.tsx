@@ -6,6 +6,8 @@ import { fetchProductById } from "../services/productService";
 import type { Product } from "../services/productService";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { PageMeta } from "../components/seo/PageMeta";
+import { productDescription } from "../seo/site";
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +37,12 @@ export default function ProductPage() {
 
   return (
     <MainLayout>
+      {/* SFTWRKEY-435: título con el nombre del perfume y descripción con su marca, notas y precio */}
+      {product ? (
+        <PageMeta title={product.name} description={productDescription(product)} />
+      ) : (
+        <PageMeta title={error ? "Producto no encontrado" : "Perfume"} />
+      )}
       {loading && <LoadingSpinner message="Cargando producto..." />}
       {error && <ErrorMessage message={error} />}
       {product && <ProductDetail {...product} />}

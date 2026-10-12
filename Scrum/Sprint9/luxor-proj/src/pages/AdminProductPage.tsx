@@ -9,6 +9,7 @@ import { fetchProductById, createProduct, updateProduct, fetchCategories } from 
 import type { Product, Category } from "../services/productService";
 import { PerfumApiSearch } from "../features/perfumes/PerfumApiSearch";
 import type { ExternalPerfumeCandidate } from "../services/perfumApiService";
+import { PageMeta } from "../components/seo/PageMeta";
 
 type FieldProps = {
     label: string;
@@ -155,6 +156,7 @@ const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
 if (loading) {
     return (
         <MainLayout>
+        <PageMeta title={isEditing ? "Editar perfume" : "Nuevo perfume"} noindex />
         <Section>
             <Container>
             <div className="flex flex-col items-center justify-center py-32 gap-4">
@@ -169,6 +171,7 @@ if (loading) {
 
 return (
     <MainLayout>
+        <PageMeta title={isEditing ? "Editar perfume" : "Nuevo perfume"} noindex />
         <Section className="min-h-screen pt-0 pb-20">
         <Container>
             <div className="max-w-3xl mx-auto flex flex-col gap-8">

@@ -8,6 +8,8 @@ import { BrandSection } from "../features/brand/BrandSection";
 import { CTASection } from "../features/cta/CTASection";
 import { motion } from "framer-motion";
 import { ContactFooter } from "../components/layout/ContactFooter";
+import { PageMeta } from "../components/seo/PageMeta";
+import { SITE_DESCRIPTION } from "../seo/site";
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -25,6 +27,7 @@ const fadeUp: any = {
 export default function HomePage() {
   return (
     <MainLayout fullBleed>
+      <PageMeta description={SITE_DESCRIPTION} />
       {/* Hero */}
       <Section className="relative h-screen min-h-[640px] flex items-center justify-center overflow-hidden bg-primary-black p-0">
         {/* Cinematic Backdrop: full screen video background with dark marble texture poster */}

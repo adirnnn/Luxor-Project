@@ -64,6 +64,7 @@ const sections: LegalSection[] = [
 export default function ShippingReturnsPage() {
   return (
     <LegalPage
+      description="Envíos a todo el país en 24 a 48 horas, seguimiento del pedido, cambios y devoluciones en Perfumería Victoria."
       title="Envíos y devoluciones"
       intro={<p>Así entregamos tus perfumes y así resolvemos cualquier problema con tu compra.</p>}
       sections={sections}

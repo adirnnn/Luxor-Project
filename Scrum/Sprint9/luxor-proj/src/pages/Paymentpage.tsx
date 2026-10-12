@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import { PaymentForm } from "../validation/PaymentForm";
 import type { PaymentFormState } from "../validation/usePaymentForm";
 import { processCheckout, type CheckoutError } from "../services/checkoutService";
+import { PageMeta } from "../components/seo/PageMeta";
 
 export default function PaymentPage() {
     const { cart, totalPrice, clearCart } = useCart();
@@ -63,6 +64,7 @@ export default function PaymentPage() {
     if (confirmedOrder) {
         return (
         <MainLayout>
+            <PageMeta title="Pago" noindex />
             <Container className="pb-24 md:pb-32 px-4 md:px-6">
             <AnimatePresence>
                 <motion.div
@@ -152,6 +154,7 @@ export default function PaymentPage() {
 // Pagina de pago 
     return (
         <MainLayout>
+        <PageMeta title="Pago" noindex />
         <Container className="pb-24 md:pb-32 px-4 md:px-6">
             <button
             onClick={() => navigate("/cart")}

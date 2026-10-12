@@ -5,6 +5,17 @@
   "outputDirectory": "dist",
   "installCommand": "npm ci",
   "rewrites": [
+    {
+      "source": "/producto/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(.*)(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterestbot|SkypeUriPreview|redditbot|Applebot)(.*)"
+        }
+      ],
+      "destination": "/api/product-preview?id=:id"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

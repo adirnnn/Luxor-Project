@@ -6,6 +6,7 @@ import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import clsx from "clsx";
+import { PageMeta } from "../components/seo/PageMeta";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -78,6 +79,7 @@ export default function AdminCreateUserPage() {
 
   return (
     <MainLayout>
+      <PageMeta title="Registrar cliente" noindex />
       <Section className="min-h-screen pt-0 pb-20">
         <Container>
           <div className="max-w-2xl mx-auto flex flex-col gap-12">

@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { MainLayout } from "../../components/layout/MainLayout";
 import { Container } from "../../components/ui/Container";
 import { PageTitle } from "../../components/ui/Typography";
+import { PageMeta } from "../../components/seo/PageMeta";
 import { LEGAL_LINKS } from "./legalLinks";
 
 const ULTIMA_ACTUALIZACION = "10 de octubre de 2026";
@@ -16,12 +17,15 @@ export type LegalSection = {
 
 type Props = {
   title: string;
+  // SFTWRKEY-435: descripción para buscadores
+  description: string;
   intro: ReactNode;
   sections: LegalSection[];
 };
 
-export const LegalPage = ({ title, intro, sections }: Props) => (
+export const LegalPage = ({ title, description, intro, sections }: Props) => (
   <MainLayout>
+    <PageMeta title={title} description={description} />
     <Container className="max-w-3xl">
       <nav aria-label="Páginas legales" className="mb-10 flex flex-wrap gap-x-6 gap-y-3">
         {LEGAL_LINKS.map((link) => (

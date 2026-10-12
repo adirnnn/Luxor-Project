@@ -11,6 +11,7 @@ import { LoginForm } from "../validation/LoginForm";
 import type { AuthUser } from "../validation/authService";
 
 import { GoogleAccess } from "../features/CommerceFeatures";
+import { PageMeta } from "../components/seo/PageMeta";
 
 export default function LoginPage() {
     const { login, isAuthenticated } = useAuth();
@@ -35,6 +36,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-primary-black flex text-primary-champagne">
+            <PageMeta title="Iniciar sesión" noindex />
 
             {/* Left panel */}
             <div className="hidden md:flex md:w-1/2 relative overflow-hidden">

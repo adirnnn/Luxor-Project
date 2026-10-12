@@ -8,6 +8,7 @@ import { Button } from "../components/ui/Button";
 import { fetchProducts, deleteProduct } from "../services/productService";
 import type { Product } from "../services/productService";
 import { SecurityAlerts } from "../features/admin/SecurityAlerts";
+import { PageMeta } from "../components/seo/PageMeta";
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -44,6 +45,7 @@ export default function AdminDashboard() {
 
     return (
         <MainLayout>
+            <PageMeta title="Panel de administración" noindex />
             <Section className="min-h-screen pt-0 pb-20">
                 <Container>
                     <div className="flex flex-col gap-16">

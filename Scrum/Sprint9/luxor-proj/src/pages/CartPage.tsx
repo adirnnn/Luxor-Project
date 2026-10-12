@@ -8,6 +8,7 @@ import { QuantitySelector } from "../components/ui/QuantitySelector";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { PageMeta } from "../components/seo/PageMeta";
 
 export default function CartPage() {
   const { cart, totalPrice, setQuantity, removeFromCart } = useCart();
@@ -27,6 +28,7 @@ export default function CartPage() {
   };
   return (
     <MainLayout>
+      <PageMeta title="Carrito" noindex />
       <Container className="pb-24 md:pb-32 px-4 md:px-6">
         <PageTitle className="mb-8 md:mb-16">
           Tu Selección
