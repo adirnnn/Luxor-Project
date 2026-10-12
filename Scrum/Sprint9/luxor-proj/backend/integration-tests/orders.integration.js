@@ -87,3 +87,56 @@ test('si el mismo perfume viene en dos renglones del pedido se devuelven las dos
   assert.equal((await cambiarEstado(order.id, 'cancelado')).status, 200);
   assert.equal(await productStock(perfume.id), 13, '10 + 1 + 2');
 });
+
+// ── SFTWRKEY-419: lista y detalle de pedidos para el admin ──────────────────
+
+const listar = (query = '') => api('GET', `/admin/orders${query}`, { token: adminToken });
+
+test('GET /admin/orders filtra por estado y por fechas, y "hasta" incluye todo ese día', async () => {
+  const perfume = await insertProduct(created.products, { price: 50, stock: 20 });
+  const { rows: [tarde] } = await pool.query(
+    `INSERT INTO orders (user_id, total, status, created_at) VALUES ($1, 50, 'enviado', '2026-03-15 23:30:00') RETURNING id`, [client.id]
+  );
+  const { rows: [otroDia] } = await pool.query(
+    `INSERT INTO orders (user_id, total, status, created_at) VALUES ($1, 50, 'enviado', '2026-03-16 00:10:00') RETURNING id`, [client.id]
+  );
+  await pool.query(
+    `INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ($1, $3, 2, 25), ($2, $3, 1, 50)`,
+    [tarde.id, otroDia.id, perfume.id]
+  );
+
+  const res = await listar('?status=enviado&from=2026-03-15&to=2026-03-15');
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body.orders.map((o) => o.id), [tarde.id], 'el pedido de las 23:30 entra; el del día siguiente no');
+  assert.equal(res.body.total, 1);
+  assert.equal(res.body.orders[0].items_count, 2);
+  assert.equal(res.body.orders[0].customer_email, client.email);
+
+  const ambos = await listar('?status=enviado&from=2026-03-15&to=2026-03-16');
+  assert.deepEqual(ambos.body.orders.map((o) => o.id), [otroDia.id, tarde.id], 'más reciente primero');
+});
+
+test('GET /admin/orders pagina los resultados', async () => {
+  const res = await listar('?from=2026-03-15&to=2026-03-16&limit=1&page=2');
+  assert.equal(res.status, 200);
+  assert.equal(res.body.orders.length, 1);
+  assert.equal(res.body.total, 2);
+  assert.equal(res.body.page, 2);
+});
+
+test('GET /admin/orders/:id trae productos, historial y los estados permitidos', async () => {
+  const perfume = await insertProduct(created.products, { price: 120, stock: 5 });
+  const orderId = await comprar(perfume, 2);
+
+  const res = await api('GET', `/admin/orders/${orderId}`, { token: adminToken });
+  assert.equal(res.status, 200);
+  const { order } = res.body;
+  assert.equal(order.status, 'pagado');
+  assert.equal(order.total, 240);
+  assert.deepEqual(order.items.map((i) => [i.product_id, i.quantity, i.unit_price, i.subtotal]), [[perfume.id, 2, 120, 240]]);
+  assert.deepEqual(order.history.map((h) => h.to_status), ['pagado']);
+  assert.deepEqual(order.allowedNextStatuses, ['en_preparacion', 'cancelado']);
+
+  assert.equal((await api('GET', '/admin/orders/99999999', { token: adminToken })).status, 404);
+  assert.equal((await api('GET', `/admin/orders/${orderId}`, { token: client.token })).status, 403);
+});

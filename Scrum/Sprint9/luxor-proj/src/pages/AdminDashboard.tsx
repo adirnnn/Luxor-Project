@@ -73,6 +73,11 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
+                                {/* SFTWRKEY-419: vista de pedidos */}
+                                <Link to="/admin/pedidos">
+                                    <Button variant="outline" className="transition-all">Pedidos</Button>
+                                </Link>
+
                                 <Link to="/admin/importar">
                                     <Button variant="outline" className="transition-all">Importar CSV</Button>
                                 </Link>

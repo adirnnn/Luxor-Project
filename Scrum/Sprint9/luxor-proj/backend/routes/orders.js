@@ -1,16 +1,169 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { authenticate, requireRoles } from '../services/auth.js';
-import { isValidStatus, canTransition } from '../services/orderStatus.js';
+import { isValidStatus, canTransition, ORDER_TRANSITIONS } from '../services/orderStatus.js';
 
 const router = Router();
 
 const ORDER_ID_REGEX = /^\d+$/;
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+// devuelve el id como numero, o null si no es un entero positivo
+const parseOrderId = (value) => {
+  const id = Number(value);
+  return ORDER_ID_REGEX.test(value) && Number.isSafeInteger(id) && id > 0 ? id : null;
+};
+
+// fecha YYYY-MM-DD que exista de verdad (2026-02-30 y 2026-13-01 no pasan)
+const isValidDate = (value) => {
+  if (typeof value !== 'string' || !DATE_REGEX.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
+// SFTWRKEY-419: lista de pedidos para el admin, con filtros por estado y fechas, y paginacion
+router.get('/admin/orders', authenticate, requireRoles('ADMIN'), async (req, res) => {
+  const { status, from, to } = req.query;
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 20);
+
+  if (status !== undefined && status !== '' && !isValidStatus(status)) {
+    return res.status(400).json({ success: false, message: "El estado del pedido no es válido." });
+  }
+  if ((from && !isValidDate(from)) || (to && !isValidDate(to))) {
+    return res.status(400).json({ success: false, message: "Las fechas deben tener el formato AAAA-MM-DD." });
+  }
+  if (from && to && from > to) {
+    return res.status(400).json({ success: false, message: "La fecha inicial no puede ser mayor que la final." });
+  }
+  if (!Number.isInteger(page) || page < 1) {
+    return res.status(400).json({ success: false, message: "El parámetro 'page' debe ser un entero mayor o igual a 1." });
+  }
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    return res.status(400).json({ success: false, message: "El parámetro 'limit' debe ser un entero entre 1 y 50." });
+  }
+
+  // los filtros que no vienen van como NULL y no filtran; 'to' incluye todo ese dia
+  const filters = [status || null, from || null, to || null];
+
+  try {
+    const totalResult = await pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM orders o
+       WHERE ($1::text IS NULL OR o.status = $1)
+         AND ($2::date IS NULL OR o.created_at >= $2::date)
+         AND ($3::date IS NULL OR o.created_at < $3::date + 1)`,
+      filters
+    );
+
+    const ordersResult = await pool.query(
+      `SELECT o.id, o.created_at, o.total, o.status,
+              u.name AS user_name, u.email AS user_email,
+              g.guest_name, g.guest_email,
+              (SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.order_id = o.id)::int AS items_count
+       FROM orders o
+       LEFT JOIN users u ON u.id = o.user_id
+       LEFT JOIN guest_receipts g ON g.order_id = o.id
+       WHERE ($1::text IS NULL OR o.status = $1)
+         AND ($2::date IS NULL OR o.created_at >= $2::date)
+         AND ($3::date IS NULL OR o.created_at < $3::date + 1)
+       ORDER BY o.created_at DESC, o.id DESC
+       LIMIT $4 OFFSET $5`,
+      [...filters, limit, (page - 1) * limit]
+    );
+
+    const orders = ordersResult.rows.map((o) => ({
+      id: o.id,
+      created_at: o.created_at,
+      total: Number(o.total),
+      status: o.status,
+      is_guest: !o.user_name,
+      customer_name: o.user_name ?? (o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
+      customer_email: o.user_email ?? o.guest_email ?? null,
+      items_count: o.items_count,
+    }));
+
+    res.json({ success: true, orders, total: totalResult.rows[0].total, page, limit });
+  } catch (err) {
+    console.error("Error al listar pedidos:", err);
+    res.status(500).json({ success: false, message: "No se pudieron obtener los pedidos." });
+  }
+});
+
+// SFTWRKEY-419: detalle de un pedido con sus productos, historial y a que estados puede pasar
+router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req, res) => {
+  const id = parseOrderId(req.params.id);
+  if (!id) {
+    return res.status(400).json({ success: false, message: "El id del pedido no es válido." });
+  }
+
+  try {
+    const orderResult = await pool.query(
+      `SELECT o.id, o.created_at, o.total, o.status,
+              u.name AS user_name, u.email AS user_email,
+              g.guest_name, g.guest_email, g.address
+       FROM orders o
+       LEFT JOIN users u ON u.id = o.user_id
+       LEFT JOIN guest_receipts g ON g.order_id = o.id
+       WHERE o.id = $1`,
+      [id]
+    );
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Pedido no encontrado." });
+    }
+    const o = orderResult.rows[0];
+
+    const itemsResult = await pool.query(
+      `SELECT oi.product_id, p.name, p.image, oi.quantity, oi.unit_price
+       FROM order_items oi
+       LEFT JOIN products p ON p.id = oi.product_id
+       WHERE oi.order_id = $1
+       ORDER BY oi.id`,
+      [id]
+    );
+
+    const historyResult = await pool.query(
+      `SELECT h.from_status, h.to_status, h.changed_at, u.name AS changed_by_name
+       FROM order_status_history h
+       LEFT JOIN users u ON u.id = h.changed_by
+       WHERE h.order_id = $1
+       ORDER BY h.changed_at, h.id`,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      order: {
+        id: o.id,
+        created_at: o.created_at,
+        total: Number(o.total),
+        status: o.status,
+        is_guest: !o.user_name,
+        customer_name: o.user_name ?? (o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
+        customer_email: o.user_email ?? o.guest_email ?? null,
+        guest_address: o.address ?? null,
+        items: itemsResult.rows.map((item) => ({
+          product_id: item.product_id,
+          name: item.name ?? item.product_id,
+          image: item.image,
+          quantity: item.quantity,
+          unit_price: Number(item.unit_price),
+          subtotal: Number(item.unit_price) * item.quantity,
+        })),
+        history: historyResult.rows,
+        allowedNextStatuses: ORDER_TRANSITIONS[o.status] ?? [],
+      },
+    });
+  } catch (err) {
+    console.error("Error al obtener el pedido:", err);
+    res.status(500).json({ success: false, message: "No se pudo obtener el pedido." });
+  }
+});
 
 // SFTWRKEY-417: el admin cambia el estado de un pedido, solo a un estado permitido
 router.patch('/admin/orders/:id/status', authenticate, requireRoles('ADMIN'), async (req, res) => {
-  const id = Number(req.params.id);
-  if (!ORDER_ID_REGEX.test(req.params.id) || !Number.isSafeInteger(id) || id < 1) {
+  const id = parseOrderId(req.params.id);
+  if (!id) {
     return res.status(400).json({ success: false, message: "El id del pedido no es válido." });
   }
 

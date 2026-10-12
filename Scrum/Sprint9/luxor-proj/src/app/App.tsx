@@ -13,6 +13,7 @@ import ReportPage from "../pages/ReportPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminProductPage from "../pages/AdminProductPage";
 import AdminCreateUserPage from "../pages/AdminCreateUserPage";
+import AdminOrdersPage from "../pages/AdminOrdersPage";
 import ImportPerfumesPage from "../pages/ImportPerfumesPage";
 import PaymentPage from "../pages/Paymentpage";
 import UserPage from "../pages/UserPage";
@@ -63,6 +64,7 @@ function AnimatedRoutes() {
           <Route path="/admin/editar/:id" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
           <Route path="/admin/nuevo-usuario" element={<PageWrapper><AdminCreateUserPage /></PageWrapper>} />
           <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
+          <Route path="/admin/pedidos" element={<PageWrapper><AdminOrdersPage /></PageWrapper>} />
         </Route>
 
         {/* SFTWRKEY-422: cualquier usuario con sesion */}

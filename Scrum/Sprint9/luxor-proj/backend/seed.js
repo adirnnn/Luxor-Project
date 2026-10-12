@@ -236,6 +236,21 @@ const seedUsers = async () => {
     `);
     console.log('Estados de pedidos e historial listos');
 
+    // SFTWRKEY-419: la vista de pedidos del admin lee los datos del invitado de aqui.
+    // commerce.js la crea solo cuando alguien entra a sus rutas; se crea tambien aqui
+    // para que exista desde el arranque. Tiene que ser igual a la de migrate() en commerce.js.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS guest_receipts (
+        key_hash TEXT PRIMARY KEY,
+        request_hash TEXT NOT NULL,
+        order_id INTEGER NOT NULL UNIQUE REFERENCES orders(id),
+        guest_name VARCHAR(100) NOT NULL,
+        guest_email VARCHAR(150) NOT NULL,
+        address JSONB NOT NULL,
+        response JSONB NOT NULL
+      );
+    `);
+
     // SFTWRKEY-417: el aviso de pedido nuevo al admin (trigger de commerce.js) buscaba
     // 'completed'. Se actualiza aqui porque el seed corre antes del server en cada deploy;
     // si no, los pedidos 'pagado' no avisan hasta que alguien entra a una ruta de commerce.
