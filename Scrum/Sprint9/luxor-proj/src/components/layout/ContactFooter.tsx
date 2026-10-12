@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+import { LEGAL_LINKS } from "../../features/legal/legalLinks";
+
 export const ContactFooter = () => (
   <footer id="contacto" className="bg-primary-black px-6 py-24 border-t border-white/5">
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-20 md:grid-cols-3">
@@ -29,6 +32,14 @@ export const ContactFooter = () => (
       </div>
     </div>
     <div className="mt-12 border-t border-white/[0.06] pt-6 pb-2 text-center text-[10px] tracking-wider text-primary-champagne/40">
+      {/* SFTWRKEY-434: enlaces a las páginas legales */}
+      <nav aria-label="Información legal" className="mb-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs">
+        {LEGAL_LINKS.map((link) => (
+          <Link key={link.to} to={link.to} className="text-primary-champagne/60 transition-colors hover:text-primary-gold">
+            {link.label}
+          </Link>
+        ))}
+      </nav>
       © {new Date().getFullYear()} Perfumería Victoria. Todos los derechos reservados.
     </div>
   </footer>

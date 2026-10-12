@@ -16,6 +16,9 @@ import AdminCreateUserPage from "../pages/AdminCreateUserPage";
 import ImportPerfumesPage from "../pages/ImportPerfumesPage";
 import PaymentPage from "../pages/Paymentpage";
 import UserPage from "../pages/UserPage";
+import PrivacyPage from "../pages/PrivacyPage";
+import TermsPage from "../pages/TermsPage";
+import ShippingReturnsPage from "../pages/ShippingReturnsPage";
 import { ProtectedRoute } from "../components/routing/ProtectedRoute";
 import { AdminRoute } from "../components/routing/AdminRoute";
 
@@ -43,6 +46,11 @@ function AnimatedRoutes() {
         <Route path="/cart" element={<PageWrapper><CartPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
+
+        {/* SFTWRKEY-434: páginas legales */}
+        <Route path="/privacidad" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
+        <Route path="/terminos" element={<PageWrapper><TermsPage /></PageWrapper>} />
+        <Route path="/envios-devoluciones" element={<PageWrapper><ShippingReturnsPage /></PageWrapper>} />
 
         {/* SFTWRKEY-422: solo ADMIN. Las rutas nuevas de admin (como /admin/pedidos) van aqui dentro */}
         <Route element={<AdminRoute />}>

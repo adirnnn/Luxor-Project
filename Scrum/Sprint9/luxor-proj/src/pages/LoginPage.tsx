@@ -145,10 +145,12 @@ export default function LoginPage() {
                             </Link>
                         </div>
 
-                        {/* Legal */}
+                        {/* Legal (SFTWRKEY-434: enlaces a las páginas reales) */}
                         <p className="mt-10 text-[10px] text-secondary-brown/50 text-center leading-relaxed">
-                            Al continuar, aceptas nuestros términos
-                            de uso y política de privacidad.
+                            Al continuar, aceptas nuestros{" "}
+                            <Link to="/terminos" className="underline underline-offset-2 hover:text-primary-gold">términos y condiciones</Link>{" "}
+                            y nuestra{" "}
+                            <Link to="/privacidad" className="underline underline-offset-2 hover:text-primary-gold">política de privacidad</Link>.
                         </p>
                     </div>
                 </div>

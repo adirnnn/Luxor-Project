@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -396,6 +397,14 @@ export const PaymentForm = ({ isProcessing, onValidSubmit }: PaymentFormProps) =
                 "Confirmar y pagar"
             )}
             </button>
+
+            {/* SFTWRKEY-434: aviso legal antes de pagar (lo usan el checkout normal y el de invitado) */}
+            <p className="text-center text-xs leading-relaxed text-primary-champagne/50">
+                Al pagar aceptas los{" "}
+                <Link to="/terminos" target="_blank" className="text-primary-gold underline-offset-4 hover:underline">términos y condiciones</Link>, la{" "}
+                <Link to="/privacidad" target="_blank" className="text-primary-gold underline-offset-4 hover:underline">política de privacidad</Link> y las{" "}
+                <Link to="/envios-devoluciones" target="_blank" className="text-primary-gold underline-offset-4 hover:underline">condiciones de envío y devolución</Link>.
+            </p>
         </form>
 
         <ErrorPopup messages={popupMessages} onClose={() => setPopupMessages([])} />
