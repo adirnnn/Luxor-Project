@@ -41,6 +41,7 @@ describe("sitemap.xml", () => {
       "https://tienda.test/privacidad",
       "https://tienda.test/terminos",
       "https://tienda.test/envios-devoluciones",
+      "https://tienda.test/preguntas-frecuentes",
       "https://tienda.test/producto/khamrah",
       "https://tienda.test/producto/yara",
     ]);

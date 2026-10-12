@@ -18,6 +18,7 @@ export const PUBLIC_PAGES: Array<{ path: string; changefreq: string; priority: s
   { path: "/privacidad", changefreq: "yearly", priority: "0.2" },
   { path: "/terminos", changefreq: "yearly", priority: "0.2" },
   { path: "/envios-devoluciones", changefreq: "yearly", priority: "0.3" },
+  { path: "/preguntas-frecuentes", changefreq: "monthly", priority: "0.5" },
 ];
 
 export type SitemapProduct = {

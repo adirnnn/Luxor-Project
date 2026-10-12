@@ -27,7 +27,7 @@ export const LegalPage = ({ title, description, intro, sections }: Props) => (
   <MainLayout>
     <PageMeta title={title} description={description} />
     <Container className="max-w-3xl">
-      <nav aria-label="Páginas legales" className="mb-10 flex flex-wrap gap-x-6 gap-y-3">
+      <nav aria-label="Ayuda e información legal" className="mb-10 flex flex-wrap gap-x-6 gap-y-3">
         {LEGAL_LINKS.map((link) => (
           <NavLink
             key={link.to}

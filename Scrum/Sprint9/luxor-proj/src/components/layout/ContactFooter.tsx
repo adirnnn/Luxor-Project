@@ -32,8 +32,8 @@ export const ContactFooter = () => (
       </div>
     </div>
     <div className="mt-12 border-t border-white/[0.06] pt-6 pb-2 text-center text-[10px] tracking-wider text-primary-champagne/40">
-      {/* SFTWRKEY-434: enlaces a las páginas legales */}
-      <nav aria-label="Información legal" className="mb-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs">
+      {/* SFTWRKEY-434 / 437: páginas legales y preguntas frecuentes */}
+      <nav aria-label="Ayuda e información legal" className="mb-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs">
         {LEGAL_LINKS.map((link) => (
           <Link key={link.to} to={link.to} className="text-primary-champagne/60 transition-colors hover:text-primary-gold">
             {link.label}
