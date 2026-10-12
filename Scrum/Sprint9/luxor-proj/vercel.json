@@ -16,6 +16,7 @@
       ],
       "destination": "/api/product-preview?id=:id"
     },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
