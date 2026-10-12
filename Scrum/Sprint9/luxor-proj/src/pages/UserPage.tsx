@@ -2,10 +2,11 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
-import { H2, H3, PageTitle, Text } from "../components/ui/Typography";
+import { H2, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
 import { API_URL, authHeaders, getToken } from "../services/apiClient";
 import { PageMeta } from "../components/seo/PageMeta";
+import { statusLabel, statusStyle } from "../constants/orderStatus";
 
 interface OrderItem {
   product_id: string;
@@ -15,12 +16,20 @@ interface OrderItem {
   unit_price: number;
 }
 
+// SFTWRKEY-420: cada cambio de estado del pedido, con su fecha
+interface OrderHistory {
+  from_status: string | null;
+  to_status: string;
+  changed_at: string;
+}
+
 interface Order {
   id: number;
   total: number;
   status: string;
   created_at: string;
   items: OrderItem[];
+  history: OrderHistory[];
 }
 
 interface UserInfo {
@@ -45,23 +54,9 @@ const Spinner = () => (
   </div>
 );
 
-// SFTWRKEY-325: Colores según el estado del pedido
-// SFTWRKEY-417: estados nuevos del pedido
-const statusStyles: Record<string, string> = {
-  pagado: "bg-status-info-bg text-status-info border-status-info/30",
-  en_preparacion: "bg-status-warning-bg text-status-warning border-status-warning/30",
-  enviado: "bg-status-warning-bg text-status-warning border-status-warning/30",
-  entregado: "bg-status-success-bg text-status-success border-status-success/30",
-  cancelado: "bg-status-error-bg text-status-error border-status-error/30",
-};
-
-const statusLabels: Record<string, string> = {
-  pagado: "Pagado",
-  en_preparacion: "En preparación",
-  enviado: "Enviado",
-  entregado: "Entregado",
-  cancelado: "Cancelado",
-};
+// SFTWRKEY-325 / SFTWRKEY-420: los colores y nombres de cada estado salen de constants/orderStatus.ts
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("es-GT", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export default function UserPage() {
   const { user, login, logout } = useAuth();
@@ -139,7 +134,10 @@ export default function UserPage() {
   // SFTWRKEY-422: solo cubre el instante del logout, cuando user ya es null
   if (!user) return null;
 
-  const totalSpent = orders.reduce((sum, o) => sum + Number(o.total), 0);
+  // SFTWRKEY-420: los pedidos cancelados no cuentan en el resumen
+  const activeOrders = orders.filter((o) => o.status !== "cancelado");
+  const cancelledCount = orders.length - activeOrders.length;
+  const totalSpent = activeOrders.reduce((sum, o) => sum + Number(o.total), 0);
 
   // SFTWRKEY-321: Validar formato de correo en el navegador antes de llamar al backend
   const handleSaveInfo = async (e: FormEvent) => {
@@ -442,12 +440,17 @@ export default function UserPage() {
               <div className="flex flex-col gap-2 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-white/50">Pedidos realizados</span>
-                  <span className="font-bold text-primary-gold">{orders.length}</span>
+                  <span className="font-bold text-primary-gold">{activeOrders.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-white/50">Total acumulado</span>
                   <span className="font-bold text-primary-gold">Q{totalSpent.toFixed(2)}</span>
                 </div>
+                {cancelledCount > 0 && (
+                  <p className="text-xs text-white/40">
+                    {cancelledCount === 1 ? "1 pedido cancelado no se cuenta." : `${cancelledCount} pedidos cancelados no se cuentan.`}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -458,43 +461,46 @@ export default function UserPage() {
             {loadingOrders ? (
               <Spinner />
             ) : errorOrders ? (
-              <div className="py-10 text-center bg-white/30 rounded-3xl border border-primary-beige">
-                <p className="text-red-500 text-sm">{errorOrders}</p>
+              <div className="glass-card border-white/5 py-10 text-center">
+                <p className="text-status-error text-sm">{errorOrders}</p>
               </div>
             ) : orders.length === 0 ? (
-              <div className="py-20 text-center bg-white/30 rounded-3xl border border-primary-beige">
+              <div className="glass-card border-white/5 py-20 text-center">
                 <Text>Aún no tienes pedidos registrados.</Text>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
                 {orders.map((order) => {
                   const isExpanded = expandedOrderId === order.id;
-                  const badgeClass = statusStyles[order.status] ?? "bg-white/10 text-white/70 border-white/20";
-                  const badgeLabel = statusLabels[order.status] ?? order.status;
+                  const detailId = `pedido-${order.id}-detalle`;
 
                   return (
-                    <div key={order.id} className="bg-white/70 rounded-2xl border border-primary-beige overflow-hidden">
+                    <div key={order.id} className="glass-card border-white/5 overflow-hidden">
+                      {/* SFTWRKEY-420: se abre con clic o con teclado (Enter / espacio) */}
                       <button
                         onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                        className="w-full flex items-center justify-between gap-4 p-5 text-left"
+                        aria-expanded={isExpanded}
+                        aria-controls={detailId}
+                        className="w-full flex flex-wrap items-center justify-between gap-4 p-5 text-left hover:bg-white/[0.03] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-gold focus-visible:ring-inset"
                       >
                         <div className="flex flex-col gap-1">
-                          <span className="text-sm font-bold text-primary-black">Pedido #{order.id}</span>
-                          <span className="text-xs text-secondary-brown">
+                          <span className="text-sm font-bold text-primary-champagne">Pedido #{order.id}</span>
+                          <span className="text-xs text-primary-champagne/50">
                             {new Date(order.created_at).toLocaleDateString("es-GT", {
                               day: "2-digit", month: "long", year: "numeric",
                             })}
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${badgeClass}`}>
-                            {badgeLabel}
+                          <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${statusStyle(order.status)}`}>
+                            {statusLabel(order.status)}
                           </span>
                           <span className="font-bold text-primary-gold">Q{Number(order.total).toFixed(2)}</span>
                           <svg
-                            className={`text-secondary-brown transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                            className={`text-primary-champagne/50 transition-transform ${isExpanded ? "rotate-180" : ""}`}
                             xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                            aria-hidden="true"
                           >
                             <polyline points="6 9 12 15 18 9" />
                           </svg>
@@ -502,30 +508,47 @@ export default function UserPage() {
                       </button>
 
                       {isExpanded && (
-                        <div className="border-t border-primary-beige px-5 py-4 flex flex-col gap-3 bg-white/40">
-                          {order.items.map((item, i) => (
-                            <div key={`${item.product_id}-${i}`} className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-primary-champagne rounded-lg overflow-hidden flex-shrink-0 p-1.5">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="w-full h-full object-contain mix-blend-multiply"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src =
-                                      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5'><circle cx='12' cy='8' r='3'/><path d='M4 20c0-4 4-6 8-6s8 2 8 6'/></svg>";
-                                  }}
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <H3 className="text-sm truncate">{item.name}</H3>
-                                <p className="text-xs text-secondary-brown mt-0.5">Cantidad: {item.quantity}</p>
-                              </div>
-                              <div className="text-right flex-shrink-0">
-                                <p className="font-bold text-primary-gold text-sm">Q{Number(item.unit_price).toFixed(2)}</p>
-                                <p className="text-xs text-secondary-brown">c/u</p>
-                              </div>
+                        <div id={detailId} className="border-t border-white/5 px-5 py-5 flex flex-col gap-6">
+                          <div className="flex flex-col gap-3">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-gold">Productos</span>
+                            <ul className="flex flex-col divide-y divide-white/5">
+                              {order.items.map((item, i) => (
+                                <li key={`${item.product_id}-${i}`} className="flex items-center gap-4 py-3">
+                                  <div className="w-12 h-12 shrink-0 rounded-xl bg-primary-black/40 border border-white/5 overflow-hidden">
+                                    {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-primary-champagne truncate">{item.name}</p>
+                                    <p className="text-xs text-primary-champagne/50">
+                                      {item.quantity} × Q{Number(item.unit_price).toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <span className="text-sm text-primary-champagne/80 whitespace-nowrap">
+                                    Q{(Number(item.unit_price) * item.quantity).toFixed(2)}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="flex justify-between border-t border-white/10 pt-3">
+                              <span className="text-xs uppercase tracking-widest text-primary-champagne/60">Total</span>
+                              <span className="font-bold text-primary-gold">Q{Number(order.total).toFixed(2)}</span>
                             </div>
-                          ))}
+                          </div>
+
+                          {order.history.length > 0 && (
+                            <div className="flex flex-col gap-3">
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-gold">Seguimiento</span>
+                              <ol className="flex flex-col gap-3 border-l border-white/10 ml-1">
+                                {order.history.map((h, i) => (
+                                  <li key={i} className="relative pl-5">
+                                    <span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-primary-gold" />
+                                    <p className="text-sm text-primary-champagne">{statusLabel(h.to_status)}</p>
+                                    <p className="text-xs text-primary-champagne/50">{formatDateTime(h.changed_at)}</p>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

@@ -140,3 +140,24 @@ test('GET /admin/orders/:id trae productos, historial y los estados permitidos',
   assert.equal((await api('GET', '/admin/orders/99999999', { token: adminToken })).status, 404);
   assert.equal((await api('GET', `/admin/orders/${orderId}`, { token: client.token })).status, 403);
 });
+
+// ── SFTWRKEY-420: el cliente ve el estado y el historial de sus pedidos ─────
+
+test('cuando el admin cambia el estado, el cliente lo ve con su historial al volver a pedir sus pedidos', async () => {
+  const perfume = await insertProduct(created.products, { price: 80, stock: 5 });
+  const orderId = await comprar(perfume, 1);
+  assert.equal((await cambiarEstado(orderId, 'en_preparacion')).status, 200);
+
+  const res = await api('GET', `/user/${client.id}/orders`, { token: client.token });
+  assert.equal(res.status, 200);
+  const pedido = res.body.orders.find((o) => o.id === orderId);
+  assert.equal(pedido.status, 'en_preparacion');
+  assert.deepEqual(pedido.history.map((h) => [h.from_status, h.to_status]), [[null, 'pagado'], ['pagado', 'en_preparacion']]);
+  assert.deepEqual(pedido.items.map((i) => [i.product_id, i.quantity]), [[perfume.id, 1]]);
+});
+
+test('un cliente no puede ver los pedidos de otro cliente', async () => {
+  const otro = await registerClient(created.users);
+  const res = await api('GET', `/user/${client.id}/orders`, { token: otro.token });
+  assert.equal(res.status, 403);
+});

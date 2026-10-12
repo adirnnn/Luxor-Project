@@ -213,7 +213,8 @@ test('GET /users/search: devuelve coincidencias por nombre o correo', async (t) 
 test('GET /user/:userId/orders: arma cada pedido con sus renglones (items)', async (t) => {
   const { restore } = fakeDb([
     [Q.pedidosDelUsuario, { rows: [{ id: 'o1', total: '390.00', status: 'pagado', created_at: '2026-01-01' }] }],
-    [Q.itemsDelPedido, { rows: [{ product_id: 'khamrah', quantity: 1, unit_price: '390.00', name: 'Khamrah', image: 'khamrah.png' }] }],
+    // SFTWRKEY-420: los renglones de todos los pedidos llegan juntos y se reparten por order_id
+    [Q.itemsDelPedido, { rows: [{ order_id: 'o1', product_id: 'khamrah', quantity: 1, unit_price: '390.00', name: 'Khamrah', image: 'khamrah.png' }] }],
   ]);
   t.after(restore);
   const res = await fetch(`${baseUrl}/user/1/orders`, { headers: { Authorization: `Bearer ${adminToken}` } });

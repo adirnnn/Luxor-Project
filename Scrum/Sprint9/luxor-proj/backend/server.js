@@ -440,19 +440,43 @@ app.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", "AD
       [req.params.userId]
     );
 
-    const orders = [];
-    for (const order of ordersResult.rows) {
+    // SFTWRKEY-420: productos e historial de todos los pedidos en dos consultas
+    // (antes era una consulta por cada pedido)
+    const ids = ordersResult.rows.map((order) => order.id);
+    let items = [];
+    let history = [];
+    if (ids.length > 0) {
       const itemsResult = await pool.query(
-        `SELECT oi.product_id, oi.quantity, oi.unit_price, p.name, p.image
+        `SELECT oi.order_id, oi.product_id, oi.quantity, oi.unit_price, p.name, p.image
          FROM order_items oi
-         JOIN products p ON oi.product_id = p.id
-         WHERE oi.order_id = $1`,
-        [order.id]
+         LEFT JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id = ANY($1::int[])
+         ORDER BY oi.id`,
+        [ids]
       );
-      orders.push({ ...order, items: itemsResult.rows });
+      const historyResult = await pool.query(
+        `SELECT order_id, from_status, to_status, changed_at
+         FROM order_status_history
+         WHERE order_id = ANY($1::int[])
+         ORDER BY changed_at, id`,
+        [ids]
+      );
+      items = itemsResult.rows;
+      history = historyResult.rows;
     }
 
-    res.json({ success: true, orders });
+    const orders = ordersResult.rows.map((order) => ({
+      ...order,
+      items: items
+        .filter((item) => item.order_id === order.id)
+        .map(({ order_id, ...item }) => ({ ...item, name: item.name ?? item.product_id })),
+      history: history
+        .filter((h) => h.order_id === order.id)
+        .map(({ order_id, ...h }) => h),
+    }));
+
+    // sin cache: si el admin cambia el estado, el cliente lo ve al recargar
+    res.set("Cache-Control", "no-store").json({ success: true, orders });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error al obtener el historial de pedidos" });
