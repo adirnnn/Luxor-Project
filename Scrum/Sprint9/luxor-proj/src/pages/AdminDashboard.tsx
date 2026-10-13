@@ -9,6 +9,8 @@ import { fetchProducts, deleteProduct } from "../services/productService";
 import type { Product } from "../services/productService";
 import { SecurityAlerts } from "../features/admin/SecurityAlerts";
 import { PageMeta } from "../components/seo/PageMeta";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -93,14 +95,11 @@ export default function AdminDashboard() {
                         <SecurityAlerts />
 
                         {loading ? (
-                            <div className="py-32 flex flex-col items-center gap-6">
-                                <div className="w-16 h-16 border-2 border-primary-gold/20 border-t-primary-gold rounded-full animate-spin" />
-                                <Text className="text-primary-gold animate-pulse font-black tracking-[0.4em] uppercase text-xs italic">Sincronizando Bóveda...</Text>
-                            </div>
+                            <LoadingSpinner message="Cargando inventario..." />
                         ) : error ? (
-                            <div className="p-12 glass-card border-status-error/20 text-center">
-                                <Text className="text-status-error font-bold italic">{error}</Text>
-                                <Button onClick={loadProducts} className="mt-8 px-12" variant="outline">Reintentar</Button>
+                            <div className="flex flex-col items-center">
+                                <ErrorMessage message={error} />
+                                <Button onClick={loadProducts} className="-mt-20 px-12" variant="outline">Reintentar</Button>
                             </div>
                         ) : viewMode === 'grid' ? (
                             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-12">

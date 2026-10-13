@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchSecurityAlerts } from "../../services/securityService";
 import type { SecurityAlert, SecurityAlertsData } from "../../services/securityService";
+import { friendlyError } from "../../services/apiClient";
 
 // SFTWRKEY-401: alertas de seguridad en el panel
 const REFRESH_MS = 30_000;
@@ -36,7 +37,7 @@ export function SecurityAlerts() {
                 }
             } catch (e) {
                 if (!cancelled) {
-                    setError(e instanceof Error ? e.message : "Error de conexión.");
+                    setError(friendlyError(e, "No se pudieron cargar las alertas."));
                 }
             } finally {
                 if (!cancelled) {

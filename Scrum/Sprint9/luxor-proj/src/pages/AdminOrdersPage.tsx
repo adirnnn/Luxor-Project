@@ -11,6 +11,7 @@ import { PageMeta } from "../components/seo/PageMeta";
 import { ORDER_STATUSES, statusLabel, statusStyle } from "../constants/orderStatus";
 import { fetchAdminOrder, fetchAdminOrders, updateOrderStatus } from "../services/orderService";
 import type { AdminOrder, AdminOrderDetail } from "../services/orderService";
+import { friendlyError } from "../services/apiClient";
 
 // SFTWRKEY-419: pedidos del admin, con filtros, paginacion y cambio de estado
 const PAGE_SIZE = 20;
@@ -55,7 +56,7 @@ export default function AdminOrdersPage() {
             setOrders(data.orders);
             setTotal(data.total);
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Error al cargar los pedidos.");
+            setError(friendlyError(e, "Error al cargar los pedidos."));
         } finally {
             setLoading(false);
         }
@@ -251,7 +252,7 @@ function OrderDetailPanel({ orderId, onClose, onStatusChanged }: DetailProps) {
     const loadOrder = useCallback(() => {
         fetchAdminOrder(orderId)
             .then((data) => { setOrder(data); setError(null); })
-            .catch((e) => setError(e instanceof Error ? e.message : "Error al cargar el pedido."));
+            .catch((e) => setError(friendlyError(e, "Error al cargar el pedido.")));
     }, [orderId]);
 
     useEffect(() => {

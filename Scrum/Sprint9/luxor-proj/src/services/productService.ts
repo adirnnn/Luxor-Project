@@ -39,9 +39,18 @@ export async function fetchCategories(): Promise<Category[]> {
   return data.categories;
 }
 
+// SFTWRKEY-423: el detalle distingue "el perfume no existe" (404) de un error del servidor
+export class ProductNotFoundError extends Error {
+  constructor() {
+    super('Producto no encontrado');
+    this.name = 'ProductNotFoundError';
+  }
+}
+
 export async function fetchProductById(id: string): Promise<Product> {
-  const res = await fetch(`${API_URL}/products/${id}`);
-  if (!res.ok) throw new Error('Producto no encontrado');
+  const res = await fetch(`${API_URL}/products/${encodeURIComponent(id)}`);
+  if (res.status === 404) throw new ProductNotFoundError();
+  if (!res.ok) throw new Error('No se pudo cargar el producto. Intenta de nuevo más tarde.');
   return res.json();
 }
 

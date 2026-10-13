@@ -6,6 +6,8 @@ import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
 import { ProductCard } from "../features/perfumes/ProductCard";
 import { PageMeta } from "../components/seo/PageMeta";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { fetchWishlist } from "../services/wishlistService";
@@ -46,8 +48,9 @@ export default function WishlistPage() {
               </Text>
             </div>
 
-            {!mine && <p className="text-primary-champagne/70">Cargando tu lista...</p>}
-            {mine?.error && <p className="text-status-error">No se pudo cargar tu lista de deseos.</p>}
+            {/* SFTWRKEY-423: componentes compartidos de carga y error */}
+            {!mine && <LoadingSpinner message="Cargando tu lista..." />}
+            {mine?.error && <ErrorMessage message="No pudimos cargar tu lista de deseos. Intenta de nuevo en unos minutos." />}
 
             {items && items.length === 0 && (
               <div className="flex flex-col items-start gap-6 py-10">

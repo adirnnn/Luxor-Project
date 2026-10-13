@@ -25,6 +25,7 @@ import PrivacyPage from "../pages/PrivacyPage";
 import TermsPage from "../pages/TermsPage";
 import ShippingReturnsPage from "../pages/ShippingReturnsPage";
 import FaqPage from "../pages/FaqPage";
+import NotFoundPage from "../pages/NotFoundPage";
 import { ProtectedRoute } from "../components/routing/ProtectedRoute";
 import { AdminRoute } from "../components/routing/AdminRoute";
 
@@ -80,6 +81,9 @@ function AnimatedRoutes() {
           {/* SFTWRKEY-429 */}
           <Route path="/lista-de-deseos" element={<PageWrapper><WishlistPage /></PageWrapper>} />
         </Route>
+
+        {/* SFTWRKEY-423: cualquier URL desconocida. Tiene que ir al final */}
+        <Route path="*" element={<PageWrapper><NotFoundPage /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );

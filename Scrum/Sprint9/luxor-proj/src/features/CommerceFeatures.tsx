@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { API_URL, authHeaders } from '../services/apiClient';
+import { API_URL, authHeaders, friendlyError } from '../services/apiClient';
 import { PaymentForm } from '../validation/PaymentForm';
 import type { PaymentFormState } from '../validation/usePaymentForm';
 import { MainLayout } from '../components/layout/MainLayout';
@@ -28,10 +28,9 @@ async function jsonResponse(response: Response) {
   return data;
 }
 
+// SFTWRKEY-423: sin conexión con el backend se muestra un mensaje amable, no "Failed to fetch"
 const message = (error: unknown) =>
-  error instanceof Error
-    ? error.message
-    : 'Error de conexión.';
+  friendlyError(error, 'Error de conexión.');
 
 type GoogleSDK = {
   accounts: {
