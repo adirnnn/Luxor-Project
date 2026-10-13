@@ -10,7 +10,9 @@ class Provider(LLMProvider):
             host=os.getenv(
                 "OLLAMA_URL",
                 "http://127.0.0.1:11434"
-            )
+            ),
+            # SFTWRKEY-411 (SEC-44): sin timeout, si ollama se cuelga la peticion espera para siempre
+            timeout=30.0,
         )
         self.model = os.getenv("OLLAMA_MODEL", "qwen3:4b")
 
