@@ -41,7 +41,7 @@ jobs:
         run: npm test
 
   frontend-tests:
-    name: Frontend (vitest + build)
+    name: Frontend (lint + vitest + build)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,8 +57,11 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Correr pruebas
-        run: npm run test:run
+      - name: Lint (eslint)
+        run: npm run lint
+
+      - name: Pruebas con cobertura mínima
+        run: npm run test:coverage
 
       - name: Verificar build
         run: npm run build

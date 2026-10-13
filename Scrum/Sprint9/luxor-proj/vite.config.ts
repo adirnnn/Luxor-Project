@@ -43,6 +43,14 @@ export default defineConfig({
         'src/vite-env.d.ts',
         'src/**/*.d.ts',
       ],
+      // SFTWRKEY-427: cobertura mínima. Si baja de estos valores, `npm run test:coverage`
+      // falla y con él el CI. Se dejan un poco por debajo de la cobertura actual.
+      thresholds: {
+        statements: 60,
+        branches: 50,
+        functions: 55,
+        lines: 60,
+      },
     },
   },
 })
