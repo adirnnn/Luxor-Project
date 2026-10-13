@@ -39,6 +39,10 @@ services:
       PAYMENT_GATEWAY_API_KEY: ${PAYMENT_GATEWAY_API_KEY:-sandbox_dev_key}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       LOW_STOCK_THRESHOLD: ${LOW_STOCK_THRESHOLD:-3}
+      # SFTWRKEY-428: sin RESEND_API_KEY, el enlace de recuperar contraseña se muestra en pantalla (solo local).
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      PASSWORD_RESET_DEV_LINKS: ${PASSWORD_RESET_DEV_LINKS:-true}
       # Clave compartida con el chatbot para registrar consultas (POST /chatbot/queries).
       CHATBOT_INTERNAL_KEY: ${CHATBOT_INTERNAL_KEY:-dev-chatbot-key-solo-local}
     depends_on:

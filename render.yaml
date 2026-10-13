@@ -71,6 +71,12 @@ services:
       # panel de render; debe ser el mismo que VITE_GOOGLE_CLIENT_ID en vercel.
       - key: GOOGLE_CLIENT_ID
         sync: false
+      # SFTWRKEY-428: correo de recuperar contrasena (api de resend). se cargan a mano en
+      # el panel de render; sin RESEND_API_KEY el backend no envia correos.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
 
   # ---------- chatbot (fastapi) ----------
   - type: web

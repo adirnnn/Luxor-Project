@@ -120,6 +120,16 @@ export default function LoginPage() {
                             onSuccess={handleSuccess}
                         />
 
+                        {/* SFTWRKEY-428 */}
+                        <div className="text-center mt-6">
+                            <Link
+                                to="/recuperar-contrasena"
+                                className="text-xs text-primary-champagne/60 underline underline-offset-4 hover:text-primary-gold transition-colors"
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </div>
+
                         {/* Separador */}
                         <div className="flex items-center gap-4 my-8">
                             <div className="flex-1 h-px bg-white/10" />
