@@ -22,8 +22,12 @@ import { signToken, authenticate, authorizeSelfOrRoles, requireRoles } from './s
 import { createLoginHandler, createRegisterHandler } from './services/authHandlers.js';
 import { isSafeImage, IMAGE_ERROR_MESSAGE } from './services/imageValidation.js';
 import { rateLimit } from './services/rateLimit.js';
+import { parseCatalogParams, buildCatalogQuery } from './services/catalogQuery.js';
 import commerceRouter from './commerce.js';
 import ordersRouter from './routes/orders.js';
+import passwordResetRouter from './routes/passwordReset.js';
+import wishlistRouter from './routes/wishlist.js';
+import relatedRouter from './routes/related.js';
 import helmet from 'helmet';
 import { requireInternalKey } from './services/internalKey.js';
 import { recordSecurityEvent, getSecurityAlerts, SECURITY_EVENT_TYPES } from './services/securityEvents.js';
@@ -98,6 +102,48 @@ app.get("/products", async (req, res) => {
     res.json(formatted);
   } catch (err) {
     res.status(500).json({ message: "Error al obtener productos" });
+  }
+});
+
+// SFTWRKEY-424: catálogo con paginación y filtros (q, brand, category, minPrice, maxPrice, sort, page, pageSize).
+// Se deja /products intacto porque otras pantallas (carrito, admin, buscador) esperan el arreglo completo.
+app.get("/products/catalog", async (req, res) => {
+  try {
+    const params = parseCatalogParams(req.query);
+    const { countSql, countValues, listSql, listValues } = buildCatalogQuery(params);
+    const [countResult, listResult] = await Promise.all([
+      pool.query(countSql, countValues),
+      pool.query(listSql, listValues),
+    ]);
+    const total = countResult.rows[0]?.total ?? 0;
+    const items = listResult.rows.map((p) => ({
+      ...p,
+      notes: { salida: p.salida, corazon: p.corazon, fondo: p.fondo },
+    }));
+    res.json({
+      items,
+      total,
+      page: params.page,
+      pageSize: params.pageSize,
+      totalPages: Math.max(1, Math.ceil(total / params.pageSize)),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al obtener el catálogo" });
+  }
+});
+
+// SFTWRKEY-424: marcas disponibles para el filtro del catálogo
+app.get("/products/brands", async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT brand FROM products
+       WHERE stock > 0 AND brand IS NOT NULL AND brand <> ''
+       ORDER BY brand ASC`
+    );
+    res.json({ brands: result.rows.map((r) => r.brand) });
+  } catch (err) {
+    res.status(500).json({ message: "Error al obtener marcas" });
   }
 });
 
@@ -984,6 +1030,15 @@ app.post("/chatbot/queries", requireInternalKey, async (req, res) => {
 
 // SFTWRKEY-417: rutas de pedidos del admin
 app.use(ordersRouter);
+
+// SFTWRKEY-428: recuperar contraseña (antes del router de commerce, que prepara tablas en cada petición)
+app.use(passwordResetRouter);
+
+// SFTWRKEY-429: lista de deseos
+app.use(wishlistRouter);
+
+// SFTWRKEY-430: productos relacionados
+app.use(relatedRouter);
 
 // Checkout de invitado, login con Google y alertas del admin. Va al final porque su
 // middleware prepara las tablas en cada petición que entra al router: así solo lo

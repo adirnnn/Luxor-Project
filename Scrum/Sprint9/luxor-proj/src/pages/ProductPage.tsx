@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
+import { RelatedProducts } from "../features/perfumes/RelatedProducts";
 import { ProductDetail } from "../features/perfumes/ProductDetail";
 import { fetchProductById } from "../services/productService";
 import type { Product } from "../services/productService";
@@ -17,6 +18,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- id inválido: se muestra el error de inmediato
       setError("ID de producto no válido.");
       setLoading(false);
       return;
@@ -46,6 +48,8 @@ export default function ProductPage() {
       {loading && <LoadingSpinner message="Cargando producto..." />}
       {error && <ErrorMessage message={error} />}
       {product && <ProductDetail {...product} />}
+      {/* SFTWRKEY-430 */}
+      {product && <RelatedProducts productId={product.id} />}
     </MainLayout>
   );
 }

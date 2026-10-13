@@ -9,12 +9,16 @@ import { ScrollToTop } from "./ScrollToTop";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
 import { SearchProvider } from "../context/SearchContext";
+import { WishlistProvider } from "../context/WishlistContext";
+import WishlistPage from "../pages/WishlistPage";
 import ReportPage from "../pages/ReportPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminProductPage from "../pages/AdminProductPage";
 import AdminCreateUserPage from "../pages/AdminCreateUserPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
 import ImportPerfumesPage from "../pages/ImportPerfumesPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import PaymentPage from "../pages/Paymentpage";
 import UserPage from "../pages/UserPage";
 import PrivacyPage from "../pages/PrivacyPage";
@@ -47,6 +51,9 @@ function AnimatedRoutes() {
         <Route path="/producto/:id" element={<PageWrapper><ProductPage /></PageWrapper>} />
         <Route path="/cart" element={<PageWrapper><CartPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
+        {/* SFTWRKEY-428: recuperar contraseña */}
+        <Route path="/recuperar-contrasena" element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
+        <Route path="/restablecer-contrasena" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
 
         {/* SFTWRKEY-434: páginas legales */}
@@ -70,6 +77,8 @@ function AnimatedRoutes() {
         {/* SFTWRKEY-422: cualquier usuario con sesion */}
         <Route element={<ProtectedRoute />}>
           <Route path="/mi-cuenta" element={<PageWrapper><UserPage /></PageWrapper>} />
+          {/* SFTWRKEY-429 */}
+          <Route path="/lista-de-deseos" element={<PageWrapper><WishlistPage /></PageWrapper>} />
         </Route>
       </Routes>
     </AnimatePresence>
@@ -80,12 +89,14 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <SearchProvider>
-          <BrowserRouter>
-            <ScrollToTop />
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </SearchProvider>
+        <WishlistProvider>
+          <SearchProvider>
+            <BrowserRouter>
+              <ScrollToTop />
+              <AnimatedRoutes />
+            </BrowserRouter>
+          </SearchProvider>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );
