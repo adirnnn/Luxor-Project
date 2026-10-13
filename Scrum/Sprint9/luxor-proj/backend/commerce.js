@@ -9,6 +9,11 @@ import {
   signToken,
 } from './services/auth.js';
 import { rateLimit } from './services/rateLimit.js';
+import { createDeclineGuard } from './services/declineGuard.js';
+import {
+  recordSecurityEvent,
+  SECURITY_EVENT_TYPES,
+} from './services/securityEvents.js';
 import {
   buildGatewayPayload,
   chargeCard,
@@ -154,9 +159,25 @@ function sameOrigin(req, res, next) {
   next();
 }
 
+// SFTWRKEY-410: los bloqueos quedan como evento de seguridad (alertas del admin)
+const onBlock = req =>
+  recordSecurityEvent({
+    type: SECURITY_EVENT_TYPES.RATE_LIMITED,
+    ip: req.ip,
+    path: req.path,
+  });
+
 const limited = rateLimit({
   windowMs: 60_000,
   max: 15,
+  onBlock,
+});
+
+// SFTWRKEY-410: 3 pagos rechazados desde la misma IP bloquean el checkout de invitado 15 min
+const declineGuard = createDeclineGuard({
+  max: 3,
+  windowMs: 15 * 60_000,
+  onBlock,
 });
 
 function text(value, max, label, min = 1) {
@@ -283,6 +304,7 @@ router.post(
   '/guest-checkout',
   sameOrigin,
   limited,
+  declineGuard.check,
   wrap(async (req, res) => {
     const key = req.get('Idempotency-Key') || '';
 
@@ -403,6 +425,7 @@ router.post(
       );
 
       if (!payment.approved) {
+        declineGuard.recordDecline(req);
         throw fail(
           402,
           payment.declineMessage || 'Pago rechazado.',

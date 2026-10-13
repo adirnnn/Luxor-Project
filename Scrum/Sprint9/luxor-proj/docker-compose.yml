@@ -45,6 +45,14 @@ services:
       PASSWORD_RESET_DEV_LINKS: ${PASSWORD_RESET_DEV_LINKS:-true}
       # Clave compartida con el chatbot para registrar consultas (POST /chatbot/queries).
       CHATBOT_INTERNAL_KEY: ${CHATBOT_INTERNAL_KEY:-dev-chatbot-key-solo-local}
+      # El Dockerfile pone NODE_ENV=production; en local se cambia para que el seed
+      # cree los clientes de prueba (SFTWRKEY-407).
+      NODE_ENV: ${NODE_ENV:-development}
+      # Admin que crea seed.js (SFTWRKEY-407). Sin valor por defecto: si no se definen
+      # en el .env no se crea ningún administrador.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin Luxor}
     depends_on:
       db:
         condition: service_healthy

@@ -29,14 +29,14 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | A03 Cadena de suministro de software | 3 | 3 | 0 | 0 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
 | A05 Inyección | 7 | 7 | 0 | 0 |
-| A06 Diseño inseguro | 4 | 3 | 0 | 1 |
-| A07 Fallas de autenticación | 7 | 2 | 4 | 1 |
+| A06 Diseño inseguro | 4 | 4 | 0 | 0 |
+| A07 Fallas de autenticación | 7 | 4 | 2 | 1 |
 | A08 Integridad de software y datos | 3 | 3 | 0 | 0 |
 | A09 Registro y alertas | 2 | 2 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 2 | 0 | 1 |
-| **Total** | **49** | **41** | **4** | **4** |
+| **Total** | **49** | **44** | **2** | **3** |
 
-**Riesgos abiertos (Falla + Abierto) por severidad:** 1 Crítica · 0 Altas · 2 Medias · 0 Bajas. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
+**Riesgos abiertos (Falla + Abierto) por severidad:** 0 Críticas · 0 Altas · 1 Media · 0 Bajas (SEC-33). SEC-30 queda `Corregido` hasta probarlo en producción. SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
 ## Matriz
 
@@ -70,10 +70,10 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-26 | A06 | Backend | `POST /checkout/:userId` | El cliente manipula el precio o el total | El total se recalcula con `products.price` de la BD | Pasa | RC | Alta | SFTWRKEY-378 | Abierto |
 | SEC-27 | A06 | Backend | `POST /checkout/:userId` | Sobreventa por compras simultáneas | `UPDATE ... WHERE stock >= $1` dentro de una transacción | Pasa | RC | Media | SFTWRKEY-387 | Abierto |
 | SEC-28 | A06 | Backend | `POST /cart/:userId` (`validateCartItems`) | Sin tope de cantidad por producto | `quantity: 11` → 400 y `quantity: 10` → 200 (`cartLimits.test.js`). El frontend aplica el mismo tope y el stock real (`cartLimits.ts`, `CartContext.test.tsx`) | Pasa | PA | Baja | SFTWRKEY-391 | Verificado |
-| SEC-29 | A06 | Backend | `POST /checkout/guest` (nuevo) | Abuso del checkout público: prueba de tarjetas robadas, precio manipulado, pedidos masivos | Rate limit, bloqueo tras 3 rechazos, precio de la BD | Pendiente | — | Alta | SFTWRKEY-395 | Abierto |
-| SEC-30 | A07 | BD / Seed | `backend/seed.js` | `admin@luxor.com` con contraseña `123456` (publicada en el repo) se crea en cada deploy de producción | Intentar entrar en producción con esas credenciales → 401 | Falla | RC | Crítica | SFTWRKEY-381 | Abierto |
+| SEC-29 | A06 | Backend | `POST /guest-checkout` (`commerce.js`, `services/declineGuard.js`) | Abuso del checkout público: prueba de tarjetas robadas, precio manipulado, pedidos masivos | Rate limit: la petición 16 en un minuto desde la misma IP → 429, otra IP → 201. Bloqueo tras 3 rechazos (faltaba y se implementó): la 4.ª compra de esa IP → 429 aunque la tarjeta sea válida, sin llegar a la pasarela; dura 15 min. Ambos bloqueos quedan como evento `RATE_LIMITED` en las alertas. Precio: `price`, `total` o `unit_price` enviados por el cliente se ignoran y se cobra `products.price`; un `expectedCents` manipulado → 409 sin crear pedido (`security.guestCheckout.test.js`, `services/declineGuard.test.js`) | Pasa | PA | Alta | SFTWRKEY-410 | Verificado |
+| SEC-30 | A07 | BD / Seed | `backend/seed.js`, Render | `admin@luxor.com` con contraseña `123456` (publicada en el repo) se crea en cada deploy de producción | El admin sale de `ADMIN_EMAIL` / `ADMIN_PASSWORD` (Render, `sync: false`); sin ellas en producción no se crea y queda un aviso en el log. Si la cuenta existe con otra contraseña, el seed la cambia por `ADMIN_PASSWORD`. Los clientes de prueba solo se crean fuera de producción. Probado con PostgreSQL real y `NODE_ENV=production`: con el admin creado con `123456`, después del seed `POST /login` con esa clave → 401 y con `ADMIN_PASSWORD` → 200. Falta repetir la prueba en producción después de configurar Render | Pasa | RC | Crítica | SFTWRKEY-407 | Corregido |
 | SEC-31 | A07 | Backend | `POST /login` | Fuerza bruta: el límite de 10/min existe pero no funciona por IP en Render (ver SEC-07) | Con `trust proxy` (SEC-07), 11 intentos desde la misma IP → 429 solo para esa IP (`security.config.test.js`, `authorization.test.js`) | Pasa | PA | Alta | SFTWRKEY-381 | Verificado |
-| SEC-32 | A07 | Backend | `POST /register` | Sin rate limit: creación masiva de cuentas | 6 registros por hora desde la misma IP → 429 | Falla | RC | Media | SFTWRKEY-381 | Abierto |
+| SEC-32 | A07 | Backend | `POST /register` | Sin rate limit: creación masiva de cuentas | `rateLimit` de 6 registros por hora por IP: el 7.º → 429, otra IP → 201, y el bloqueo queda como evento `RATE_LIMITED` en las alertas (`security.config.test.js`) | Pasa | PA | Media | SFTWRKEY-408 | Verificado |
 | SEC-33 | A07 | Backend / Frontend | `authHandlers.js`, `PUT /user/:id/password`, formularios | Contraseñas débiles (mínimo 6 caracteres, sin más reglas) | `"abcdefgh"` y `"12345678"` → 400 | Falla | RC | Media | SFTWRKEY-381 | Abierto |
 | SEC-34 | A07 | Backend | `POST /login`, `POST /register` | Enumeración de usuarios | Login: mismo 401 y tiempo similar (`DUMMY_HASH`) con usuario inexistente o clave incorrecta. Registro: responde 409 si el correo existe | Pasa | RC | Baja | SFTWRKEY-381 | Aceptado |
 | SEC-35 | A07 | Frontend | `AuthContext.tsx`, `apiClient.ts` | JWT en `localStorage`: un XSS podría robarlo | Mitigado con la CSP (SEC-11) y el escape de React (SEC-21). La migración a cookie `httpOnly` queda para un sprint futuro | Falla | RC | Media | SFTWRKEY-380 | Aceptado |
