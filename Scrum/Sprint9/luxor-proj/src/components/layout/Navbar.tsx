@@ -72,7 +72,7 @@ export const Navbar = () => {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [searchActive]);
+  }, [searchActive, setQuery]);
 
   return (
     <header className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
@@ -278,6 +278,12 @@ export const Navbar = () => {
                   >
                     Mi Cuenta
                   </Link>
+                  <Link
+                    to="/lista-de-deseos"
+                    className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
+                  >
+                    Favoritos
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
@@ -422,6 +428,13 @@ export const Navbar = () => {
                     className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
                   >
                     Mi Cuenta
+                  </Link>
+                  <Link
+                    to="/lista-de-deseos"
+                    onClick={() => setOpen(false)}
+                    className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
+                  >
+                    Favoritos
                   </Link>
                   <button
                     onClick={handleLogout}

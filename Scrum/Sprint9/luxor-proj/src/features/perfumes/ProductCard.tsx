@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Text, H3 } from "../../components/ui/Typography";
 import { useCart } from "../../context/CartContext";
 import clsx from "clsx";
+import { WishlistButton } from "../wishlist/WishlistButton";
 
 export type ProductCardProps = {
   id: string;
@@ -57,6 +58,9 @@ export const ProductCard: FC<ProductCardProps> = ({
             />
           </div>
           
+          {/* SFTWRKEY-429: lista de deseos */}
+          <WishlistButton productId={id} productName={name} />
+
           {/* Quick Add Overlay */}
           <button 
             onClick={handleAddToCart}

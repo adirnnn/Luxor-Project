@@ -39,14 +39,16 @@ describe("XSS almacenado", () => {
 
   it("ProductDetail muestra el nombre, la descripción y las notas con HTML como texto", () => {
     const { container } = render(
-      <ProductDetail
-        id="xss"
-        name={SCRIPT}
-        price={10}
-        image="/images/x.png"
-        description={IMG}
-        notes={{ salida: SCRIPT, corazon: IMG, fondo: "normal" }}
-      />,
+      <MemoryRouter>
+        <ProductDetail
+          id="xss"
+          name={SCRIPT}
+          price={10}
+          image="/images/x.png"
+          description={IMG}
+          notes={{ salida: SCRIPT, corazon: IMG, fondo: "normal" }}
+        />
+      </MemoryRouter>,
     );
 
     expect(screen.getAllByText(SCRIPT).length).toBeGreaterThan(0);

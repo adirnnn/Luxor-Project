@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button";
 import { useCart } from "../../context/CartContext";
 import { maxQuantityFor } from "../../context/cartLimits";
 import { QuantitySelector } from "../../components/ui/QuantitySelector";
+import { WishlistButton } from "../wishlist/WishlistButton";
 
 export type ProductDetailProps = {
   id: string;
@@ -85,6 +86,8 @@ export const ProductDetail: FC<ProductDetailProps> = ({
               >
                 {agotado ? "AGOTADO" : "AGREGAR AL CARRITO"}
               </Button>
+              {/* SFTWRKEY-429 */}
+              <WishlistButton productId={id} productName={name} variant="full" className="w-full md:w-auto" />
             </div>
           </div>
 
