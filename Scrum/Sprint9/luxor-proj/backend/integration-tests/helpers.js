@@ -9,8 +9,8 @@ import app from '../server.js';
 
 export { pool };
 
-// Credenciales del administrador que crea seed.js.
-export const SEED_ADMIN = { email: 'admin@luxor.com', password: '123456' };
+// Credenciales del administrador que crea seed.js 
+export const SEED_ADMIN = { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD };
 
 // Tarjetas de prueba de la pasarela simulada (services/paymentGateway.js).
 export const APPROVED_CARD = '4242424242424242';

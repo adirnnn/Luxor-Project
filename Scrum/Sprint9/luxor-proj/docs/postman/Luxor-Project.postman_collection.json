@@ -24,6 +24,14 @@
     {
       "key": "product_id",
       "value": "khamrah"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@luxor.com"
+    },
+    {
+      "key": "admin_password",
+      "value": ""
     }
   ],
   "item": [
@@ -111,7 +119,7 @@
                 "description": "Login. El test script guarda automáticamente {{token}} y {{user_id}} para las demás requests.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"admin@luxor.com\",\n  \"password\": \"123456\"\n}",
+                  "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -636,7 +644,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"currentPassword\": \"123456\",\n  \"newPassword\": \"123456\"\n}",
+                  "raw": "{\n  \"currentPassword\": \"{{admin_password}}\",\n  \"newPassword\": \"{{admin_password}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"

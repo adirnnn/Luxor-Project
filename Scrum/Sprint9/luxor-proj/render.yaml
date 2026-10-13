@@ -78,6 +78,12 @@ services:
       - key: MAIL_FROM
         sync: false
 
+
+      - key: ADMIN_EMAIL
+        value: admin@luxor.com
+      - key: ADMIN_PASSWORD
+        sync: false
+
   # ---------- chatbot (fastapi) ----------
   - type: web
     name: luxor-chatbot

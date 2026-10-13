@@ -12,6 +12,8 @@ const defaults = {
   JWT_SECRET: 'integration-test-secret',
   PAYMENT_GATEWAY_API_KEY: 'sandbox_integration_key',
   PAYMENT_GATEWAY_LATENCY_MS: '0',
+  ADMIN_EMAIL: 'admin@luxor.com',
+  ADMIN_PASSWORD: 'admin-pruebas-integracion',
 };
 
 for (const [key, value] of Object.entries(defaults)) {
