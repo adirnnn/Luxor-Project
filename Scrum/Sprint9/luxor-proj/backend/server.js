@@ -457,7 +457,9 @@ const onRateLimitBlock = (req) =>
 app.post("/login", rateLimit({ windowMs: 60_000, max: 10, onBlock: onRateLimitBlock }), createLoginHandler({ pool, bcrypt, signToken, onLoginFailed }));
 
 // SFTWRKEY-220 + SFTWRKEY-223: Register con validación de campos y email duplicado
-app.post("/register", createRegisterHandler({ pool, bcrypt, saltRounds: SALT_ROUNDS }));
+// SFTWRKEY-408: máximo 6 registros por hora por IP (evita cuentas masivas y averiguar
+// correos registrados con el 409); el bloqueo queda como evento de seguridad.
+app.post("/register", rateLimit({ windowMs: 60 * 60_000, max: 6, onBlock: onRateLimitBlock }), createRegisterHandler({ pool, bcrypt, saltRounds: SALT_ROUNDS }));
 
 // ── Usuario ───────────────────────────────────────────────────────────────────
 app.get("/user/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {

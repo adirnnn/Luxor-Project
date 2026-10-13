@@ -89,6 +89,40 @@ test('A02: con trust proxy, el rate limit bloquea solo la IP que abusa', async (
   assert.equal(otroUsuario.status, 401, 'otra IP sigue pudiendo intentar el login');
 });
 
+// ── SFTWRKEY-408: rate limit en POST /register ──────────────────────────────
+
+test('A07: el 7.º registro desde la misma IP en una hora responde 429 y queda como evento de seguridad', async (t) => {
+  let siguienteId = 1;
+  const { log, restore } = fakeDb([
+    [/INSERT INTO users/i, (params) => ({ rows: [{ id: siguienteId++, name: params[0], email: params[1] }] })],
+  ]);
+  t.after(restore);
+
+  const registrar = (ip, n) =>
+    fetch(`${baseUrl}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip },
+      body: JSON.stringify({ name: `Cliente ${n}`, email: `cliente${n}-${ip}@test.com`, password: 'Clave-Segura-2026' }),
+    });
+
+  for (let i = 1; i <= 6; i += 1) {
+    const res = await registrar('203.0.113.77', i);
+    assert.equal(res.status, 201, `el registro ${i} de 6 se permite`);
+  }
+
+  const septimo = await registrar('203.0.113.77', 7);
+  assert.equal(septimo.status, 429, 'el 7.º registro en la hora queda bloqueado');
+  assert.equal((await septimo.json()).success, false);
+
+  const otraIp = await registrar('198.51.100.77', 1);
+  assert.equal(otraIp.status, 201, 'otra IP puede seguir registrándose');
+
+  const evento = log.find((q) => /INSERT INTO security_events/i.test(q.sql));
+  assert.ok(evento, 'el bloqueo se registra como evento de seguridad');
+  assert.deepEqual(evento.params, ['RATE_LIMITED', '203.0.113.77', null, '/register']);
+  assert.equal(log.filter((q) => /INSERT INTO users/i.test(q.sql)).length, 7, 'el registro bloqueado no llega a la base');
+});
+
 // ── POST /chatbot/queries exige la clave interna ────────────────────────────
 
 test('A02: POST /chatbot/queries sin X-Internal-Key responde 401 y no escribe en la base', async (t) => {
