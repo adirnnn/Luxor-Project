@@ -25,7 +25,7 @@ export const products: Product[] = [
   {
     id: "club-de-nuit-intense",
     name: "Club de Nuit Intense Man",
-    price: 390,
+    price: 550,
     image: CDNIntense,
     description: "Una fragancia intensa y elegante con carácter masculino.",
     stock: 5,
@@ -38,7 +38,7 @@ export const products: Product[] = [
   {
     id: "khamrah",
     name: "Lattafa Khamrah",
-    price: 390,
+    price: 650,
     image: Khamrah,
     description: "Dulce, cálida y adictiva. Una de las más populares.",
     stock: 3,
@@ -51,7 +51,7 @@ export const products: Product[] = [
   {
     id: "yara",
     name: "Lattafa Yara",
-    price: 330,
+    price: 520,
     image: Yara,
     description: "Suave, femenina y moderna.",
     stock: 10,
@@ -77,7 +77,7 @@ export const products: Product[] = [
   {
     id: "9pm",
     name: "Afnan 9PM",
-    price: 420,
+    price: 650,
     image: ninePM,
     description: "Dulce, nocturna y seductora.",
     stock: 2,
@@ -90,7 +90,7 @@ export const products: Product[] = [
   {
     id: "hawas",
     name: "Rasasi Hawas",
-    price: 390,
+    price: 650,
     image: Rasawi,
     description: "Fresca y moderna con gran proyección.",
     stock: 4,
@@ -103,7 +103,7 @@ export const products: Product[] = [
   {
     id: "amber-oud",
     name: "Al Haramain Amber Oud",
-    price: 570,
+    price: 1050,
     image: AmberOud,
     description: "Lujo puro con carácter fuerte.",
     stock: 6,
