@@ -6,6 +6,7 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatPrice } from "../../utils/formatPrice";
 
 const navLinks = [
   { label: "Inicio", href: "/" },
@@ -200,7 +201,7 @@ export const Navbar = () => {
                                     <p className="text-sm font-medium text-primary-champagne truncate">{product.name}</p>
                                     <p className="text-xs text-primary-champagne/40 truncate italic">{product.notes.salida} · {product.notes.corazon}</p>
                                   </div>
-                                  <span className="text-sm font-light text-primary-gold shrink-0">Q{product.price}</span>
+                                  <span className="text-sm font-light text-primary-gold shrink-0">{formatPrice(product.price)}</span>
                                 </button>
                               </li>
                             ))}
@@ -363,7 +364,7 @@ export const Navbar = () => {
                         <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
                       </div>
                       <span className="text-sm text-primary-champagne/80 truncate flex-1">{product.name}</span>
-                      <span className="text-xs text-primary-gold shrink-0">Q{product.price}</span>
+                      <span className="text-xs text-primary-gold shrink-0">{formatPrice(product.price)}</span>
                     </button>
                   ))}
                 </div>

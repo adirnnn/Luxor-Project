@@ -11,6 +11,7 @@ import { SecurityAlerts } from "../features/admin/SecurityAlerts";
 import { PageMeta } from "../components/seo/PageMeta";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { formatPrice } from "../utils/formatPrice";
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -119,7 +120,7 @@ export default function AdminDashboard() {
                                             <div className="flex flex-col gap-1 md:gap-2">
                                                 <H3 className="text-xs md:text-2xl font-light text-primary-champagne uppercase tracking-tight truncate">{product.name}</H3>
                                                 <div className="flex items-center justify-between flex-wrap gap-1">
-                                                    <span className="text-sm md:text-2xl font-light text-primary-gold">Q{product.price}</span>
+                                                    <span className="text-sm md:text-2xl font-light text-primary-gold">{formatPrice(product.price)}</span>
                                                     <span className="px-2 md:px-4 py-0.5 md:py-1 bg-white/5 rounded-full text-[8px] md:text-[10px] font-bold text-primary-champagne/30 uppercase tracking-widest italic">
                                                         Stock: {product.stock ?? 0}
                                                     </span>
@@ -177,7 +178,7 @@ export default function AdminDashboard() {
                                             <div className="flex-1 min-w-0 flex flex-col gap-0.5 md:gap-1">
                                                 <H3 className="text-sm md:text-xl font-light text-primary-champagne uppercase tracking-tight truncate">{product.name}</H3>
                                                 <div className="flex items-center gap-2 md:gap-6">
-                                                    <span className="text-sm md:text-xl font-light text-primary-gold">Q{product.price}</span>
+                                                    <span className="text-sm md:text-xl font-light text-primary-gold">{formatPrice(product.price)}</span>
                                                     <span className="hidden md:inline text-[10px] font-bold text-primary-champagne/20 uppercase tracking-[0.3em] italic">Ref: {product.id}</span>
                                                 </div>
                                             </div>

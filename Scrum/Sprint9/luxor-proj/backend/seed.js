@@ -346,6 +346,7 @@ const seedUsers = async () => {
 
     // con DO NOTHING se insertan una sola vez, asi no se pisan los cambios que haga el admin
     let insertados = 0;
+    let fotos = 0;
     for (const p of newProducts) {
       const result = await pool.query(
         `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id, brand)
@@ -355,8 +356,18 @@ const seedUsers = async () => {
       );
       // rowCount es 0 cuando el perfume ya existia
       insertados += result.rowCount;
+
+      // los que se crearon antes de tener foto se quedaron con sin-imagen.svg: se les pone la foto
+      // solo si siguen con esa imagen, asi no se pisa una imagen que el admin cambio desde el panel
+      const foto = await pool.query(
+        `UPDATE products SET image = $1
+         WHERE id = $2 AND image IS DISTINCT FROM $1
+           AND (image IS NULL OR image = '' OR image = '/assets/products/sin-imagen.svg')`,
+        [p.image, p.id]
+      );
+      fotos += foto.rowCount;
     }
-    console.log(`Perfumes nuevos: ${insertados} insertados, ${newProducts.length - insertados} ya existian`);
+    console.log(`Perfumes nuevos: ${insertados} insertados, ${newProducts.length - insertados} ya existian, ${fotos} con foto nueva`);
 
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA
     // await pool.query(`DELETE FROM users;`);
