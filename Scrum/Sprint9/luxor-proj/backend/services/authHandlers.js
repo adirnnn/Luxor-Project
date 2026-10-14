@@ -1,5 +1,6 @@
+import { validarPassword } from "./passwordPolicy.js"
+
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const MIN_PASSWORD_LENGTH = 6;
 export const DEFAULT_SALT_ROUNDS = 12;
 
 const DUMMY_HASH = '$2a$12$invalidhashforcomparisononlyx';
@@ -43,10 +44,15 @@ export const createRegisterHandler = ({ pool, bcrypt, saltRounds = DEFAULT_SALT_
     return res.status(400).json({ success: false, message: "El formato del correo no es válido." });
   }
 
-  // Validar longitud mínima de contraseña
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return res.status(400).json({ success: false, message: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.` });
-  }
+// Validar política de contraseñas
+const passwordError = validarPassword(password);
+
+if (passwordError) {
+    return res.status(400).json({
+      success: false,
+      message: passwordError
+    });
+}
 
   try {
     const hash = await bcrypt.hash(password, saltRounds);
