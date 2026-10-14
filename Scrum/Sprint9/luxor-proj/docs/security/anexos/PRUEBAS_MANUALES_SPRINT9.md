@@ -34,9 +34,21 @@ de 45 s (`CHAT_TIMEOUT_SECONDS`), Ollama tiene un timeout de 30 s y, si algo fal
 
 **Resultado esperado:** cada página redirige al inicio y no hay respuestas 200 de rutas de admin.
 
-**Resultado obtenido:** _(llenar)_
+**Resultado obtenido (13/10/2026, API de producción):** las rutas de admin rechazan a quien no es administrador. Sin token y con un JWT falso (`alg: none`) todas responden **401**. Con token de CLIENTE, las 22 rutas de admin responden 403 en `security.sprint9.test.js`, y `ProtectedRoute.test.tsx` comprueba que cada página de admin manda al inicio a un cliente.
 
-**Evidencia:** _(captura de la pestaña Red)_
+**Evidencia:**
+
+```
+GET     /admin/orders                -> 401
+GET     /report/metrics              -> 401
+GET     /users/search?q=a            -> 401
+GET     /imports/products            -> 401
+GET     /admin/security-alerts       -> 401
+GET     /external-perfumes/brands    -> 401
+DELETE  /products/khamrah            -> 401
+PATCH   /admin/orders/1/status       -> 401
+GET /admin/orders con JWT alg:none   -> 401
+```
 
 ---
 
@@ -83,9 +95,14 @@ existente no se vincula sola.
 4. **Cuenta creada con Google:** intentar entrar por el formulario normal con ese correo y una contraseña cualquiera.
    Esperado: 401.
 
-**Resultado obtenido:** _(llenar)_
+**Resultado obtenido (13/10/2026):** en producción el login con Google está apagado porque todavía no se cargó `GOOGLE_CLIENT_ID` en Render ni `VITE_GOOGLE_CLIENT_ID` en Vercel: el botón no aparece y `POST /auth/google` responde **503** sin crear sesión, así que hoy no hay superficie de ataque. Los pasos 2 y 4 se repiten cuando se configure el id de cliente. Los seis casos (token inválido, correo no verificado, nonce distinto, token reutilizado, cuenta existente y cuenta de Google por `/login`) pasan en `security.sprint9.test.js`.
 
-**Evidencia:** _(capturas o salida de consola)_
+**Evidencia:**
+
+```
+POST /auth/google {"credential":"abc","nonce":"x"}
+-> 503 {"message":"Google aún no está configurado."}
+```
 
 ---
 
@@ -99,6 +116,6 @@ existente no se vincula sola.
 3. Esperado: en menos de 45 s responde *"Lo siento, en este momento no puedo responder. Intenta de nuevo en unos minutos o escríbenos por WhatsApp."*
 4. Restaurar la `LLM_API_KEY` correcta y confirmar que el chatbot vuelve a responder normal.
 
-**Resultado obtenido:** _(llenar)_
+**Resultado obtenido (13/10/2026):** la falla se observó en producción durante la prueba de SEC-24: cuando Groq limitó las peticiones, el chatbot respondió **500** ([evidencia](EVIDENCIA_SEC24_SPRINT9.md)). La corrección (límite de 45 s en `/chat`, timeout de 30 s en Ollama y mensaje amable) está desplegada en `luxor-chatbot` desde el 13/10/2026 y la cubren `test_si_el_proveedor_se_cae_responde_un_mensaje_amable_sin_500`, `test_si_el_proveedor_tarda_demasiado_responde_sin_esperar_para_siempre` y `test_el_proveedor_de_ollama_tiene_timeout` (`tests/test_seguridad_sprint9.py`, 23 de 23 en verde). El paso de cambiar la `LLM_API_KEY` en Render no se ejecutó para no dejar el chatbot de producción sin servicio.
 
-**Evidencia:** _(captura del chatbot y del log de Render)_
+**Evidencia:** deploy `dep-db7amkvavr4c73f2sm40` de `luxor-chatbot` (commit `1488555`, en vivo) y salida de pytest: `97 passed` en toda la suite del chatbot.

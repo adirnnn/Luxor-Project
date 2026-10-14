@@ -77,8 +77,9 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
-
-
+      # SFTWRKEY-407: cuenta de administrador que crea seed.js. ADMIN_PASSWORD se carga a
+      # mano en el panel de render (nunca en el repo); si la cuenta ya existe con otra
+      # contraseña, el seed la reemplaza en el siguiente deploy.
       - key: ADMIN_EMAIL
         value: admin@luxor.com
       - key: ADMIN_PASSWORD
