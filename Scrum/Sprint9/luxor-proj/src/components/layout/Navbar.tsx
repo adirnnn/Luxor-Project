@@ -7,6 +7,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "../../utils/formatPrice";
+import { AccountMenu } from "./AccountMenu";
+import { ACCOUNT_LINKS, ADMIN_LINKS } from "./accountLinks";
 
 const navLinks = [
   { label: "Inicio", href: "/" },
@@ -98,7 +100,7 @@ export const Navbar = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="hidden md:flex items-center gap-12"
+                className="hidden md:flex items-center gap-8 lg:gap-12 whitespace-nowrap"
               >
                 {navLinks.map((link) => (
                   <Link
@@ -112,12 +114,6 @@ export const Navbar = () => {
                     {link.label}
                   </Link>
                 ))}
-                {isAuthenticated && user?.role === "ADMIN" && (
-                  <>
-                    <Link to="/admin" className="text-xl tracking-[0.05em] lowercase text-primary-champagne/80 hover:text-primary-gold font-brand transition-all">Panel</Link>
-                    <Link to="/reporte" className="text-xl tracking-[0.05em] lowercase text-primary-champagne/80 hover:text-primary-gold font-brand transition-all">Reporte</Link>
-                  </>
-                )}
               </motion.nav>
             )}
           </AnimatePresence>
@@ -272,26 +268,7 @@ export const Navbar = () => {
 
             <div className="hidden md:flex items-center gap-4">
               {isAuthenticated && user ? (
-                <>
-                  <Link
-                    to="/mi-cuenta"
-                    className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
-                  >
-                    Mi Cuenta
-                  </Link>
-                  <Link
-                    to="/lista-de-deseos"
-                    className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
-                  >
-                    Favoritos
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="text-xs tracking-[0.2em] uppercase text-primary-champagne/60 hover:text-primary-gold font-bold transition-all"
-                  >
-                    Salir
-                  </button>
-                </>
+                <AccountMenu name={user.name} isAdmin={user.role === "ADMIN"} onLogout={handleLogout} />
               ) : (
                 <Link
                   to="/login"
@@ -325,7 +302,7 @@ export const Navbar = () => {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="md:hidden absolute top-24 left-4 right-4 bg-primary-black/95 backdrop-blur-2xl border border-white/[0.08] rounded-3xl shadow-2xl overflow-hidden"
+            className="md:hidden absolute top-24 left-4 right-4 max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain bg-primary-black/95 backdrop-blur-2xl border border-white/[0.08] rounded-3xl shadow-2xl"
           >
             <div className="p-6 flex flex-col gap-1 items-center">
               <div className="w-full flex items-center gap-3 px-5 rounded-2xl bg-white/[0.06] border border-white/[0.10]">
@@ -389,54 +366,24 @@ export const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              {isAuthenticated && user?.role === "ADMIN" && (
-                <>
-                  <Link
-                    to="/admin"
-                    onClick={() => setOpen(false)}
-                    className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
-                      isActive("/admin")
-                        ? "text-primary-champagne"
-                        : "text-primary-gold"
-                    }`}
-                  >
-                    {isActive("/admin") && (
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-champagne mr-2 mb-0.5" />
-                    )}
-                    Panel
-                  </Link>
-                  <Link
-                    to="/reporte"
-                    onClick={() => setOpen(false)}
-                    className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
-                      isActive("/reporte")
-                        ? "text-primary-champagne"
-                        : "text-primary-gold"
-                    }`}
-                  >
-                    {isActive("/reporte") && (
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-champagne mr-2 mb-0.5" />
-                    )}
-                    Reporte
-                  </Link>
-                </>
-              )}
               {isAuthenticated && user ? (
                 <>
-                  <Link
-                    to="/mi-cuenta"
-                    onClick={() => setOpen(false)}
-                    className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
-                  >
-                    Mi Cuenta
-                  </Link>
-                  <Link
-                    to="/lista-de-deseos"
-                    onClick={() => setOpen(false)}
-                    className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"
-                  >
-                    Favoritos
-                  </Link>
+                  <div className="w-full h-px bg-white/5 my-3" />
+                  {[...ACCOUNT_LINKS, ...(user.role === "ADMIN" ? ADMIN_LINKS : [])].map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={() => setOpen(false)}
+                      className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
+                        location.pathname === link.to ? "text-primary-champagne" : "text-primary-gold"
+                      }`}
+                    >
+                      {location.pathname === link.to && (
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-champagne mr-2 mb-0.5" />
+                      )}
+                      {link.label}
+                    </Link>
+                  ))}
                   <button
                     onClick={handleLogout}
                     className="min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase text-primary-gold font-black"

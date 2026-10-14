@@ -31,6 +31,8 @@ describe("enlaces internos", () => {
       const destinos = [
         ...Array.from(codigo.matchAll(/\bto=["']([^"']+)["']/g), (m) => m[1]),
         ...Array.from(codigo.matchAll(/navigate\(["']([^"']+)["']/g), (m) => m[1]),
+        // listas de enlaces como { to: "/mi-cuenta", label: ... } (legalLinks.ts, accountLinks.ts)
+        ...Array.from(codigo.matchAll(/\bto:\s*["']([^"']+)["']/g), (m) => m[1]),
       ];
       for (const destino of destinos) {
         // sin la parte de ?query o #ancla; los archivos estáticos (como /favicon.svg) no son rutas
