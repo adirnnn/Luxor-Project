@@ -333,7 +333,7 @@ const seedUsers = async () => {
     console.log('Productos iniciales insertados/actualizados con categoría y marca');
 
     // SFTWRKEY-402: perfumes nuevos (y marcas nuevas: Maison Alhambra, Swiss Arabian, French Avenue)
-    // todavia no tienen foto, usan sin-imagen.svg hasta que se cambie desde el panel
+    // sus fotos estan en public/assets/products (las agrego Javier el 12/10/2026)
     const newProducts = [
       { id: 'asad', name: 'Lattafa Asad', brand: 'Lattafa', price: 500, image: '/assets/products/asad.jpg', description: 'Especiada y ambarada, muy masculina.', stock: 6, salida: 'Pimienta negra, tabaco', corazon: 'Café, iris', fondo: 'Ámbar, vainilla', category_id: 4 },
       { id: 'club-de-nuit-woman', name: 'Club de Nuit Woman', brand: 'Armaf', price: 500, image: '/assets/products/Armaf-Club-de-Nuit-Woman.jpg', description: 'Floral y elegante para la noche.', stock: 5, salida: 'Naranja, bergamota', corazon: 'Rosa, jazmín', fondo: 'Pachulí, vainilla', category_id: 3 },
@@ -346,7 +346,6 @@ const seedUsers = async () => {
 
     // con DO NOTHING se insertan una sola vez, asi no se pisan los cambios que haga el admin
     let insertados = 0;
-    let fotos = 0;
     for (const p of newProducts) {
       const result = await pool.query(
         `INSERT INTO products (id, name, price, image, description, stock, salida, corazon, fondo, category_id, brand)
