@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #2A1610; /* primary.black (now Deep Brown) */
+    color: #F7F4EF; /* primary.champagne (Warm Ivory) */
+  }
+  
+  body {
+    @apply font-body bg-primary-black text-primary-champagne overflow-x-hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-primary-champagne;
+  }
+}
+
+/* Custom Scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #2A1610; 
+}
+::-webkit-scrollbar-thumb {
+  background: #C5A059; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F7F4EF; 
+}
+
+/* Premium utility classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gold-hover-underline {
+  position: relative;
+}
+.gold-hover-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background-color: #C5A059;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+.gold-hover-underline:hover::after {
+  width: 100%;
+  left: 0;
+}
