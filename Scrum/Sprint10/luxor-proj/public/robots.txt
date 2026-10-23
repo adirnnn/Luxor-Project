@@ -1,0 +1,12 @@
+# SFTWRKEY-436: el catálogo y las páginas públicas se pueden indexar;
+# las privadas (admin, reportes, cuenta, carrito y pago) no.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /reporte
+Disallow: /mi-cuenta
+Disallow: /cart
+Disallow: /pago
+Disallow: /api/
+
+Sitemap: https://luxor-project-green.vercel.app/sitemap.xml

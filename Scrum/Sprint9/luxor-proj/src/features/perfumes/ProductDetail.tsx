@@ -7,6 +7,7 @@ import { useCart } from "../../context/CartContext";
 import { maxQuantityFor } from "../../context/cartLimits";
 import { QuantitySelector } from "../../components/ui/QuantitySelector";
 import { WishlistButton } from "../wishlist/WishlistButton";
+import { formatPrice } from "../../utils/formatPrice";
 
 export type ProductDetailProps = {
   id: string;
@@ -55,7 +56,7 @@ export const ProductDetail: FC<ProductDetailProps> = ({
             <span className="text-[10px] md:text-sm tracking-[0.3em] md:tracking-[0.4em] uppercase text-primary-gold font-black">Colección Victoria</span>
             <div className="flex flex-col gap-2 md:gap-4">
               <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words md:break-normal">{name}</H1>
-              <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">Q{price}.00</span>
+              <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">{formatPrice(price)}</span>
             </div>
           </div>
 

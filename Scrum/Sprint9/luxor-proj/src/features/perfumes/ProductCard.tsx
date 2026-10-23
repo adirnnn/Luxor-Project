@@ -4,6 +4,7 @@ import { Text, H3 } from "../../components/ui/Typography";
 import { useCart } from "../../context/CartContext";
 import clsx from "clsx";
 import { WishlistButton } from "../wishlist/WishlistButton";
+import { formatPrice } from "../../utils/formatPrice";
 
 export type ProductCardProps = {
   id: string;
@@ -75,7 +76,7 @@ export const ProductCard: FC<ProductCardProps> = ({
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <H3 className="text-lg md:text-xl font-light tracking-tight leading-none text-primary-champagne truncate max-w-[70%]">{name}</H3>
             <span className="text-xl md:text-2xl font-light text-primary-gold shrink-0">
-              Q{price}
+              {formatPrice(price)}
             </span>
           </div>
 

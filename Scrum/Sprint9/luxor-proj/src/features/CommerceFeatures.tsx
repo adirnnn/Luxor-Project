@@ -6,6 +6,7 @@ import { API_URL, authHeaders, friendlyError } from '../services/apiClient';
 import { PaymentForm } from '../validation/PaymentForm';
 import type { PaymentFormState } from '../validation/usePaymentForm';
 import { MainLayout } from '../components/layout/MainLayout';
+import { formatPrice } from "../utils/formatPrice";
 
 const panel =
   'mx-auto max-w-3xl rounded-xl border border-yellow-700 bg-stone-950 p-6 text-white';
@@ -440,7 +441,7 @@ function AdminAlerts() {
             {data.events.map(event => (
               <li key={event.id}>
                 Pedido #{event.order_id}
-                {' · '}Q{Number(event.total).toFixed(2)}
+                {' · '}{formatPrice(event.total)}
                 {' · '}
                 {new Date(event.created_at).toLocaleString()}
               </li>
@@ -718,7 +719,7 @@ export function GuestCheckoutPage() {
 
               <p>
                 Pedido #{receipt.order.id}
-                {' · '}Q{receipt.order.total.toFixed(2)}
+                {' · '}{formatPrice(receipt.order.total)}
               </p>
 
               <p>
@@ -775,14 +776,14 @@ export function GuestCheckoutPage() {
                     {quote.map(item => (
                       <li key={item.id}>
                         {item.name} × {item.quantity}
-                        {' · '}Q
-                        {(item.price * item.quantity).toFixed(2)}
+                        {' · '}
+                        {formatPrice(item.price * item.quantity)}
                       </li>
                     ))}
                   </ul>
 
                   <p className="my-4 font-bold">
-                    Total: Q{(cents / 100).toFixed(2)}
+                    Total: {formatPrice(cents / 100)}
                   </p>
 
                   <fieldset

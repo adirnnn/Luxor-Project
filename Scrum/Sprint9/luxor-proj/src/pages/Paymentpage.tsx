@@ -11,6 +11,7 @@ import { PaymentForm } from "../validation/PaymentForm";
 import type { PaymentFormState } from "../validation/usePaymentForm";
 import { processCheckout, type CheckoutError } from "../services/checkoutService";
 import { PageMeta } from "../components/seo/PageMeta";
+import { formatPrice } from "../utils/formatPrice";
 
 export default function PaymentPage() {
     const { cart, totalPrice, clearCart } = useCart();
@@ -111,7 +112,7 @@ export default function PaymentPage() {
                         Total pagado
                     </span>
                     <span className="text-2xl font-black text-primary-gold tracking-tighter">
-                        Q{confirmedOrder.total.toLocaleString()}
+                        {formatPrice(confirmedOrder.total)}
                     </span>
                     </div>
                     {confirmedPayment && (
@@ -228,7 +229,7 @@ export default function PaymentPage() {
                         </p>
                         </div>
                         <span className="text-sm text-primary-champagne/70 font-black shrink-0">
-                        Q{(item.product.price * item.quantity).toLocaleString()}
+                        {formatPrice(item.product.price * item.quantity)}
                         </span>
                     </div>
                     ))}
@@ -239,7 +240,7 @@ export default function PaymentPage() {
                 <div className="flex flex-col gap-3 mb-6 text-sm">
                     <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Subtotal</span>
-                    <span className="text-primary-champagne/70 font-bold">Q{totalPrice.toLocaleString()}</span>
+                    <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Envío</span>
@@ -254,7 +255,7 @@ export default function PaymentPage() {
                     Total
                     </span>
                     <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    Q{totalPrice.toLocaleString()}
+                    {formatPrice(totalPrice)}
                     </span>
                 </div>
                 </div>

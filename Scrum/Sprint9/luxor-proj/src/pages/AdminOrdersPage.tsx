@@ -12,6 +12,7 @@ import { ORDER_STATUSES, statusLabel, statusStyle } from "../constants/orderStat
 import { fetchAdminOrder, fetchAdminOrders, updateOrderStatus } from "../services/orderService";
 import type { AdminOrder, AdminOrderDetail } from "../services/orderService";
 import { friendlyError } from "../services/apiClient";
+import { formatPrice } from "../utils/formatPrice";
 
 // SFTWRKEY-419: pedidos del admin, con filtros, paginacion y cambio de estado
 const PAGE_SIZE = 20;
@@ -24,7 +25,7 @@ const formatDate = (value: string) =>
     new Date(value).toLocaleDateString("es-GT", { day: "2-digit", month: "long", year: "numeric" });
 const formatDateTime = (value: string) =>
     new Date(value).toLocaleString("es-GT", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-const formatMoney = (value: number) => `Q${value.toFixed(2)}`;
+const formatMoney = (value: number) => formatPrice(value);
 const unidadesQueVuelven = (n: number) =>
     n === 1 ? "la unidad de este pedido vuelve al stock" : `las ${n} unidades de este pedido vuelven al stock`;
 

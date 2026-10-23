@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageMeta } from "../components/seo/PageMeta";
+import { formatPrice } from "../utils/formatPrice";
 
 export default function CartPage() {
   const { cart, totalPrice, setQuantity, removeFromCart } = useCart();
@@ -95,7 +96,7 @@ export default function CartPage() {
                           </button>
                         </div>
                         <span className="text-primary-gold font-black text-lg md:text-xl tracking-tight">
-                          Q{item.product.price}
+                          {formatPrice(item.product.price)}
                         </span>
                         <div className="flex items-center justify-between mt-3">
                           <QuantitySelector
@@ -107,7 +108,7 @@ export default function CartPage() {
                           <span className="text-xs text-primary-champagne/40 uppercase tracking-widest font-black">
                             Subtotal{" "}
                             <span className="text-primary-champagne/70">
-                              Q{(item.product.price * item.quantity).toLocaleString()}
+                              {formatPrice(item.product.price * item.quantity)}
                             </span>
                           </span>
                         </div>
@@ -141,7 +142,7 @@ export default function CartPage() {
                         <span className="text-primary-champagne/30 ml-1">×{item.quantity}</span>
                       </span>
                       <span className="text-primary-champagne/70 font-black shrink-0">
-                        Q{(item.product.price * item.quantity).toLocaleString()}
+                        {formatPrice(item.product.price * item.quantity)}
                       </span>
                     </div>
                   ))}
@@ -153,7 +154,7 @@ export default function CartPage() {
                     Total
                   </span>
                   <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    Q{totalPrice.toLocaleString()}
+                    {formatPrice(totalPrice)}
                   </span>
                 </div>
                 {hasStockIssue && (

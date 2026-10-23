@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { API_URL, authHeaders, getToken } from "../services/apiClient";
 import { PageMeta } from "../components/seo/PageMeta";
 import { statusLabel, statusStyle } from "../constants/orderStatus";
+import { formatPrice } from "../utils/formatPrice";
 
 interface OrderItem {
   product_id: string;
@@ -444,7 +445,7 @@ export default function UserPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-white/50">Total acumulado</span>
-                  <span className="font-bold text-primary-gold">Q{totalSpent.toFixed(2)}</span>
+                  <span className="font-bold text-primary-gold">{formatPrice(totalSpent)}</span>
                 </div>
                 {cancelledCount > 0 && (
                   <p className="text-xs text-white/40">
@@ -495,7 +496,7 @@ export default function UserPage() {
                           <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${statusStyle(order.status)}`}>
                             {statusLabel(order.status)}
                           </span>
-                          <span className="font-bold text-primary-gold">Q{Number(order.total).toFixed(2)}</span>
+                          <span className="font-bold text-primary-gold">{formatPrice(order.total)}</span>
                           <svg
                             className={`text-primary-champagne/50 transition-transform ${isExpanded ? "rotate-180" : ""}`}
                             xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -520,18 +521,18 @@ export default function UserPage() {
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-primary-champagne truncate">{item.name}</p>
                                     <p className="text-xs text-primary-champagne/50">
-                                      {item.quantity} × Q{Number(item.unit_price).toFixed(2)}
+                                      {item.quantity} × {formatPrice(item.unit_price)}
                                     </p>
                                   </div>
                                   <span className="text-sm text-primary-champagne/80 whitespace-nowrap">
-                                    Q{(Number(item.unit_price) * item.quantity).toFixed(2)}
+                                    {formatPrice(Number(item.unit_price) * item.quantity)}
                                   </span>
                                 </li>
                               ))}
                             </ul>
                             <div className="flex justify-between border-t border-white/10 pt-3">
                               <span className="text-xs uppercase tracking-widest text-primary-champagne/60">Total</span>
-                              <span className="font-bold text-primary-gold">Q{Number(order.total).toFixed(2)}</span>
+                              <span className="font-bold text-primary-gold">{formatPrice(order.total)}</span>
                             </div>
                           </div>
 
