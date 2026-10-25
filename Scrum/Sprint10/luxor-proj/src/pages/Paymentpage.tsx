@@ -12,6 +12,7 @@ import type { PaymentFormState } from "../validation/usePaymentForm";
 import { processCheckout, type CheckoutError } from "../services/checkoutService";
 import { PageMeta } from "../components/seo/PageMeta";
 import { formatPrice } from "../utils/formatPrice";
+import { trackPurchase } from "../utils/analytics";
 
 export default function PaymentPage() {
     const { cart, totalPrice, clearCart } = useCart();
@@ -51,6 +52,7 @@ export default function PaymentPage() {
         setIsProcessing(true);
         try {
         const result = await processCheckout(Number(user.id), values);
+        trackPurchase(Number(result.order.total), cart.reduce((n, i) => n + i.quantity, 0));
         clearCart();
         setConfirmedOrder(result.order);
         setConfirmedPayment(result.payment);

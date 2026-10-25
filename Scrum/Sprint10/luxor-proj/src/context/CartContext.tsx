@@ -4,6 +4,7 @@ import { fetchProducts } from "../services/productService";
 import { useAuth } from "./AuthContext";
 import { authHeaders } from "../services/apiClient";
 import { maxQuantityFor } from "./cartLimits";
+import { trackAddToCart } from "../utils/analytics";
 
 export interface CartItem {
   product: Product;
@@ -147,6 +148,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (added > 0) {
+      trackAddToCart(String(product.id), product.name, added);
       setCart((prev) => {
         const existing = prev.find((item) => item.product.id === product.id);
         if (!existing) return [...prev, { product, quantity: Math.min(wanted, max) }];
