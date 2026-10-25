@@ -2,6 +2,7 @@ import express from "express";
 import { pathToFileURL } from "node:url";
 import cors from "cors";
 import dotenv from "dotenv";
+import { notifyOrderStatus } from './services/orderEmails.js';
 import pool from './db.js';
 import bcrypt from 'bcryptjs';
 import { CSV_TEMPLATE, validateCsv, CsvValidationError } from './csvImport.js';
@@ -950,6 +951,9 @@ app.post("/checkout/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMI
     const payment = paymentInsert.rows[0];
 
     await client.query('COMMIT');
+
+    // SFTWRKEY-447: correo de confirmación; no frena la respuesta ni la compra si falla
+    void notifyOrderStatus(pool, orderId, 'pagado');
 
     // SFTWRKEY-298: datos que la página de confirmación necesita mostrar
     return res.status(201).json({

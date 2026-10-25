@@ -1,6 +1,6 @@
 # Matriz de riesgos OWASP Top 10 — Perfumería Victoria
 
-**Marco:** OWASP Top 10 (2025) · **Última actualización:** 13/10/2026
+**Marco:** OWASP Top 10 (2025) · **Última actualización:** 24/10/2026
 
 Documento vivo de los Sprints 8 y 9. Se actualiza cada vez que se termina una tarea de seguridad y al cierre se exporta a PDF como anexo del informe.
 
@@ -92,6 +92,10 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-48 | A02 | Frontend | `public/robots.txt`, `components/seo/PageMeta.tsx` | Los buscadores indexan páginas privadas (admin, reportes, cuenta, carrito, pago) | `Disallow` en `robots.txt` y `noindex, nofollow` en cada página privada (`sitemap.test.ts`, `seo.test.tsx`) | Pasa | PA | Baja | SFTWRKEY-435 / 436 | Verificado |
 | SEC-49 | A03 | Backend | `backend/package-lock.json` (`proxy-addr`, dependencia de Express) | GHSA-jqcg-44mw-7w3h: suplantación de IP con direcciones IPv6 que contienen una IPv4 cuando se usa `trust proxy`; permitiría saltarse el rate limit por IP (SEC-07) | `npm audit --omit=dev` → 0 vulnerabilidades tras actualizar `proxy-addr` (11/10/2026); `security.config.test.js` sigue pasando | Pasa | AUD | Alta | Sin ticket | Verificado |
 | SEC-50 | A07 | BD / Producción | `luxor-db` (cuentas `juan@`, `maria@` y `carlos@luxor.com`) | Las cuentas de prueba (rol CLIENTE) creadas en producción el 07/10/2026, antes de SFTWRKEY-407, siguen con la contraseña `test123` publicada en el repo: cualquiera puede entrar como esos clientes | Comparación con bcrypt de los hashes de producción (13/10/2026): las 3 aceptan `test123`. El seed ya no las crea en producción, pero no borra las que existían. Se corrige borrándolas o cambiando su contraseña | Falla | PM | Media | Sin ticket | Abierto |
+| SEC-51 | A03 | Backend | `services/mailer.js` (`buildOrderEmail`) | Inyección de HTML en los correos del pedido a partir del nombre del cliente o del producto | Nombre y productos pasan por `escapeHtml`; un nombre `<script>` y un producto `<img onerror>` salen escapados (`orderEmails.test.js`) | Pasa | PA | Media | SFTWRKEY-447 / 448 | Verificado |
+| SEC-52 | A09 | Backend | `services/orderEmails.js`, `server.js`, `commerce.js`, `routes/orders.js` | Un fallo del proveedor de correo hace fallar la compra o el cambio de estado, o el log expone datos personales | El envío corre después del COMMIT y nunca lanza error; el log solo trae el número de pedido y el mensaje de error, sin correo ni nombre; sin `RESEND_API_KEY` solo se avisa en el log (`orderEmails.test.js`) | Pasa | PA | Baja | SFTWRKEY-447 / 448 | Verificado |
+| SEC-53 | A01 | Backend | `services/orderEmails.js` | El correo del pedido llega a otra persona | El destinatario sale del pedido en la base (cuenta o `guest_receipts`), nunca del cuerpo de la petición; la compra de invitado repetida (misma clave de idempotencia) no reenvía el correo (`orderEmails.test.js`) | Pasa | PA | Media | SFTWRKEY-447 / 448 | Verificado |
+| SEC-54 | A02 | Frontend | `utils/analytics.ts`, `main.tsx`, `PrivacyPage.tsx` | La analítica guarda datos personales o instala cookies de rastreo | Vercel Web Analytics no usa cookies; los eventos solo mandan id y nombre del perfume, cantidad y monto, nunca nombre, correo, dirección ni tarjeta (`analytics.test.ts`); la política de privacidad lo declara | Pasa | PA | Baja | SFTWRKEY-455 | Verificado |
 
 ## Escaneo dinámico
 
