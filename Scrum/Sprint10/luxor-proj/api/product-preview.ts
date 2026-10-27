@@ -47,10 +47,21 @@ export function describeProduct(product: PreviewProduct): string {
     .join(" ");
 }
 
+// SFTWRKEY-457: las fotos del sitio son WebP, pero WhatsApp y Facebook no siempre muestran WebP.
+// Al compartir se usa su versión JPEG: public/assets/products/og/ o la que arma el backend.
+export function shareImage(image: string): string {
+  const delSitio = image.match(/^\/assets\/products\/([^/]+)\.(webp|png|jpe?g)$/i);
+  if (delSitio) return `/assets/products/og/${delSitio[1]}.jpg`;
+  const subida = image.match(/^\/product-images\/(\d+)\.webp$/);
+  if (subida) return `/product-images/${subida[1]}.jpg`;
+  return image;
+}
+
 // las imágenes del catálogo son rutas del frontend (/assets/...) o URLs externas (PerfumAPI)
 function absoluteImage(image: string | null | undefined, origin: string): string {
   if (image && /^https:\/\//i.test(image)) return image;
-  if (image && image.startsWith("/")) return `${origin}${image}`;
+  // la imagen de relleno es SVG y las redes no muestran SVG: se usa la de la tienda
+  if (image && image.startsWith("/") && !/\.svg$/i.test(image)) return `${origin}${shareImage(image)}`;
   return `${origin}/og-image.jpg`;
 }
 

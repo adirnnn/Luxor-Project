@@ -12,21 +12,13 @@ export type Product = {
   };
 };
 
-import CDNIntense from "../assets/products/cdnIntense.png";
-import Khamrah from "../assets/products/lattafaKhamrah.png";
-import Yara from "../assets/products/lattafaYara.png";
-import OudMood from "../assets/products/lattafaOudMood.png";
-import ninePM from "../assets/products/afnan9PM.png";
-import Rasawi from "../assets/products/rasawiHawas.png";
-import AmberOud from "../assets/products/amberOudHaramain.png";
-import Fakhar from "../assets/products/lattafaFakhar.png";
-
+// SFTWRKEY-457: las fotos ahora son .webp en public/assets/products
 export const products: Product[] = [
   {
     id: "club-de-nuit-intense",
     name: "Club de Nuit Intense Man",
     price: 550,
-    image: CDNIntense,
+    image: "/assets/products/cdnIntense.webp",
     description: "Una fragancia intensa y elegante con carácter masculino.",
     stock: 5,
     notes: {
@@ -39,7 +31,7 @@ export const products: Product[] = [
     id: "khamrah",
     name: "Lattafa Khamrah",
     price: 650,
-    image: Khamrah,
+    image: "/assets/products/lattafaKhamrah.webp",
     description: "Dulce, cálida y adictiva. Una de las más populares.",
     stock: 3,
     notes: {
@@ -52,7 +44,7 @@ export const products: Product[] = [
     id: "yara",
     name: "Lattafa Yara",
     price: 520,
-    image: Yara,
+    image: "/assets/products/lattafaYara.webp",
     description: "Suave, femenina y moderna.",
     stock: 10,
     notes: {
@@ -65,7 +57,7 @@ export const products: Product[] = [
     id: "oud-mood",
     name: "Lattafa Oud Mood",
     price: 228,
-    image: OudMood,
+    image: "/assets/products/lattafaOudMood.webp",
     description: "Intenso y profundo con esencia oriental.",
     stock: 7,
     notes: {
@@ -78,7 +70,7 @@ export const products: Product[] = [
     id: "9pm",
     name: "Afnan 9PM",
     price: 650,
-    image: ninePM,
+    image: "/assets/products/afnan9PM.webp",
     description: "Dulce, nocturna y seductora.",
     stock: 2,
     notes: {
@@ -91,7 +83,7 @@ export const products: Product[] = [
     id: "hawas",
     name: "Rasasi Hawas",
     price: 650,
-    image: Rasawi,
+    image: "/assets/products/rasawiHawas.webp",
     description: "Fresca y moderna con gran proyección.",
     stock: 4,
     notes: {
@@ -104,7 +96,7 @@ export const products: Product[] = [
     id: "amber-oud",
     name: "Al Haramain Amber Oud",
     price: 1050,
-    image: AmberOud,
+    image: "/assets/products/amberOudHaramain.webp",
     description: "Lujo puro con carácter fuerte.",
     stock: 6,
     notes: {
@@ -117,7 +109,7 @@ export const products: Product[] = [
     id: "fakhar",
     name: "Lattafa Fakhar",
     price: 390,
-    image: Fakhar,
+    image: "/assets/products/lattafaFakhar.webp",
     description: "Elegancia moderna con toque oriental.",
     stock: 8,
     notes: {

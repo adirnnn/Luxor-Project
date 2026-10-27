@@ -14,6 +14,8 @@ export type ProductCardProps = {
   description?: string;
   stock?: number;
   className?: string;
+  // SFTWRKEY-457: las primeras tarjetas del catálogo se ven al abrir la página, no se cargan diferidas
+  priority?: boolean;
 };
 
 export const ProductCard: FC<ProductCardProps> = ({
@@ -24,6 +26,7 @@ export const ProductCard: FC<ProductCardProps> = ({
   description,
   stock,
   className,
+  priority = false,
 }) => {
   const { addToCart } = useCart();
 
@@ -53,7 +56,8 @@ export const ProductCard: FC<ProductCardProps> = ({
             <img
               src={image}
               alt={name}
-              loading="lazy"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
               decoding="async"
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             />

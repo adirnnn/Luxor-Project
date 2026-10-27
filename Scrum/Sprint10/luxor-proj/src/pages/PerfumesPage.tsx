@@ -258,9 +258,10 @@ export default function PerfumesPage() {
 
                 {data.items.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6 lg:gap-8">
-                    {data.items.map((product) => (
+                    {data.items.map((product, index) => (
                       <ProductCard
                         key={product.id}
+                        priority={index < 4}
                         id={product.id}
                         name={product.name}
                         price={product.price}

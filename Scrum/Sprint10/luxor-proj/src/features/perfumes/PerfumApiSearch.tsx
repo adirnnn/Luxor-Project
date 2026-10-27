@@ -136,6 +136,8 @@ export function PerfumApiSearch({ onSelect }: PerfumApiSearchProps) {
                                                     <img
                                                         src={candidate.image}
                                                         alt={candidate.name}
+                                                        loading="lazy"
+                                                        decoding="async"
                                                         className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500"
                                                     />
                                                 ) : (

@@ -343,7 +343,7 @@ function OrderDetailPanel({ orderId, onClose, onStatusChanged }: DetailProps) {
                                 {order.items.map((item, index) => (
                                     <li key={`${item.product_id}-${index}`} className="flex items-center gap-4 py-3">
                                         <div className="w-12 h-12 shrink-0 rounded-xl bg-primary-black/40 border border-white/5 overflow-hidden">
-                                            {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
+                                            {item.image && <img src={item.image} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm text-primary-champagne truncate">{item.name}</p>

@@ -311,14 +311,14 @@ const seedUsers = async () => {
     // SFTWRKEY-273: category_id asignado según el nombre insertado arriba
     // 1 = Árabe, 2 = Oriental, 3 = Femenino, 4 = Masculino, 5 = Fresco, 6 = Dulce
     const initialProducts = [
-      { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', brand: 'Armaf', price: 550, image: '/assets/products/cdnIntense.png', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar', category_id: 4 },
-      { id: 'khamrah', name: 'Lattafa Khamrah', brand: 'Lattafa', price: 650, image: '/assets/products/lattafaKhamrah.png', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar', category_id: 6 },
-      { id: 'yara', name: 'Lattafa Yara', brand: 'Lattafa', price: 520, image: '/assets/products/lattafaYara.png', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle', category_id: 3 },
-      { id: 'oud-mood', name: 'Lattafa Oud Mood', brand: 'Lattafa', price: 228, image: '/assets/products/lattafaOudMood.png', description: 'Intenso y profundo con esencia oriental.', stock: 7, salida: 'Especias', corazon: 'Oud', fondo: 'Ámbar', category_id: 2 },
-      { id: '9pm', name: 'Afnan 9PM', brand: 'Afnan', price: 650, image: '/assets/products/afnan9PM.png', description: 'Dulce, nocturna y seductora.', stock: 2, salida: 'Manzana, canela', corazon: 'Lavanda', fondo: 'Vainilla', category_id: 6 },
-      { id: 'hawas', name: 'Rasasi Hawas', brand: 'Rasasi', price: 650, image: '/assets/products/rasawiHawas.png', description: 'Fresca y moderna con gran proyección.', stock: 4, salida: 'Bergamota', corazon: 'Canela', fondo: 'Almizcle', category_id: 5 },
-      { id: 'amber-oud', name: 'Al Haramain Amber Oud', brand: 'Al Haramain', price: 1050, image: '/assets/products/amberOudHaramain.png', description: 'Lujo puro con carácter fuerte.', stock: 6, salida: 'Cítricos', corazon: 'Ámbar', fondo: 'Oud', category_id: 1 },
-      { id: 'fakhar', name: 'Lattafa Fakhar', brand: 'Lattafa', price: 390, image: '/assets/products/lattafaFakhar.png', description: 'Elegancia moderna con toque oriental.', stock: 8, salida: 'Manzana', corazon: 'Lavanda', fondo: 'Madera', category_id: 2 },
+      { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', brand: 'Armaf', price: 550, image: '/assets/products/cdnIntense.webp', description: 'Fragancia intensa.', stock: 5, salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar', category_id: 4 },
+      { id: 'khamrah', name: 'Lattafa Khamrah', brand: 'Lattafa', price: 650, image: '/assets/products/lattafaKhamrah.webp', description: 'Dulce, cálida.', stock: 3, salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar', category_id: 6 },
+      { id: 'yara', name: 'Lattafa Yara', brand: 'Lattafa', price: 520, image: '/assets/products/lattafaYara.webp', description: 'Suave, femenina.', stock: 10, salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle', category_id: 3 },
+      { id: 'oud-mood', name: 'Lattafa Oud Mood', brand: 'Lattafa', price: 228, image: '/assets/products/lattafaOudMood.webp', description: 'Intenso y profundo con esencia oriental.', stock: 7, salida: 'Especias', corazon: 'Oud', fondo: 'Ámbar', category_id: 2 },
+      { id: '9pm', name: 'Afnan 9PM', brand: 'Afnan', price: 650, image: '/assets/products/afnan9PM.webp', description: 'Dulce, nocturna y seductora.', stock: 2, salida: 'Manzana, canela', corazon: 'Lavanda', fondo: 'Vainilla', category_id: 6 },
+      { id: 'hawas', name: 'Rasasi Hawas', brand: 'Rasasi', price: 650, image: '/assets/products/rasawiHawas.webp', description: 'Fresca y moderna con gran proyección.', stock: 4, salida: 'Bergamota', corazon: 'Canela', fondo: 'Almizcle', category_id: 5 },
+      { id: 'amber-oud', name: 'Al Haramain Amber Oud', brand: 'Al Haramain', price: 1050, image: '/assets/products/amberOudHaramain.webp', description: 'Lujo puro con carácter fuerte.', stock: 6, salida: 'Cítricos', corazon: 'Ámbar', fondo: 'Oud', category_id: 1 },
+      { id: 'fakhar', name: 'Lattafa Fakhar', brand: 'Lattafa', price: 390, image: '/assets/products/lattafaFakhar.webp', description: 'Elegancia moderna con toque oriental.', stock: 8, salida: 'Manzana', corazon: 'Lavanda', fondo: 'Madera', category_id: 2 },
     ];
 
     // si el perfume ya existe solo se actualiza categoria, imagen y marca
@@ -335,13 +335,13 @@ const seedUsers = async () => {
     // SFTWRKEY-402: perfumes nuevos (y marcas nuevas: Maison Alhambra, Swiss Arabian, French Avenue)
     // sus fotos estan en public/assets/products (las agrego Javier el 12/10/2026)
     const newProducts = [
-      { id: 'asad', name: 'Lattafa Asad', brand: 'Lattafa', price: 500, image: '/assets/products/asad.jpg', description: 'Especiada y ambarada, muy masculina.', stock: 6, salida: 'Pimienta negra, tabaco', corazon: 'Café, iris', fondo: 'Ámbar, vainilla', category_id: 4 },
-      { id: 'club-de-nuit-woman', name: 'Club de Nuit Woman', brand: 'Armaf', price: 500, image: '/assets/products/Armaf-Club-de-Nuit-Woman.jpg', description: 'Floral y elegante para la noche.', stock: 5, salida: 'Naranja, bergamota', corazon: 'Rosa, jazmín', fondo: 'Pachulí, vainilla', category_id: 3 },
-      { id: 'mandarin-sky', name: 'Armaf Odyssey Mandarin Sky', brand: 'Armaf', price: 520, image: '/assets/products/Armaf-Odyssey-Mandarin-Sky.jpg', description: 'Dulce y cítrica, fácil de llevar.', stock: 8, salida: 'Mandarina, naranja', corazon: 'Caramelo, haba tonka', fondo: 'Ámbar, vetiver', category_id: 6 },
-      { id: 'laventure', name: "Al Haramain L'Aventure", brand: 'Al Haramain', price: 360, image: '/assets/products/Al-Haramain-LAventure.jpg', description: 'Fresca y cítrica para el día.', stock: 5, salida: 'Limón, bergamota', corazon: 'Elemí, jazmín', fondo: 'Almizcle, ámbar', category_id: 5 },
-      { id: 'salvo', name: 'Maison Alhambra Salvo', brand: 'Maison Alhambra', price: 260, image: '/assets/products/Maison-Alhambra-Salvo.jpg', description: 'Fresca y aromática, buena para diario.', stock: 10, salida: 'Bergamota, pimienta', corazon: 'Lavanda, geranio', fondo: 'Ambroxan, cedro', category_id: 5 },
-      { id: 'shaghaf-oud', name: 'Swiss Arabian Shaghaf Oud', brand: 'Swiss Arabian', price: 480, image: '/assets/products/Swiss-Arabian-Shaghaf-Oud.jpg', description: 'Oud dulce con azafrán y rosa.', stock: 4, salida: 'Azafrán, rosa', corazon: 'Praliné, oud', fondo: 'Vainilla, ámbar', category_id: 1 },
-      { id: 'liquid-brun', name: 'French Avenue Liquid Brun', brand: 'French Avenue', price: 380, image: '/assets/products/liquid-brun.jpg', description: 'Cálida y especiada con vainilla.', stock: 6, salida: 'Canela, cardamomo', corazon: 'Vainilla, elemí', fondo: 'Praliné, guayaco', category_id: 6 },
+      { id: 'asad', name: 'Lattafa Asad', brand: 'Lattafa', price: 500, image: '/assets/products/asad.webp', description: 'Especiada y ambarada, muy masculina.', stock: 6, salida: 'Pimienta negra, tabaco', corazon: 'Café, iris', fondo: 'Ámbar, vainilla', category_id: 4 },
+      { id: 'club-de-nuit-woman', name: 'Club de Nuit Woman', brand: 'Armaf', price: 500, image: '/assets/products/Armaf-Club-de-Nuit-Woman.webp', description: 'Floral y elegante para la noche.', stock: 5, salida: 'Naranja, bergamota', corazon: 'Rosa, jazmín', fondo: 'Pachulí, vainilla', category_id: 3 },
+      { id: 'mandarin-sky', name: 'Armaf Odyssey Mandarin Sky', brand: 'Armaf', price: 520, image: '/assets/products/Armaf-Odyssey-Mandarin-Sky.webp', description: 'Dulce y cítrica, fácil de llevar.', stock: 8, salida: 'Mandarina, naranja', corazon: 'Caramelo, haba tonka', fondo: 'Ámbar, vetiver', category_id: 6 },
+      { id: 'laventure', name: "Al Haramain L'Aventure", brand: 'Al Haramain', price: 360, image: '/assets/products/Al-Haramain-LAventure.webp', description: 'Fresca y cítrica para el día.', stock: 5, salida: 'Limón, bergamota', corazon: 'Elemí, jazmín', fondo: 'Almizcle, ámbar', category_id: 5 },
+      { id: 'salvo', name: 'Maison Alhambra Salvo', brand: 'Maison Alhambra', price: 260, image: '/assets/products/Maison-Alhambra-Salvo.webp', description: 'Fresca y aromática, buena para diario.', stock: 10, salida: 'Bergamota, pimienta', corazon: 'Lavanda, geranio', fondo: 'Ambroxan, cedro', category_id: 5 },
+      { id: 'shaghaf-oud', name: 'Swiss Arabian Shaghaf Oud', brand: 'Swiss Arabian', price: 480, image: '/assets/products/Swiss-Arabian-Shaghaf-Oud.webp', description: 'Oud dulce con azafrán y rosa.', stock: 4, salida: 'Azafrán, rosa', corazon: 'Praliné, oud', fondo: 'Vainilla, ámbar', category_id: 1 },
+      { id: 'liquid-brun', name: 'French Avenue Liquid Brun', brand: 'French Avenue', price: 380, image: '/assets/products/liquid-brun.webp', description: 'Cálida y especiada con vainilla.', stock: 6, salida: 'Canela, cardamomo', corazon: 'Vainilla, elemí', fondo: 'Praliné, guayaco', category_id: 6 },
     ];
 
     // con DO NOTHING se insertan una sola vez, asi no se pisan los cambios que haga el admin
@@ -357,6 +357,23 @@ const seedUsers = async () => {
       insertados += result.rowCount;
     }
     console.log(`Perfumes nuevos: ${insertados} insertados, ${newProducts.length - insertados} ya existian`);
+
+    // SFTWRKEY-457: las fotos de public/assets/products ahora son .webp (los .png y .jpg se borraron),
+    // asi que los productos que ya estaban en la base pasan a la ruta nueva
+    const imagenes = await pool.query(
+      `UPDATE products SET image = regexp_replace(image, '\\.(png|jpe?g)$', '.webp')
+       WHERE image ~ '^/assets/products/[^/]+\\.(png|jpe?g)$'`
+    );
+    console.log(`Imagenes pasadas a WebP: ${imagenes.rowCount}`);
+
+    // SFTWRKEY-457: fotos que el admin sube desde el panel (ya convertidas a WebP)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS product_images (
+        id SERIAL PRIMARY KEY,
+        data BYTEA NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
 
     // Precios corregidos segun el reporte de existencias de enero 2026 (LISTADO DE PERFUME VIC.).
     // Los inserts de arriba no tocan el precio de un perfume que ya existe, por eso se corrige aqui.

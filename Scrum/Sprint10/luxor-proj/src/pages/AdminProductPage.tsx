@@ -5,7 +5,8 @@ import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
-import { fetchProductById, createProduct, updateProduct, fetchCategories } from "../services/productService";
+import { fetchProductById, createProduct, updateProduct, fetchCategories, uploadProductImage, FOTO_TIPOS, FOTO_MAX_BYTES } from "../services/productService";
+import { friendlyError } from "../services/apiClient";
 import type { Product, Category } from "../services/productService";
 import { PerfumApiSearch } from "../features/perfumes/PerfumApiSearch";
 import type { ExternalPerfumeCandidate } from "../services/perfumApiService";
@@ -73,6 +74,8 @@ const [formData, setFormData] = useState<Product>({
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [subiendo, setSubiendo] = useState(false);
+    const [fotoError, setFotoError] = useState<string | null>(null);
 
 useEffect(() => {
     // SFTWRKEY-275: Cargar categorías disponibles para el selector del formulario
@@ -121,6 +124,31 @@ const handleApiSelect = (candidate: ExternalPerfumeCandidate) => {
         external_id: candidate.external_id,
         synced_at: candidate.synced_at,
     }));
+};
+
+// SFTWRKEY-457: sube la foto elegida y pone su ruta en el campo de imagen
+const handleFoto = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setFotoError(null);
+    if (!FOTO_TIPOS.includes(file.type)) {
+        setFotoError("Sube una foto PNG, JPG o WebP.");
+        return;
+    }
+    if (file.size > FOTO_MAX_BYTES) {
+        setFotoError("La foto pesa más de 5 MB.");
+        return;
+    }
+    setSubiendo(true);
+    try {
+        const image = await uploadProductImage(file);
+        setFormData((prev) => ({ ...prev, image }));
+    } catch (err) {
+        setFotoError(friendlyError(err, "No se pudo subir la foto."));
+    } finally {
+        setSubiendo(false);
+    }
 };
 
 // SFTWRKEY-275: Manejar el cambio del selector de categoría (select, no input)
@@ -311,13 +339,53 @@ return (
                     />
                 </div>
 
-                <Field
-                    label="URL de Imagen"
-                    name="image"
-                    value={formData.image}
-                    onChange={handleChange}
-                    placeholder="/assets/products/..."
-                />
+                {/* SFTWRKEY-457: la foto se puede subir desde aquí y el backend la optimiza */}
+                <div className="flex flex-col gap-2">
+                    <label htmlFor="image" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary-gold italic">
+                        Imagen
+                    </label>
+                    <div className="flex items-start gap-4">
+                        <div className="w-20 shrink-0 aspect-[4/5] rounded-2xl overflow-hidden bg-primary-black/40 flex items-center justify-center">
+                            {formData.image ? (
+                                <img src={formData.image} alt="Vista previa" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-[8px] text-primary-champagne/20 uppercase tracking-widest">Sin foto</span>
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col gap-3">
+                            <input
+                                id="image"
+                                type="text"
+                                name="image"
+                                value={formData.image}
+                                onChange={handleChange}
+                                placeholder="/assets/products/... o https://..."
+                                className="w-full px-4 py-3 rounded-2xl border-none text-sm text-primary-champagne bg-primary-black/40 placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300"
+                            />
+                            <div className="flex flex-wrap items-center gap-3">
+                                <label
+                                    className={`inline-flex items-center justify-center h-10 px-5 rounded-button border border-primary-gold/40 text-primary-gold text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 focus-within:ring-2 focus-within:ring-primary-gold ${subiendo ? "opacity-40 cursor-wait" : "cursor-pointer hover:bg-primary-gold hover:text-primary-black"}`}
+                                >
+                                    {subiendo ? "Subiendo..." : "Subir foto"}
+                                    <input
+                                        type="file"
+                                        accept={FOTO_TIPOS.join(",")}
+                                        onChange={handleFoto}
+                                        disabled={subiendo}
+                                        className="sr-only"
+                                        aria-label="Subir foto del perfume"
+                                    />
+                                </label>
+                                <span className="text-[10px] text-primary-champagne/25 italic">
+                                    PNG, JPG o WebP de hasta 5 MB. Se guarda optimizada en WebP.
+                                </span>
+                            </div>
+                            {fotoError && (
+                                <p role="alert" className="text-xs text-status-error font-bold italic">{fotoError}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 <Field
                     label="Descripción"

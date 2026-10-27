@@ -17,9 +17,18 @@
       "destination": "/api/product-preview?id=:id"
     },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/product-images/:file", "destination": "https://luxor-backend-9ov9.onrender.com/product-images/:file" },
+    { "source": "/assets/products/:foto([^/]+)\\.png", "destination": "/assets/products/:foto.webp" },
+    { "source": "/assets/products/:foto([^/]+)\\.jpg", "destination": "/assets/products/:foto.webp" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/product-images/:file",
+      "headers": [
+        { "key": "x-vercel-enable-rewrite-caching", "value": "1" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

@@ -3,14 +3,14 @@ import { render } from "@testing-library/react";
 import { vi } from "vitest";
 import { PageMeta } from "../components/seo/PageMeta";
 import { productDescription } from "./site";
-import { buildPreviewHtml, describeProduct, GET } from "../../api/product-preview";
+import { buildPreviewHtml, describeProduct, GET, shareImage } from "../../api/product-preview";
 import vercelConfig from "../../vercel.json";
 
 const khamrah = {
   id: "khamrah",
   name: "Lattafa Khamrah",
   price: "390.00",
-  image: "/assets/products/lattafaKhamrah.png",
+  image: "/assets/products/lattafaKhamrah.webp",
   brand: "Lattafa",
   notes: { salida: "Canela, dátiles", corazon: "Praliné, vainilla", fondo: "Madera, ámbar" },
 };
@@ -55,9 +55,25 @@ describe("vista previa para bots (api/product-preview)", () => {
   it("arma las etiquetas og: del perfume con la imagen en URL absoluta", () => {
     const html = buildPreviewHtml(khamrah, origin, "/producto/khamrah");
     expect(html).toContain('<meta property="og:title" content="Lattafa Khamrah | Perfumería Victoria" />');
-    expect(html).toContain('<meta property="og:image" content="https://tienda.test/assets/products/lattafaKhamrah.png" />');
+    expect(html).toContain('<meta property="og:image" content="https://tienda.test/assets/products/og/lattafaKhamrah.jpg" />');
     expect(html).toContain('<meta property="og:url" content="https://tienda.test/producto/khamrah" />');
     expect(html).toContain('<meta property="product:price:amount" content="390.00" />');
+  });
+
+  // SFTWRKEY-457: al compartir se usa la versión JPEG de la foto
+  it.each([
+    ["/assets/products/lattafaKhamrah.webp", "/assets/products/og/lattafaKhamrah.jpg"],
+    ["/assets/products/lattafaKhamrah.png", "/assets/products/og/lattafaKhamrah.jpg"],
+    ["/assets/products/asad.jpg", "/assets/products/og/asad.jpg"],
+    ["/product-images/12.webp", "/product-images/12.jpg"],
+    ["/otra/foto.webp", "/otra/foto.webp"],
+  ])("la foto %s se comparte como %s", (image, esperada) => {
+    expect(shareImage(image)).toBe(esperada);
+  });
+
+  it("un perfume sin foto (imagen de relleno SVG) se comparte con la imagen de la tienda", () => {
+    const html = buildPreviewHtml({ ...khamrah, image: "/assets/products/sin-imagen.svg" }, origin, "/producto/khamrah");
+    expect(html).toContain('<meta property="og:image" content="https://tienda.test/og-image.jpg" />');
   });
 
   it("escapa el contenido del producto (no se puede inyectar HTML)", () => {

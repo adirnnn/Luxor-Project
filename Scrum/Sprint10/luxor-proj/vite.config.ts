@@ -2,6 +2,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// SFTWRKEY-457: las fotos subidas desde el panel las sirve el backend. En local (dev y preview)
+// las reenvía este proxy; en Vercel las reenvía el rewrite de vercel.json.
+const fotosDelBackend = {
+  '/product-images': { target: process.env.VITE_API_URL || 'http://localhost:3000', changeOrigin: true },
+}
+
 export default defineConfig({
   plugins: [react()],
   // ojo: este proxy solo funciona con `npm run dev`. en el build de produccion
@@ -15,8 +21,12 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
-      }
+      },
+      ...fotosDelBackend,
     }
+  },
+  preview: {
+    proxy: fotosDelBackend,
   },
   // configuracion de vitest. correr con `npm run test`.
   test: {

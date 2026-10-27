@@ -114,6 +114,8 @@ export default function AdminDashboard() {
                                                 <img
                                                     src={product.image}
                                                     alt={product.name}
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     className="w-full h-full object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-110"
                                                 />
                                             </div>
@@ -172,6 +174,8 @@ export default function AdminDashboard() {
                                                 <img
                                                     src={product.image}
                                                     alt={product.name}
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     className="w-full h-full object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
                                                 />
                                             </div>

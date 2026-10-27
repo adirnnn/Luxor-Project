@@ -39,6 +39,9 @@ export async function startServer() {
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 }
 
+// URL completa de una ruta (para las peticiones que no son JSON, como subir una foto)
+export const apiUrl = (path) => `${baseUrl}${path}`;
+
 export async function stopServer() {
   if (server) await new Promise((resolve) => server.close(resolve));
   await pool.end();

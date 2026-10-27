@@ -38,7 +38,7 @@ export default function HomePage() {
             muted
             playsInline
             className="w-full h-full object-cover opacity-25 mix-blend-color-dodge"
-            poster="/images/dark_marble_texture_1779488028451.png"
+            poster="/images/dark_marble_texture_1779488028451.webp"
           >
             <source src="/videos/hero_sand.mp4" type="video/mp4" />
           </video>
@@ -47,7 +47,7 @@ export default function HomePage() {
           {/* Subtle dark marble texture overlay */}
           <div 
             className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none z-10"
-            style={{ backgroundImage: "url('/images/dark_marble_texture_1779488028451.png')", backgroundSize: 'cover' }}
+            style={{ backgroundImage: "url('/images/dark_marble_texture_1779488028451.webp')", backgroundSize: 'cover' }}
           />
         </div>
 

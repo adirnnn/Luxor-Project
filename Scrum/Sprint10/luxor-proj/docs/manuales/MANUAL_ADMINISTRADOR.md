@@ -31,7 +31,7 @@ El **Panel** muestra todos los perfumes con su precio y su stock.
 
 1. En el Panel toca **Nuevo perfume**.
 2. Llena: ID de referencia (sin espacios, por ejemplo `noir-oud`), Nombre, Marca, Precio (Q), Stock y Descripción. Opcional: Salida, Corazón y Fondo (las notas del perfume).
-3. En **URL de imagen** pega la dirección de la foto (por ejemplo `/assets/products/noir-oud.png`, o el enlace de una imagen en internet). La tienda guarda la dirección de la foto, no el archivo: si la foto es nueva, pide al equipo técnico que la agregue al sitio y usa su dirección.
+3. En **Imagen** toca **Subir foto** y elige la foto del perfume (PNG, JPG o WebP de hasta 5 MB). La tienda la achica y la guarda en WebP para que cargue rápido; al terminar aparece la vista previa. También puedes pegar la dirección de una foto que ya está en el sitio (por ejemplo `/assets/products/noir-oud.webp`) o el enlace de una imagen en internet.
 4. Toca **Crear perfume**.
 
 ![Formulario de nuevo perfume](img/21-admin-nuevo-producto.png)

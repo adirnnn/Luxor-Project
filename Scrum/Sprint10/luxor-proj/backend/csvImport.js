@@ -9,7 +9,7 @@ export const CSV_COLUMNS = [
 ];
 
 export const CSV_TEMPLATE = `${CSV_COLUMNS.join(",")}\n` +
-  "noir-oud,Noir Oud,425.00,/assets/products/noir-oud.png,Fragancia amaderada,12,Bergamota,Rosa,Oud\n";
+  "noir-oud,Noir Oud,425.00,/assets/products/noir-oud.webp,Fragancia amaderada,12,Bergamota,Rosa,Oud\n";
 
 /** Parses RFC-4180-style CSV, including quoted commas, quotes and new lines. */
 export function parseCsv(source) {

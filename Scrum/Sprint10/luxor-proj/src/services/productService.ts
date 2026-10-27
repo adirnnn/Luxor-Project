@@ -66,6 +66,23 @@ export async function createProduct(product: Product): Promise<void> {
   }
 }
 
+// SFTWRKEY-457: el backend pasa la foto a WebP de 800 px y devuelve su ruta (/product-images/<id>.webp)
+export const FOTO_TIPOS = ['image/png', 'image/jpeg', 'image/webp'];
+export const FOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+export async function uploadProductImage(file: File): Promise<string> {
+  const res = await fetch(`${API_URL}/admin/product-images`, {
+    method: 'POST',
+    headers: { 'Content-Type': file.type, ...authHeaders() },
+    body: file,
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.image) {
+    throw new Error(body?.message || 'No se pudo subir la foto.');
+  }
+  return body.image;
+}
+
 export async function updateProduct(id: string, product: Partial<Product>): Promise<void> {
   const res = await fetch(`${API_URL}/products/${id}`, {
     method: 'PUT',

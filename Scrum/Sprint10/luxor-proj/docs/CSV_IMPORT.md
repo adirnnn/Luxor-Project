@@ -9,7 +9,7 @@ id,name,price,image,description,stock,salida,corazon,fondo
 Ejemplo:
 
 ```csv
-noir-oud,Noir Oud,425.00,/assets/products/noir-oud.png,Fragancia amaderada,12,Bergamota,Rosa,Oud
+noir-oud,Noir Oud,425.00,/assets/products/noir-oud.webp,Fragancia amaderada,12,Bergamota,Rosa,Oud
 ```
 
 - `id`: obligatorio, único dentro del archivo y en el inventario; letras, números y guiones.

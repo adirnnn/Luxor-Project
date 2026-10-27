@@ -190,6 +190,8 @@ export const Navbar = () => {
                                     <img
                                       src={product.image}
                                       alt={product.name}
+                                      loading="lazy"
+                                      decoding="async"
                                       className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500"
                                     />
                                   </div>
@@ -338,7 +340,7 @@ export const Navbar = () => {
                       className="w-full flex items-center gap-3 py-2.5 px-2 hover:bg-white/[0.04] rounded-xl transition-all text-left"
                     >
                       <div className="w-8 h-8 rounded-lg bg-primary-black border border-white/5 overflow-hidden shrink-0 p-1">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
+                        <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-contain" />
                       </div>
                       <span className="text-sm text-primary-champagne/80 truncate flex-1">{product.name}</span>
                       <span className="text-xs text-primary-gold shrink-0">{formatPrice(product.price)}</span>

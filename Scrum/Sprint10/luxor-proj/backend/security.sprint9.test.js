@@ -51,7 +51,7 @@ function fakeDb(routes = []) {
 const RUTAS_ADMIN = [
   ['GET', '/admin/orders'], ['GET', '/admin/orders/1'], ['PATCH', '/admin/orders/1/status'],
   ['GET', '/admin/perfum-sync-logs'], ['GET', '/admin/security-alerts'],
-  ['GET', '/admin/alerts'], ['POST', '/admin/alerts/read'],
+  ['GET', '/admin/alerts'], ['POST', '/admin/alerts/read'], ['POST', '/admin/product-images'],
   ['GET', '/report'], ['GET', '/report/metrics'], ['GET', '/report/sales-monthly'],
   ['GET', '/report/sales-by-category'], ['GET', '/report/top-products'], ['GET', '/report/inventory'],
   ['GET', '/imports/products'], ['GET', '/imports/products/template'], ['POST', '/imports/products'],
