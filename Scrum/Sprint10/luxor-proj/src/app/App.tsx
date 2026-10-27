@@ -20,6 +20,7 @@ import ImportPerfumesPage from "../pages/ImportPerfumesPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import PaymentPage from "../pages/Paymentpage";
+import { GuestCheckoutPage } from "../features/CommerceFeatures";
 import UserPage from "../pages/UserPage";
 import PrivacyPage from "../pages/PrivacyPage";
 import TermsPage from "../pages/TermsPage";
@@ -55,6 +56,7 @@ function AnimatedRoutes() {
         {/* SFTWRKEY-428: recuperar contraseña */}
         <Route path="/recuperar-contrasena" element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
         <Route path="/restablecer-contrasena" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
+        <Route path="/pago-invitado" element={<PageWrapper><GuestCheckoutPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
 
         {/* SFTWRKEY-434: páginas legales */}

@@ -27,4 +27,4 @@ npm run test:db:down    # elimina el contenedor
 en estas pruebas. Cada prueba crea sus propios datos (`it-…`) y los borra al terminar.
 
 En GitHub Actions las corre `.github/workflows/integration-regression.yml` en cada push o
-pull request que toque `Scrum/Sprint9/luxor-proj/backend`.
+pull request que toque `Scrum/Sprint10/luxor-proj/backend`.

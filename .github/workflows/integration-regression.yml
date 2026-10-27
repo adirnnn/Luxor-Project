@@ -4,12 +4,12 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "Scrum/Sprint9/luxor-proj/backend/**"
+      - "Scrum/Sprint10/luxor-proj/backend/**"
       - ".github/workflows/integration-regression.yml"
   pull_request:
     branches: [main]
     paths:
-      - "Scrum/Sprint9/luxor-proj/backend/**"
+      - "Scrum/Sprint10/luxor-proj/backend/**"
       - ".github/workflows/integration-regression.yml"
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: Scrum/Sprint9/luxor-proj/backend
+        working-directory: Scrum/Sprint10/luxor-proj/backend
 
     # Base de datos real y desechable para cada ejecución.
     services:
@@ -58,7 +58,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: Scrum/Sprint9/luxor-proj/backend/package-lock.json
+          cache-dependency-path: Scrum/Sprint10/luxor-proj/backend/package-lock.json
 
       - name: Instalar dependencias
         run: npm ci
@@ -109,6 +109,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reportes-pruebas-${{ github.run_number }}
-          path: Scrum/Sprint9/luxor-proj/backend/reports/
+          path: Scrum/Sprint10/luxor-proj/backend/reports/
           retention-days: 30
           if-no-files-found: warn

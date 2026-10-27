@@ -204,3 +204,27 @@ test('POST /register: registro exitoso devuelve 201 y guarda la contraseña hash
   assert.match(storedPassword, /^\$2[aby]\$/);
   assert.equal(await bcrypt.compare('Secreta123', storedPassword), true);
 });
+
+test('POST /register: el correo se guarda sin espacios y en minúsculas', async () => {
+  const pool = mockPool({ rows: [{ id: 7, name: 'Ana', email: 'ana@mail.com' }] });
+  const handler = createRegisterHandler({ pool, bcrypt, saltRounds: TEST_SALT_ROUNDS });
+  const res = mockRes();
+
+  await handler({ body: { name: 'Ana', email: '  Ana@Mail.COM ', password: 'Secreta123' } }, res);
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(pool.calls[0].params[1], 'ana@mail.com');
+});
+
+test('POST /login: el correo no distingue mayúsculas', async () => {
+  const hash = await bcrypt.hash('Secreta123', TEST_SALT_ROUNDS);
+  const pool = mockPool({ rows: [{ id: 7, name: 'Ana', email: 'Ana@Mail.com', password_hash: hash, role: 'CLIENTE' }] });
+  const handler = createLoginHandler({ pool, bcrypt, signToken: () => 'token' });
+  const res = mockRes();
+
+  await handler({ body: { email: 'ANA@mail.com', password: 'Secreta123' } }, res);
+
+  assert.equal(res.body.success, true);
+  assert.match(pool.calls[0].sql, /LOWER\(u\.email\)/);
+  assert.equal(pool.calls[0].params[0], 'ana@mail.com');
+});

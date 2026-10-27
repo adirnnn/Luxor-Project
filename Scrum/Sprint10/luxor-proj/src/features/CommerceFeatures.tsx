@@ -7,6 +7,7 @@ import { PaymentForm } from '../validation/PaymentForm';
 import type { PaymentFormState } from '../validation/usePaymentForm';
 import { MainLayout } from '../components/layout/MainLayout';
 import { formatPrice } from "../utils/formatPrice";
+import { trackPurchase } from "../utils/analytics";
 
 const panel =
   'mx-auto max-w-3xl rounded-xl border border-yellow-700 bg-stone-950 p-6 text-white';
@@ -698,6 +699,7 @@ export function GuestCheckoutPage() {
         'luxor-guest-purchase',
       );
 
+      trackPurchase(Number(result.order.total), cart.reduce((n, i) => n + i.quantity, 0));
       clearCart();
     } catch (e) {
       setError(message(e));

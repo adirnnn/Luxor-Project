@@ -167,7 +167,7 @@ id,name,price,image,description,stock,salida,corazon,fondo
 
 | Componente | Proveedor | URL |
 | --- | --- | --- |
-| Frontend y funciones `api/` | Vercel (root directory `Scrum/Sprint9/luxor-proj`) | https://luxor-project-green.vercel.app |
+| Frontend y funciones `api/` | Vercel (root directory `Scrum/Sprint10/luxor-proj`) | https://luxor-project-green.vercel.app |
 | Backend (Express) | Render, servicio Docker `luxor-backend` | https://luxor-backend-9ov9.onrender.com |
 | Chatbot (FastAPI) | Render, servicio Docker `luxor-chatbot` | https://luxor-chatbot.onrender.com |
 | Base de datos | PostgreSQL en Render (`luxor-db`) | host interno |

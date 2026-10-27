@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { authenticate, requireRoles } from '../services/auth.js';
+import { notifyOrderStatus } from '../services/orderEmails.js';
 import { isValidStatus, canTransition, ORDER_TRANSITIONS } from '../services/orderStatus.js';
 
 const router = Router();
@@ -224,6 +225,9 @@ router.patch('/admin/orders/:id/status', authenticate, requireRoles('ADMIN'), as
     );
 
     await client.query('COMMIT');
+
+    // SFTWRKEY-448: un correo por cada cambio de estado; si falla, el cambio ya quedó guardado
+    void notifyOrderStatus(pool, id, status);
 
     const order = updated.rows[0];
     res.json({ success: true, order: { ...order, total: Number(order.total) } });

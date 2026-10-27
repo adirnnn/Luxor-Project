@@ -8,6 +8,7 @@ import {
   requireRoles,
   signToken,
 } from './services/auth.js';
+import { notifyOrderStatus } from './services/orderEmails.js';
 import { rateLimit } from './services/rateLimit.js';
 import { createDeclineGuard } from './services/declineGuard.js';
 import {
@@ -333,6 +334,7 @@ router.post(
       }),
     );
 
+    let newOrderId = null;
     const result = await transaction(async db => {
       // Serializa los reintentos de la misma compra.
       await db.query(
@@ -467,6 +469,8 @@ router.post(
         );
       }
 
+      newOrderId = order.id;
+
       const response = {
         success: true,
         order: {
@@ -501,6 +505,9 @@ router.post(
 
       return response;
     });
+
+    // SFTWRKEY-447: correo de confirmación solo si el pedido es nuevo (no en reintentos)
+    if (newOrderId) void notifyOrderStatus(pool, newOrderId, 'pagado');
 
     res.status(201).json(result);
   }),

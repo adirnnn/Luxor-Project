@@ -11,6 +11,7 @@ import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { NotFoundMessage } from "../components/ui/NotFoundMessage";
 import { PageMeta } from "../components/seo/PageMeta";
 import { productDescription } from "../seo/site";
+import { trackViewProduct } from "../utils/analytics";
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,7 @@ export default function ProductPage() {
           throw new Error("Respuesta del servidor incompleta.");
         }
         setProduct(data);
+        trackViewProduct(String(data.id), data.name);
       })
       .catch((err: unknown) => {
         if (err instanceof ProductNotFoundError) setNotFound(true);

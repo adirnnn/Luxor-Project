@@ -421,6 +421,15 @@ const seedUsers = async () => {
     await seedAdmin();
 
     if (isProduction) {
+      // SEC-50: borra los clientes de prueba que se crearon en producción antes de SFTWRKEY-407.
+      // Solo si siguen siendo clientes sin pedidos, para no tocar cuentas reales.
+      const removed = await pool.query(
+        `DELETE FROM users u
+         WHERE u.email IN ('juan@luxor.com', 'maria@luxor.com', 'carlos@luxor.com')
+           AND u.role = 3
+           AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id)`
+      );
+      if (removed.rowCount > 0) console.log(`SEC-50: ${removed.rowCount} clientes de prueba borrados`);
       console.log('Produccion: no se crean los clientes de prueba');
     } else {
       const users = [

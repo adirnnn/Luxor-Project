@@ -174,6 +174,14 @@ export default function CartPage() {
                 >
                   {hasStockIssue ? "Ajusta tu carrito para continuar" : "Ir a Pagar"}
                 </Button>
+                {!user && !hasStockIssue && (
+                  <Link
+                    to="/pago-invitado"
+                    className="block text-center mt-4 text-xs text-primary-gold hover:text-primary-champagne uppercase tracking-[0.2em] font-black transition-all"
+                  >
+                    Comprar como invitado
+                  </Link>
+                )}
                 <Link
                   to="/perfumes"
                   className="block text-center mt-4 text-xs text-primary-champagne/30 hover:text-primary-gold uppercase tracking-[0.2em] font-black transition-all"
