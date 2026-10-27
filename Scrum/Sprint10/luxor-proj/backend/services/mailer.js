@@ -79,7 +79,8 @@ export function buildOrderEmail({ status, orderId, customerName, items = [], tot
 
   const text =
     `${hello}\n\n${copy.intro}\n\nPedido #${orderId}\n${lines.join('\n')}\n\nTotal: ${money(total)}\n\n` +
-    `Mira tu pedido en Mi cuenta: ${accountUrl}\n\nPerfumería Victoria`;
+    (accountUrl ? `Mira tu pedido en Mi cuenta: ${accountUrl}\n\n` : '') +
+    `Perfumería Victoria`;
 
   const rows = items
     .map(
@@ -98,7 +99,9 @@ export function buildOrderEmail({ status, orderId, customerName, items = [], tot
     `<table style="width:100%;border-collapse:collapse;color:#f3e9d2">${rows}` +
     `<tr><td style="padding-top:10px;border-top:1px solid #d4af37"><strong>Total</strong></td>` +
     `<td style="padding-top:10px;border-top:1px solid #d4af37;text-align:right"><strong>${money(total)}</strong></td></tr></table>` +
-    `<p style="margin-top:20px"><a href="${escapeHtml(accountUrl)}" style="color:#d4af37">Ver mi pedido en Mi cuenta</a></p>` +
+    (accountUrl
+      ? `<p style="margin-top:20px"><a href="${escapeHtml(accountUrl)}" style="color:#d4af37">Ver mi pedido en Mi cuenta</a></p>`
+      : '') +
     `</div>`;
 
   return { subject: copy.subject(orderId), text, html };

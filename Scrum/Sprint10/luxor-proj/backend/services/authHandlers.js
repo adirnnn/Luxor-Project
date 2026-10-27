@@ -4,15 +4,20 @@ export const DEFAULT_SALT_ROUNDS = 12;
 
 const DUMMY_HASH = '$2a$12$invalidhashforcomparisononlyx';
 
+// el correo se guarda y se busca en minúsculas: "Ana@Mail.com" y "ana@mail.com" son la misma cuenta
+export const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
+
 // SFTWRKEY-401: onLoginFailed guarda el intento fallido
 export const createLoginHandler = ({ pool, bcrypt, signToken, onLoginFailed = async () => {} }) => async (req, res) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
+  const email = normalizeEmail(req.body.email);
   if (!email || !password) return res.status(400).json({ success: false, message: "Requerido" });
   try {
+    // LOWER para que entren también las cuentas que se registraron con mayúsculas
     const result = await pool.query(
       `SELECT u.id, u.name, u.email, u.password AS password_hash, r.nombre AS role
        FROM users u JOIN rol r ON u.role = r.id_rol
-       WHERE u.email = $1`, [email]
+       WHERE LOWER(u.email) = $1`, [email]
     );
     const storedHash = result.rows.length > 0 ? result.rows[0].password_hash : DUMMY_HASH;
     const match = await bcrypt.compare(password, storedHash);
@@ -31,7 +36,8 @@ export const createLoginHandler = ({ pool, bcrypt, signToken, onLoginFailed = as
 
 // Register con validación de campos y email duplicado
 export const createRegisterHandler = ({ pool, bcrypt, saltRounds = DEFAULT_SALT_ROUNDS }) => async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, password } = req.body;
+  const email = normalizeEmail(req.body.email);
 
   // Validar que todos los campos estén presentes
   if (!name || !email || !password) {

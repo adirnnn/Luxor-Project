@@ -12,7 +12,7 @@ export async function notifyOrderStatus(db, orderId, status, deps = {}) {
     }
 
     const orderResult = await db.query(
-      `SELECT o.id, o.total,
+      `SELECT o.id, o.user_id, o.total,
               COALESCE(u.email, g.guest_email) AS email,
               COALESCE(u.name, g.guest_name) AS name
        FROM orders o
@@ -45,7 +45,8 @@ export async function notifyOrderStatus(db, orderId, status, deps = {}) {
       customerName: order.name,
       items: itemsResult.rows.map((i) => ({ ...i, name: i.name ?? 'Producto' })),
       total: Number(order.total),
-      accountUrl: `${base}/mi-cuenta`,
+      // los invitados no tienen cuenta: sin enlace, porque los llevaría al login
+      accountUrl: order.user_id ? `${base}/mi-cuenta` : null,
     });
   } catch (err) {
     logger.error(`No se pudo enviar el correo del pedido #${orderId}:`, err.message);

@@ -98,7 +98,8 @@ for (const payload of PAYLOADS_SQL) {
 
     const res = await pedir('POST', '/login', { body: { email: payload, password: payload } });
     assert.equal(res.status, 401);
-    assertParametrizado(log, payload);
+    // el correo llega normalizado (trim y minúsculas), pero igual como parámetro
+    assertParametrizado(log, payload.trim().toLowerCase());
   });
 
   test(`A05 SQL: /users/search parametriza ${JSON.stringify(payload)}`, async (t) => {

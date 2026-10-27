@@ -71,7 +71,7 @@ const fakePool = ({ order, rows = items } = {}) => ({
 const env = { RESEND_API_KEY: 're_test', FRONTEND_URL: 'https://tienda.test/' };
 
 test('notifyOrderStatus manda un solo correo al cliente del pedido', async () => {
-  const db = fakePool({ order: { id: 5, total: '780.00', email: 'maria@test.com', name: 'María' } });
+  const db = fakePool({ order: { id: 5, user_id: 3, total: '780.00', email: 'maria@test.com', name: 'María' } });
   const sent = [];
   const result = await notifyOrderStatus(db, 5, 'enviado', { env, logger: quietLogger(), send: async (m) => { sent.push(m); return { sent: true }; } });
   assert.deepEqual(result, { sent: true });
@@ -87,6 +87,14 @@ test('notifyOrderStatus funciona con compras de invitado (correo del checkout)',
   const sent = [];
   await notifyOrderStatus(db, 6, 'pagado', { env, logger: quietLogger(), send: async (m) => { sent.push(m); return { sent: true }; } });
   assert.equal(sent[0].to, 'invitado@test.com');
+  // el invitado no tiene cuenta: el correo no lo manda a Mi cuenta
+  assert.equal(sent[0].accountUrl, null);
+});
+
+test('el correo del invitado no trae el enlace a Mi cuenta', () => {
+  const { text, html } = buildOrderEmail({ ...baseOrder, status: 'pagado', accountUrl: null });
+  assert.doesNotMatch(text, /Mi cuenta/);
+  assert.doesNotMatch(html, /Mi cuenta/);
 });
 
 test('si el correo falla, no lanza error y se registra', async () => {
