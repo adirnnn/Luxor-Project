@@ -44,4 +44,26 @@ Medido el 27/10/2026 con Lighthouse 12.8.2, modo **móvil** (celular simulado co
 catálogo se midieron tres veces después del cambio. Lo que queda del tiempo de carga ya no son imágenes: es el JavaScript
 de la aplicación (165 KB comprimido) y la hoja de fuentes de Google.
 
-**Pendiente:** repetir la medición en producción después del deploy.
+## Después del deploy (producción, 27/10/2026)
+
+Las imágenes ya no eran lo lento: en producción la portada salió 85–91, el catálogo 88 y el detalle 89–90. Lo que
+retrasaba el primer pintado era el JavaScript (toda la app en un solo archivo de 580 KB, incluido el panel de admin)
+y una hoja de Google Fonts que frenaba el render para cargar dos fuentes (Syne y Tenor Sans) que ningún estilo usaba.
+
+Segunda parte del cambio:
+
+- `App.tsx` carga por partes (`React.lazy`) todas las páginas menos la portada, el catálogo, el detalle y la 404.
+  El JS que baja la portada pasó de 580 KB a 419 KB y ya no incluye el panel de admin ni el pago.
+- Se quitó la hoja de Google Fonts de `index.html`. Se comprobó con capturas antes y después (portada, catálogo,
+  detalle, login y preguntas frecuentes, en escritorio y celular): las páginas se ven idénticas.
+- `AdminRoute` y `ProtectedRoute`: durante la animación de salida solo dibujan la página si el usuario tenía permiso
+  al abrirla. Sin esto, un visitante sin sesión que abría `/admin/pedidos` se quedaba trabado en esa página en vez de
+  llegar al login (y antes de la carga por partes, la veía parpadear medio segundo).
+
+| Página | Local antes | Local después |
+|---|---|---|
+| Portada `/` | 90–92 | **94–95** |
+| Catálogo `/perfumes` | 92–93 | **95–96** |
+| Detalle `/producto/khamrah` | 88 | **92** |
+
+**Pendiente:** repetir la medición en producción después de este deploy.

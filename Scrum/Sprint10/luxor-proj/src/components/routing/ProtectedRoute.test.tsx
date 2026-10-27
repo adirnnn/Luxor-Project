@@ -1,4 +1,5 @@
 // SFTWRKEY-422: rutas protegidas por sesion y por rol
+import { lazy, Suspense } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
@@ -196,6 +197,46 @@ describe("cerrar sesion desde una ruta protegida", () => {
       expect(await screen.findByText("Inicio")).toBeInTheDocument();
       expect(screen.getByTestId("ruta")).toHaveTextContent(/^\/$/);
       expect(screen.queryByText("Login")).not.toBeInTheDocument();
+    });
+  }
+});
+
+// SFTWRKEY-457: las paginas se cargan por partes (React.lazy). Un visitante sin permiso no debe
+// quedarse trabado en la pagina protegida ni descargarla mientras sale hacia el login.
+describe("paginas que se cargan por partes", () => {
+  for (const [guardia, ruta] of [["AdminRoute", "/admin"], ["ProtectedRoute", "/mi-cuenta"]] as const) {
+    it(`un visitante sin sesion que abre ${ruta} llega al login sin cargar la pagina protegida`, async () => {
+      const cargarPagina = vi.fn(() => Promise.resolve({ default: () => <p>Pagina protegida</p> }));
+      const Pagina = lazy(cargarPagina);
+      const Guardia = guardia === "AdminRoute" ? AdminRoute : ProtectedRoute;
+
+      function Rutas() {
+        const location = useLocation();
+        return (
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/login" element={<motion.p exit={{ opacity: 0 }}>Login</motion.p>} />
+              <Route element={<Guardia />}>
+                <Route path={ruta} element={<motion.div exit={{ opacity: 0 }}><Suspense fallback={<p>Cargando...</p>}><Pagina /></Suspense></motion.div>} />
+              </Route>
+            </Routes>
+          </AnimatePresence>
+        );
+      }
+
+      render(
+        <AuthProvider>
+          <MemoryRouter initialEntries={[ruta]}>
+            <Rutas />
+            <Ubicacion />
+          </MemoryRouter>
+        </AuthProvider>
+      );
+
+      expect(await screen.findByText("Login")).toBeInTheDocument();
+      expect(screen.getByTestId("ruta")).toHaveTextContent("/login");
+      expect(screen.queryByText("Pagina protegida")).not.toBeInTheDocument();
+      expect(cargarPagina).not.toHaveBeenCalled();
     });
   }
 });
