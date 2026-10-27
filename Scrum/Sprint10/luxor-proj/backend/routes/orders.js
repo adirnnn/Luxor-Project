@@ -3,8 +3,16 @@ import pool from '../db.js';
 import { authenticate, requireRoles } from '../services/auth.js';
 import { notifyOrderStatus } from '../services/orderEmails.js';
 import { isValidStatus, canTransition, ORDER_TRANSITIONS } from '../services/orderStatus.js';
+import { createOrderConfirmationHandler } from '../services/orderConfirmation.js';
 
 const router = Router();
+
+// Confirmación de pedido de usuario autenticado
+router.get(
+  '/orders/:id/confirmation',
+  authenticate,
+  createOrderConfirmationHandler({ pool })
+);
 
 const ORDER_ID_REGEX = /^\d+$/;
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;

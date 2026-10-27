@@ -29,6 +29,7 @@ import FaqPage from "../pages/FaqPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import { ProtectedRoute } from "../components/routing/ProtectedRoute";
 import { AdminRoute } from "../components/routing/AdminRoute";
+import OrderConfirmationPage from "../pages/OrderConfirmationPage";
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -76,6 +77,15 @@ function AnimatedRoutes() {
           <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
           <Route path="/admin/pedidos" element={<PageWrapper><AdminOrdersPage /></PageWrapper>} />
         </Route>
+
+        <Route
+          path="/compra-confirmada/:orderId"
+          element={
+            <PageWrapper>
+              <OrderConfirmationPage />
+            </PageWrapper>
+          }
+        />
 
         {/* SFTWRKEY-422: cualquier usuario con sesion */}
         <Route element={<ProtectedRoute />}>

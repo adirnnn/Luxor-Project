@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Navigate, Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
-import { H1, H3, PageTitle, Text } from "../components/ui/Typography";
-import { Button } from "../components/ui/Button";
+import { H3, PageTitle } from "../components/ui/Typography";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { PaymentForm } from "../validation/PaymentForm";
@@ -20,135 +18,79 @@ export default function PaymentPage() {
     const navigate = useNavigate();
 
     const [isProcessing, setIsProcessing] = useState(false);
-    const [checkoutError, setCheckoutError] = useState<CheckoutError | null>(null);
-    const [confirmedOrder, setConfirmedOrder] = useState<{
-        id: number;
-        total: number;
-        created_at: string;
-    } | null>(null);
-    const [confirmedPayment, setConfirmedPayment] = useState<{
-        brand: string;
-        last4: string;
-        authCode: string;
-    } | null>(null);
+    const [checkoutError, setCheckoutError] =
+        useState<CheckoutError | null>(null);
+
+    const [completed, setCompleted] = useState(false);
+    const sending = useRef(false);
 
     if (!isAuthenticated || !user) {
         return <Navigate to="/login" replace />;
     }
 
-    if (cart.length === 0 && !confirmedOrder) {
+    if (cart.length === 0 && !completed) {
         return <Navigate to="/cart" replace />;
     }
 
     const outOfStockItems = cart.filter(
-    (item) => item.product.stock !== undefined && item.quantity > item.product.stock
+        (item) =>
+        item.product.stock !== undefined &&
+        item.quantity > item.product.stock
     );
-    if (outOfStockItems.length > 0 && !confirmedOrder) {
-        return <Navigate to="/cart" replace />;
-    }
+
+    if (outOfStockItems.length > 0 && !completed) {
+    return <Navigate to="/cart" replace />;
+}
 
     const handlePaymentSubmit = async (values: PaymentFormState) => {
-        setCheckoutError(null);
-        setIsProcessing(true);
-        try {
+    if (sending.current) return;
+
+    sending.current = true;
+    setCheckoutError(null);
+    setIsProcessing(true);
+
+    try {
         const result = await processCheckout(Number(user.id), values);
-        trackPurchase(Number(result.order.total), cart.reduce((n, i) => n + i.quantity, 0));
+
+        trackPurchase(
+            Number(result.order.total),
+            cart.reduce((total, item) => total + item.quantity, 0)
+        );
+
+        setCompleted(true);
         clearCart();
-        setConfirmedOrder(result.order);
-        setConfirmedPayment(result.payment);
-        } catch (err) {
+
+        navigate(`/compra-confirmada/${result.order.id}`, {
+            replace: true,
+        });
+    } catch (err) {
         setCheckoutError(err as CheckoutError);
-        } finally {
+    } finally {
+        sending.current = false;
         setIsProcessing(false);
         }
     };
 
-//Pantalla de confirmación 
-    if (confirmedOrder) {
+  // Evita volver al carrito durante la animación de salida.
+    if (completed) {
         return (
         <MainLayout>
-            <PageMeta title="Pago" noindex />
-            <Container className="pb-24 md:pb-32 px-4 md:px-6">
-            <AnimatePresence>
-                <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="max-w-xl mx-auto text-center glass-card p-10 md:p-16 border-primary-gold/10 shadow-[0_30px_100px_rgba(0,0,0,0.5)]"
-                >
-                <div className="mx-auto mb-8 w-20 h-20 rounded-full bg-primary-gold/10 border border-primary-gold/30 flex items-center justify-center">
-                    <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="36"
-                    height="36"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-primary-gold"
-                    >
-                    <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                </div>
+            <PageMeta title="Compra registrada" noindex />
 
-                <H1 className="mb-4 text-3xl md:text-5xl font-heading font-black italic text-primary-gold uppercase tracking-tighter">
-                    Pago Exitoso
-                </H1>
+            <Container>
+            <p
+                role="status"
+                className="text-primary-champagne"
+            >
+                Compra registrada. Abriendo tu pedido…
+            </p>
 
-                <Text className="mb-10 text-primary-champagne/60 text-base md:text-lg not-italic">
-                    Gracias, {user.name}. Tu pedido fue registrado con éxito.
-                </Text>
-
-                <div className="flex flex-col gap-3 mb-10 text-sm">
-                    <div className="flex justify-between items-center px-2">
-                    <span className="text-primary-champagne/40 uppercase tracking-widest text-xs font-black">
-                        Número de pedido
-                    </span>
-                    <span className="text-primary-champagne font-black">#{confirmedOrder.id}</span>
-                    </div>
-                    <div className="h-px bg-white/5" />
-                    <div className="flex justify-between items-center px-2">
-                    <span className="text-primary-champagne/40 uppercase tracking-widest text-xs font-black">
-                        Total pagado
-                    </span>
-                    <span className="text-2xl font-black text-primary-gold tracking-tighter">
-                        {formatPrice(confirmedOrder.total)}
-                    </span>
-                    </div>
-                    {confirmedPayment && (
-                    <>
-                        <div className="h-px bg-white/5" />
-                        <div className="flex justify-between items-center px-2">
-                        <span className="text-primary-champagne/40 uppercase tracking-widest text-xs font-black">
-                            Método de pago
-                        </span>
-                        <span className="text-primary-champagne/70 font-bold text-sm">
-                            {confirmedPayment.brand} •••• {confirmedPayment.last4}
-                        </span>
-                        </div>
-                    </>
-                    )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/mi-cuenta">
-                    <Button className="w-full sm:w-auto px-10 py-4 font-black uppercase tracking-[0.3em] text-sm shadow-2xl">
-                        Ver mis compras
-                    </Button>
-                    </Link>
-                    <Link to="/perfumes">
-                    <Button
-                        variant="outline"
-                        className="w-full sm:w-auto px-10 py-4 font-black uppercase tracking-[0.3em] text-sm"
-                    >
-                        Seguir comprando
-                    </Button>
-                    </Link>
-                </div>
-                </motion.div>
-            </AnimatePresence>
+            <Link
+                className="text-primary-gold underline"
+                to="/mi-cuenta"
+            >
+                Ver mis compras
+            </Link>
             </Container>
         </MainLayout>
         );
