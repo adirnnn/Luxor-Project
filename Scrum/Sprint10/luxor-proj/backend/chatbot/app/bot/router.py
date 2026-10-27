@@ -37,11 +37,15 @@ service = ChatService(
 
 
 def ip_del_cliente(http: Request) -> str | None:
-    # SFTWRKEY-458: en Render el proxy agrega la ip real al final de X-Forwarded-For
-    # (el backend hace lo mismo con "trust proxy" 1). En local no viene y se usa la conexión.
-    reenviada = http.headers.get("x-forwarded-for")
-    if reenviada:
-        return reenviada.split(",")[-1].strip() or None
+    # SFTWRKEY-458: en Render las peticiones pasan por Cloudflare. X-Forwarded-For llega como
+    # "<ip del cliente>, <ip de Cloudflare>": la última cambia en cada petición y la primera la
+    # puede inventar el cliente. Cloudflare siempre pone la ip real en CF-Connecting-IP (y
+    # reemplaza la que mande el cliente); True-Client-IP queda de respaldo. En local no vienen y
+    # se usa la conexión.
+    for cabecera in ("cf-connecting-ip", "true-client-ip"):
+        ip = http.headers.get(cabecera, "").strip()
+        if ip:
+            return ip
     return http.client.host if http.client else None
 
 

@@ -266,20 +266,23 @@ async def test_cada_estado_tiene_su_mensaje(estado, texto):
 
 # ── Endpoint /chat ──────────────────────────────────────────────────────────
 
-def test_el_endpoint_manda_la_ip_real_del_cliente(monkeypatch):
+@pytest.mark.parametrize("cabeceras, ip", [
+    # así llega en Render: Cloudflare pone la ip real y X-Forwarded-For trae su propia ip al final
+    ({"True-Client-IP": "203.0.113.9", "CF-Connecting-IP": "203.0.113.9",
+      "X-Forwarded-For": "1.2.3.4, 104.22.17.40"}, "203.0.113.9"),
+    ({"CF-Connecting-IP": "203.0.113.10", "X-Forwarded-For": "203.0.113.10, 104.22.17.40"}, "203.0.113.10"),
+    # en local no hay Cloudflare: se usa la conexión, nunca X-Forwarded-For (lo puede inventar el cliente)
+    ({"X-Forwarded-For": "1.2.3.4"}, "testclient"),
+])
+def test_el_endpoint_manda_la_ip_real_del_cliente(monkeypatch, cabeceras, ip):
     servicio, _, _, pedidos = crear_servicio()
     monkeypatch.setattr(chat_router, "service", servicio)
 
-    # en Render el proxy agrega la ip real al final; la primera la puede inventar cualquiera
-    response = client.post(
-        "/chat",
-        json={"message": "pedido 15, ana@luxor.com"},
-        headers={"X-Forwarded-For": "1.2.3.4, 203.0.113.9"},
-    )
+    response = client.post("/chat", json={"message": "pedido 15, ana@luxor.com"}, headers=cabeceras)
 
     assert response.status_code == 200
     assert response.json()["response"].startswith("Tu pedido #15")
-    assert pedidos.consultas == [(15, "ana@luxor.com", "203.0.113.9")]
+    assert pedidos.consultas == [(15, "ana@luxor.com", ip)]
 
 
 # ── OrderService (llamada al backend) ───────────────────────────────────────
