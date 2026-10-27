@@ -30,6 +30,7 @@ import passwordResetRouter from './routes/passwordReset.js';
 import wishlistRouter from './routes/wishlist.js';
 import relatedRouter from './routes/related.js';
 import productImagesRouter from './routes/productImages.js';
+import orderLookupRouter from './routes/orderLookup.js';
 import helmet from 'helmet';
 import { requireInternalKey } from './services/internalKey.js';
 import { recordSecurityEvent, getSecurityAlerts, SECURITY_EVENT_TYPES } from './services/securityEvents.js';
@@ -1049,6 +1050,9 @@ app.use(relatedRouter);
 
 // SFTWRKEY-457: fotos de productos subidas desde el panel
 app.use(productImagesRouter);
+
+// SFTWRKEY-458: el chatbot consulta el estado de un pedido (número + correo)
+app.use(orderLookupRouter);
 
 // Checkout de invitado, login con Google y alertas del admin. Va al final porque su
 // middleware prepara las tablas en cada petición que entra al router: así solo lo

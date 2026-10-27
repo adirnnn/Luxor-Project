@@ -32,6 +32,27 @@ describe("Chatbot", () => {
     expect(await screen.findByText("Te recomiendo Khamrah.")).toBeInTheDocument();
   });
 
+  // SFTWRKEY-458
+  it("tiene una sugerencia para consultar un pedido", async () => {
+    enviar.mockResolvedValue({ response: "Con gusto reviso tu pedido." });
+    const user = await abrir();
+    await user.click(screen.getByRole("button", { name: "¿Dónde está mi pedido?" }));
+
+    expect(enviar).toHaveBeenCalledWith({ message: "¿Dónde está mi pedido?", history: [] });
+  });
+
+  it("al llegar una respuesta baja la conversación hasta el último mensaje", async () => {
+    enviar.mockResolvedValue({ response: "Tu pedido #15 ya fue enviado y va en camino." });
+    const user = await abrir();
+    const lista = screen.getByText(/en qué te puedo ayudar/).closest("div.overflow-y-auto") as HTMLDivElement;
+    Object.defineProperty(lista, "scrollHeight", { configurable: true, value: 900 });
+
+    await user.click(screen.getByRole("button", { name: "¿Dónde está mi pedido?" }));
+    await screen.findByText("Tu pedido #15 ya fue enviado y va en camino.");
+
+    expect(lista.scrollTop).toBe(900);
+  });
+
   it("envía el historial de la conversación en los mensajes siguientes", async () => {
     enviar
       .mockResolvedValueOnce({ response: "Sí, tenemos Lattafa Khamrah." })

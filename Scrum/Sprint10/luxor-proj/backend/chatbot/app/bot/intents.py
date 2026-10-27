@@ -12,6 +12,7 @@ class Intencion(str, Enum):
     DESPEDIDA = "despedida"
     AYUDA = "ayuda"
     INFO_TIENDA = "info_tienda"
+    PEDIDO = "pedido"
     PRODUCTO = "producto"
 
 
@@ -36,6 +37,17 @@ INFO_TIENDA = [
     "devolucion", "devoluciones", "cambio", "cambios", "garantia",
     "originales", "original", "autenticos", "autentico", "autenticidad",
 ]
+
+# SFTWRKEY-458: preguntas por el estado de un pedido. "quiero hacer un pedido" no entra: eso es comprar.
+PEDIDO = [
+    "mi pedido", "mis pedidos", "mi orden", "mis ordenes", "numero de pedido", "numero de orden",
+    "estado del pedido", "estado de mi", "rastrear", "rastreo", "seguimiento",
+    "donde esta mi", "cuando llega mi", "ya enviaron mi", "ya salio mi",
+]
+CORREO_REGEX = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# primero un número que venga después de "pedido", "orden", "#" o "número"; si no, cualquier número
+NUMERO_CON_PALABRA_REGEX = re.compile(r"(?:pedido|orden|#|n[uú]mero|no\.)\s*(?:#|n[uú]mero|no\.)?\s*(\d{1,9})\b", re.IGNORECASE)
+NUMERO_REGEX = re.compile(r"\b(\d{1,9})\b")
 
 # Los mensajes cortos se tratan como conversación; los largos casi siempre traen una consulta.
 MAX_PALABRAS_CORTESIA = 6
@@ -93,6 +105,9 @@ def detectar_intencion(mensaje: str) -> Intencion:
 
     if saludo and not resto:
         return Intencion.SALUDO
+    # antes que las cortesías: "gracias, ¿dónde está mi pedido?" es una consulta de pedido
+    if _contiene(texto, PEDIDO) or re.search(r"\b(pedido|orden) \d+\b", texto):
+        return Intencion.PEDIDO
     if palabras <= MAX_PALABRAS_CORTESIA:
         if _contiene(texto, AGRADECIMIENTOS):
             return Intencion.AGRADECIMIENTO
@@ -107,3 +122,20 @@ def detectar_intencion(mensaje: str) -> Intencion:
 
 def plantilla_para(intencion: Intencion) -> str:
     return random.choice(PLANTILLAS[intencion])
+
+
+def extraer_datos_pedido(mensaje: str) -> tuple[int | None, str | None]:
+    """SFTWRKEY-458: devuelve (número de pedido, correo) si vienen en el mensaje."""
+    correo = CORREO_REGEX.search(mensaje)
+    # el correo se quita antes de buscar el número (ana15@... no es el pedido 15)
+    sin_correo = CORREO_REGEX.sub(" ", mensaje)
+    numero = NUMERO_CON_PALABRA_REGEX.search(sin_correo) or NUMERO_REGEX.search(sin_correo)
+    return (
+        int(numero.group(1)) if numero else None,
+        correo.group(0).lower() if correo else None,
+    )
+
+
+def ocultar_correos(texto: str) -> str:
+    """Para el registro de consultas: el correo del cliente no se guarda."""
+    return CORREO_REGEX.sub("[correo]", texto)

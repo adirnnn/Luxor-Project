@@ -14,6 +14,8 @@ const defaults = {
   PAYMENT_GATEWAY_LATENCY_MS: '0',
   ADMIN_EMAIL: 'admin@luxor.com',
   ADMIN_PASSWORD: 'admin-pruebas-integracion',
+  // SFTWRKEY-458: clave interna del chatbot (solo para pruebas)
+  CHATBOT_INTERNAL_KEY: 'clave-interna-integracion',
 };
 
 for (const [key, value] of Object.entries(defaults)) {

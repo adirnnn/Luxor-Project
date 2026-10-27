@@ -1,4 +1,6 @@
 import json
+import logging
+from datetime import datetime, timedelta, timezone
 from app.bot.models import ChatMessage
 from app.bot.models import ChatRequest
 from app.bot.models import ChatResponse
@@ -7,8 +9,13 @@ from app.llm.base import LLMProvider
 from app.services.product_service import ProductService
 from difflib import get_close_matches
 from app.services.chat_log_service import ChatLogService
-from app.bot.intents import Intencion, detectar_intencion, plantilla_para, separar_saludo
+from app.bot.intents import (
+    Intencion, detectar_intencion, extraer_datos_pedido, ocultar_correos, plantilla_para, separar_saludo,
+)
 from app.bot.store_info import CONTACTO_SUGERIDO, STORE_INFO
+from app.services.order_service import DemasiadosIntentos, OrderService
+
+logger = logging.getLogger(__name__)
 
 # SFTWRKEY-393: regla común a todos los prompts que ven texto del usuario.
 REGLA_SEGURIDAD = (
@@ -21,6 +28,46 @@ REGLA_SEGURIDAD = (
 # Cuántos productos se describen como máximo en el prompt de conversación general.
 MAX_PRODUCTOS_EN_PROMPT = 60
 
+# SFTWRKEY-458: respuestas de la consulta de pedidos. Son fijas (sin LLM): así no se puede
+# usar el chat para sacar datos con prompt injection y responden al instante.
+# "número de pedido" aparece en las preguntas: así se sabe que el cliente está respondiendo.
+MARCA_PREGUNTA_PEDIDO = "número de pedido"
+PEDIR_DATOS = (
+    "Con gusto reviso tu pedido. Escríbeme tu número de pedido y el correo con el que hiciste "
+    "la compra, por ejemplo: 15, ana@correo.com. El número está en tu correo de confirmación "
+    "y en Mi cuenta."
+)
+FALTA_CORREO = (
+    "Me falta el correo con el que hiciste la compra. Escríbelo junto con tu número de pedido "
+    "y lo reviso."
+)
+FALTA_NUMERO = (
+    "Me falta tu número de pedido. Lo encuentras en tu correo de confirmación o en Mi cuenta."
+)
+PEDIDO_NO_ENCONTRADO = (
+    "No encontré un pedido con ese número de pedido y ese correo. Revisa que sean los de tu "
+    "correo de confirmación e intenta de nuevo, o escríbenos por WhatsApp."
+)
+DEMASIADOS_INTENTOS = (
+    "Hiciste varias consultas seguidas. Espera unos minutos e intenta de nuevo, "
+    "o escríbenos por WhatsApp y te ayudamos."
+)
+PEDIDO_SIN_SERVICIO = (
+    "No pude consultar tu pedido en este momento. Intenta de nuevo en unos minutos "
+    "o escríbenos por WhatsApp."
+)
+# mismos estados que backend/services/orderStatus.js
+ESTADOS_PEDIDO = {
+    "pagado": "Tu pedido #{id} está pagado: ya recibimos tu pago y pronto empezaremos a prepararlo.",
+    "en_preparacion": "Tu pedido #{id} está en preparación: estamos alistando tus perfumes.",
+    "enviado": "Tu pedido #{id} ya fue enviado y va en camino.",
+    "entregado": "Tu pedido #{id} ya fue entregado. ¡Esperamos que disfrutes tus perfumes!",
+    "cancelado": "Tu pedido #{id} fue cancelado. Si tienes dudas sobre la cancelación, escríbenos por WhatsApp.",
+}
+ESTADO_DESCONOCIDO = "Tu pedido #{id} está en revisión."
+# Guatemala no cambia de horario, siempre es UTC-6
+ZONA_GUATEMALA = timezone(timedelta(hours=-6))
+
 
 class ChatService:
 
@@ -28,11 +75,13 @@ class ChatService:
         self,
         provider: LLMProvider,
         product_service: ProductService,
-        chat_log_service: ChatLogService
+        chat_log_service: ChatLogService,
+        order_service: OrderService | None = None
     ):
         self.provider = provider
         self.product_service = product_service
         self.chat_log_service = chat_log_service
+        self.order_service = order_service or OrderService()
 
 
     async def extraer_nombre_perfume(
@@ -81,13 +130,21 @@ class ChatService:
 
     async def generar_respuesta(
         self,
-        request: ChatRequest
+        request: ChatRequest,
+        ip_cliente: str | None = None
     ) -> ChatResponse:
 
         # SFTWRKEY-393: primero la intención. Saludos, gracias, despedidas y ayuda se
         # responden con plantilla (sin LLM); las dudas de la tienda, con su información.
         saludo_inicial, _ = separar_saludo(request.message)
         intencion = detectar_intencion(request.message)
+
+        # SFTWRKEY-458: consulta del estado de un pedido
+        if intencion == Intencion.PEDIDO or self._es_consulta_de_pedido(request):
+            return await self._crear_respuesta(
+                request.message,
+                await self.responder_pedido(request, ip_cliente)
+            )
 
         if intencion in (
             Intencion.SALUDO,
@@ -455,6 +512,71 @@ class ChatService:
 
         return response.strip()
 
+    def _mensajes_despues_de_pedir_datos(self, request: ChatRequest) -> list[str] | None:
+        """Lo que escribió el cliente mientras el bot le pedía los datos del pedido (en orden).
+        None si la última respuesta del bot no fue una pregunta del pedido."""
+        mensajes: list[str] = []
+        pidio_datos = False
+        # se recorre hacia atrás mientras el bot siga pidiendo datos ("me falta el correo", etc.)
+        for mensaje in reversed(request.history):
+            if mensaje.role == MessageRole.ASSISTANT:
+                if MARCA_PREGUNTA_PEDIDO not in mensaje.content:
+                    break
+                pidio_datos = True
+            else:
+                mensajes.append(mensaje.content)
+        return list(reversed(mensajes)) if pidio_datos else None
+
+    def _es_consulta_de_pedido(self, request: ChatRequest) -> bool:
+        numero, correo = extraer_datos_pedido(request.message)
+        # "15, ana@correo.com" sin decir "pedido": si trae los dos datos, es una consulta
+        if numero and correo:
+            return True
+        # o el cliente está respondiendo a la pregunta del bot
+        return bool((numero or correo) and self._mensajes_despues_de_pedir_datos(request) is not None)
+
+    async def responder_pedido(self, request: ChatRequest, ip_cliente: str | None) -> str:
+        numero, correo = extraer_datos_pedido(request.message)
+
+        # si falta un dato, se busca en lo que el cliente escribió después de que se lo pidieron
+        for anterior in reversed(self._mensajes_despues_de_pedir_datos(request) or []):
+            numero_anterior, correo_anterior = extraer_datos_pedido(anterior)
+            numero = numero or numero_anterior
+            correo = correo or correo_anterior
+
+        if not numero and not correo:
+            return PEDIR_DATOS
+        if not correo:
+            return FALTA_CORREO
+        if not numero:
+            return FALTA_NUMERO
+
+        try:
+            pedido = await self.order_service.consultar_pedido(numero, correo, ip_cliente)
+        except DemasiadosIntentos:
+            return DEMASIADOS_INTENTOS
+        except Exception as err:
+            logger.error("No se pudo consultar el pedido: %s", type(err).__name__)
+            return PEDIDO_SIN_SERVICIO
+
+        if pedido is None:
+            return PEDIDO_NO_ENCONTRADO
+
+        respuesta = ESTADOS_PEDIDO.get(pedido["status"], ESTADO_DESCONOCIDO).format(id=pedido["id"])
+        fecha = self._fecha(pedido.get("updated_at") or pedido.get("created_at"))
+        if fecha:
+            respuesta += f" Última actualización: {fecha}."
+        return respuesta
+
+    def _fecha(self, valor: str | None) -> str | None:
+        try:
+            fecha = datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if fecha.tzinfo is None:
+            fecha = fecha.replace(tzinfo=timezone.utc)
+        return fecha.astimezone(ZONA_GUATEMALA).strftime("%d/%m/%Y")
+
     def _historial(self, request: ChatRequest) -> list[ChatMessage]:
         # El historial ya viene validado (solo user y assistant, ver ChatRequest).
         return list(request.history)
@@ -523,9 +645,10 @@ class ChatService:
         respuesta: str
     ) -> ChatResponse:
 
+        # SFTWRKEY-458: el correo del cliente no se guarda en el registro de consultas
         await self.chat_log_service.registrar_consulta(
-            consulta,
-            respuesta
+            ocultar_correos(consulta),
+            ocultar_correos(respuesta)
         )
 
         return ChatResponse(

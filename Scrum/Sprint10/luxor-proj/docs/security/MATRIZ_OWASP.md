@@ -24,17 +24,17 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | Categoría | Filas | Pasa | Falla | Pendiente |
 |---|---|---|---|---|
-| A01 Pérdida de control de acceso | 7 | 7 | 0 | 0 |
-| A02 Configuración de seguridad incorrecta | 10 | 10 | 0 | 0 |
-| A03 Cadena de suministro de software | 3 | 3 | 0 | 0 |
+| A01 Pérdida de control de acceso | 9 | 9 | 0 | 0 |
+| A02 Configuración de seguridad incorrecta | 11 | 11 | 0 | 0 |
+| A03 Cadena de suministro de software | 4 | 4 | 0 | 0 |
 | A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
 | A05 Inyección | 7 | 7 | 0 | 0 |
 | A06 Diseño inseguro | 4 | 4 | 0 | 0 |
-| A07 Fallas de autenticación | 8 | 5 | 3 | 0 |
+| A07 Fallas de autenticación | 8 | 6 | 2 | 0 |
 | A08 Integridad de software y datos | 3 | 3 | 0 | 0 |
-| A09 Registro y alertas | 2 | 2 | 0 | 0 |
+| A09 Registro y alertas | 3 | 3 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 3 | 0 | 0 |
-| **Total** | **50** | **47** | **3** | **0** |
+| **Total** | **55** | **53** | **2** | **0** |
 
 **Riesgos abiertos (Falla + Abierto) por severidad:** 0 Críticas · 0 Altas · 2 Medias · 0 Bajas (SEC-33, SEC-50). SEC-35 está en `Falla` pero como riesgo `Aceptado`.
 
@@ -96,6 +96,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-52 | A09 | Backend | `services/orderEmails.js`, `server.js`, `commerce.js`, `routes/orders.js` | Un fallo del proveedor de correo hace fallar la compra o el cambio de estado, o el log expone datos personales | El envío corre después del COMMIT y nunca lanza error; el log solo trae el número de pedido y el mensaje de error, sin correo ni nombre; sin `RESEND_API_KEY` solo se avisa en el log (`orderEmails.test.js`) | Pasa | PA | Baja | SFTWRKEY-447 / 448 | Verificado |
 | SEC-53 | A01 | Backend | `services/orderEmails.js` | El correo del pedido llega a otra persona | El destinatario sale del pedido en la base (cuenta o `guest_receipts`), nunca del cuerpo de la petición; la compra de invitado repetida (misma clave de idempotencia) no reenvía el correo (`orderEmails.test.js`) | Pasa | PA | Media | SFTWRKEY-447 / 448 | Verificado |
 | SEC-54 | A02 | Frontend | `utils/analytics.ts`, `main.tsx`, `PrivacyPage.tsx` | La analítica guarda datos personales o instala cookies de rastreo | Vercel Web Analytics no usa cookies; los eventos solo mandan id y nombre del perfume, cantidad y monto, nunca nombre, correo, dirección ni tarjeta (`analytics.test.ts`); la política de privacidad lo declara | Pasa | PA | Baja | SFTWRKEY-455 | Verificado |
+| SEC-55 | A01 | Backend / Chatbot | `POST /internal/orders/lookup` (`routes/orderLookup.js`), `app/bot/service.py` | El chatbot da el estado de pedidos ajenos, o se usa para adivinar números de pedido o correos | Solo responde si el número y el correo de la compra coinciden (cuenta o invitado); si no, el mismo 404 sin detalles que un pedido inexistente, y solo devuelve estado y fechas (sin nombre, dirección, productos ni total). Solo lo llama el chatbot con `X-Internal-Key` (sin clave → 401). Límites: 5 consultas por cliente cada 15 min (bloqueo → evento `RATE_LIMITED`), 5 fallos por número y 10 por correo por hora aunque cambie la IP. La respuesta es una plantilla fija (sin LLM, no se puede sacar con prompt injection) y el correo no se guarda en el registro de consultas (`orderLookup.test.js`, `orderLookup.integration.js`, `tests/test_consulta_pedido.py`) | Pasa | PA | Media | SFTWRKEY-458 | Verificado |
 
 ## Escaneo dinámico
 
