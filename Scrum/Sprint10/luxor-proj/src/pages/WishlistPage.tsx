@@ -71,6 +71,8 @@ export default function WishlistPage() {
                     price={product.price}
                     image={product.image}
                     stock={product.stock}
+                    ratingAvg={product.rating_avg}
+                    ratingCount={product.rating_count}
                     description={product.notes?.corazon}
                   />
                 ))}

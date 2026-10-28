@@ -5,6 +5,7 @@ import { useCart } from "../../context/CartContext";
 import clsx from "clsx";
 import { WishlistButton } from "../wishlist/WishlistButton";
 import { formatPrice } from "../../utils/formatPrice";
+import { RatingSummary } from "../reviews/StarRating";
 
 export type ProductCardProps = {
   id: string;
@@ -16,6 +17,9 @@ export type ProductCardProps = {
   className?: string;
   // SFTWRKEY-457: las primeras tarjetas del catálogo se ven al abrir la página, no se cargan diferidas
   priority?: boolean;
+  // SFTWRKEY-431: promedio y cantidad de reseñas visibles
+  ratingAvg?: number | string | null;
+  ratingCount?: number;
 };
 
 export const ProductCard: FC<ProductCardProps> = ({
@@ -27,6 +31,8 @@ export const ProductCard: FC<ProductCardProps> = ({
   stock,
   className,
   priority = false,
+  ratingAvg,
+  ratingCount,
 }) => {
   const { addToCart } = useCart();
 
@@ -83,6 +89,9 @@ export const ProductCard: FC<ProductCardProps> = ({
               {formatPrice(price)}
             </span>
           </div>
+
+          {/* SFTWRKEY-431: sin reseñas no se muestra nada */}
+          <RatingSummary average={ratingAvg} count={ratingCount} size="sm" hideWhenEmpty />
 
           {description && (
             <Text className="text-sm text-primary-champagne/40 line-clamp-1 font-normal italic">

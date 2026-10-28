@@ -432,6 +432,43 @@ const seedUsers = async () => {
     }
     console.log(`Catalogo enero 2026: ${agregados} insertados, ${catalogoEnero2026.length - agregados} ya existian`);
 
+    // SFTWRKEY-431: reseñas. Solo de un pedido entregado del cliente, una por perfume de cada pedido.
+    // El largo del comentario tiene que ser igual a COMMENT_MAX_LENGTH de routes/reviews.js.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        product_id VARCHAR(100) NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+        comment VARCHAR(500),
+        hidden BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (order_id, product_id)
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS reviews_product_id_idx ON reviews (product_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS reviews_user_id_idx ON reviews (user_id)`);
+
+    // promedio y cantidad de reseñas visibles guardados en el producto: así la tarjeta y la ficha
+    // los reciben en el mismo SELECT p.* de siempre. routes/reviews.js los recalcula al publicar u ocultar.
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS rating_avg NUMERIC(3, 2)`);
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS rating_count INTEGER NOT NULL DEFAULT 0`);
+    // se recalculan todos por si alguna reseña se cambió directo en la base
+    await pool.query(`
+      UPDATE products p
+      SET rating_count = COALESCE(r.total, 0), rating_avg = r.promedio
+      FROM products base
+      LEFT JOIN (
+        SELECT product_id, COUNT(*)::int AS total, ROUND(AVG(rating), 2) AS promedio
+        FROM reviews
+        WHERE hidden = FALSE
+        GROUP BY product_id
+      ) r ON r.product_id = base.id
+      WHERE p.id = base.id
+    `);
+    console.log('Tabla reviews y promedio de calificaciones listos');
+
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA
     // await pool.query(`DELETE FROM users;`);
     // SFTWRKEY-407: el administrador sale de ADMIN_EMAIL y ADMIN_PASSWORD, ya no esta fijo aqui.
