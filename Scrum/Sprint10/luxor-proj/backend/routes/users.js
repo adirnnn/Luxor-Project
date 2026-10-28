@@ -5,6 +5,7 @@ import { authenticate, authorizeSelfOrRoles, requireRoles } from '../services/au
 import { rateLimit } from '../services/rateLimit.js';
 import { onRateLimitBlock } from '../services/securityAudit.js';
 import { validatePassword } from '../services/passwordPolicy.js';
+import { deliveryView } from '../services/shipping.js';
 
 const router = Router();
 const SALT_ROUNDS = 12;
@@ -29,7 +30,7 @@ router.get("/user/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"
 router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   try {
     const ordersResult = await pool.query(
-      `SELECT id, total, status, created_at
+      `SELECT id, total, status, created_at, shipping_cost, delivery_method, delivery_address
        FROM orders
        WHERE user_id = $1
        ORDER BY created_at DESC`,
@@ -61,8 +62,11 @@ router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", 
       history = historyResult.rows;
     }
 
-    const orders = ordersResult.rows.map((order) => ({
+    // SFTWRKEY-449: envío y forma de entrega de cada pedido
+    const orders = ordersResult.rows.map(({ shipping_cost, delivery_method, delivery_address, ...order }) => ({
       ...order,
+      shipping: Number(shipping_cost ?? 0),
+      delivery: deliveryView({ delivery_method, delivery_address }),
       items: items
         .filter((item) => item.order_id === order.id)
         .map(({ order_id, ...item }) => ({ ...item, name: item.name ?? item.product_id })),

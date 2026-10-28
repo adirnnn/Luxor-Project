@@ -7,6 +7,7 @@ import {
     COUNTRY_OPTIONS,
     type PaymentFormState,
 } from "./usePaymentForm";
+import { DEFAULT_SHIPPING, type DeliveryMethod, type PickupStore } from "../utils/shipping";
 
 type FieldProps = {
     id: string;
@@ -224,10 +225,29 @@ const ErrorPopup = ({ messages, onClose }: ErrorPopupProps) => (
 type PaymentFormProps = {
     isProcessing: boolean;
     onValidSubmit: (values: PaymentFormState) => void;
+    // SFTWRKEY-449: el resumen de la página recalcula el envío según la forma de entrega
+    onDeliveryMethodChange?: (method: DeliveryMethod) => void;
+    stores?: PickupStore[];
 };
 
-export const PaymentForm = ({ isProcessing, onValidSubmit }: PaymentFormProps) => {
+const DELIVERY_OPTIONS: { value: DeliveryMethod; title: string; detail: string }[] = [
+    { value: "envio", title: "Envío a domicilio", detail: "A todo el país en 24 a 48 horas" },
+    { value: "recoger", title: "Recoger en tienda", detail: "Gratis, en cualquiera de nuestros locales" },
+];
+
+export const PaymentForm = ({
+    isProcessing,
+    onValidSubmit,
+    onDeliveryMethodChange,
+    stores = DEFAULT_SHIPPING.stores,
+}: PaymentFormProps) => {
     const { values, errors, handleChange, handleSubmit } = usePaymentForm();
+    const recoger = values.deliveryMethod === "recoger";
+
+    const elegirEntrega = (method: DeliveryMethod) => {
+        handleChange("deliveryMethod", method);
+        onDeliveryMethodChange?.(method);
+    };
     const [popupMessages, setPopupMessages] = useState<string[]>([]);
 
     const onSubmit = (e: React.FormEvent) => {
@@ -241,13 +261,55 @@ export const PaymentForm = ({ isProcessing, onValidSubmit }: PaymentFormProps) =
     return (
         <>
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+            {/* SFTWRKEY-449: forma de entrega */}
+            <fieldset className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <legend className="mb-2 text-xs font-black tracking-[0.2em] uppercase text-primary-gold">Entrega</legend>
+                {DELIVERY_OPTIONS.map((option) => (
+                    <div
+                        key={option.value}
+                        className={clsx(
+                            "flex flex-col gap-1 rounded-2xl border p-4 transition-all duration-300",
+                            values.deliveryMethod === option.value
+                                ? "border-primary-gold bg-primary-gold/10"
+                                : "border-white/10 hover:border-primary-gold/40"
+                        )}
+                    >
+                        <label className="flex cursor-pointer items-center gap-2 text-sm font-bold text-primary-champagne">
+                            <input
+                                type="radio"
+                                name="deliveryMethod"
+                                value={option.value}
+                                checked={values.deliveryMethod === option.value}
+                                onChange={() => elegirEntrega(option.value)}
+                                aria-describedby={`entrega-${option.value}`}
+                                className="accent-primary-gold"
+                            />
+                            {option.title}
+                        </label>
+                        <span id={`entrega-${option.value}`} className="text-xs text-primary-champagne/50">{option.detail}</span>
+                    </div>
+                ))}
+            </fieldset>
+
             {/* SFTWRKEY-445: la tarjeta se ingresa en la página segura de Recurrente, no aquí */}
             <p className="text-sm leading-relaxed text-primary-champagne/60">
-                Ingresa tu dirección de envío. Después te llevamos a la página segura de{" "}
+                {recoger ? "Elige el local donde vas a recoger tu pedido." : "Ingresa tu dirección de envío."} Después te llevamos a la página segura de{" "}
                 <span className="text-primary-gold font-bold">Recurrente</span> para pagar con tarjeta; tus datos de
                 tarjeta nunca pasan por nuestra tienda.
             </p>
 
+            {recoger ? (
+            <FormSelect
+                id="pay-store"
+                label="Local"
+                value={values.pickupStore}
+                error={errors.pickupStore}
+                placeholder="Selecciona un local"
+                options={stores.map((store) => ({ value: store.id, label: `${store.name}: ${store.address}` }))}
+                onChange={(v) => handleChange("pickupStore", v)}
+            />
+            ) : (
+            <>
             <FormField
             id="pay-address"
             label="Dirección de envío"
@@ -289,6 +351,8 @@ export const PaymentForm = ({ isProcessing, onValidSubmit }: PaymentFormProps) =
             options={COUNTRY_OPTIONS.map((c) => ({ value: c, label: c }))}
             onChange={(v) => handleChange("country", v)}
             />
+            </>
+            )}
 
             <button
             type="submit"

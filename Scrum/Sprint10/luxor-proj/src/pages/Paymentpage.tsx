@@ -10,6 +10,7 @@ import type { PaymentFormState } from "../validation/usePaymentForm";
 import { startCheckout, type CheckoutError } from "../services/checkoutService";
 import { PageMeta } from "../components/seo/PageMeta";
 import { formatPrice } from "../utils/formatPrice";
+import { shippingFor, shippingLabel, useShippingOptions, type DeliveryMethod } from "../utils/shipping";
 
 export default function PaymentPage() {
     const { cart, totalPrice } = useCart();
@@ -21,6 +22,10 @@ export default function PaymentPage() {
         useState<CheckoutError | null>(null);
 
     const [completed, setCompleted] = useState(false);
+    // SFTWRKEY-449: el resumen muestra el envío según la forma de entrega elegida
+    const shippingOptions = useShippingOptions();
+    const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("envio");
+    const shipping = shippingFor(totalPrice, deliveryMethod, shippingOptions);
     const sending = useRef(false);
 
     if (!isAuthenticated || !user) {
@@ -122,7 +127,12 @@ export default function PaymentPage() {
                     </div>
                 )}
 
-                <PaymentForm isProcessing={isProcessing} onValidSubmit={handlePaymentSubmit} />
+                <PaymentForm
+                    isProcessing={isProcessing}
+                    onValidSubmit={handlePaymentSubmit}
+                    onDeliveryMethodChange={setDeliveryMethod}
+                    stores={shippingOptions.stores}
+                />
                 </div>
             </div>
 
@@ -168,8 +178,8 @@ export default function PaymentPage() {
                     <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                    <span className="text-primary-champagne/40">Envío</span>
-                    <span className="text-primary-champagne/70 font-bold">Gratis</span>
+                    <span className="text-primary-champagne/40">{deliveryMethod === "recoger" ? "Recoger en tienda" : "Envío"}</span>
+                    <span className="text-primary-champagne/70 font-bold">{shippingLabel(shipping)}</span>
                     </div>
                 </div>
 
@@ -180,7 +190,7 @@ export default function PaymentPage() {
                     Total
                     </span>
                     <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    {formatPrice(totalPrice)}
+                    {formatPrice(totalPrice + shipping)}
                     </span>
                 </div>
                 </div>

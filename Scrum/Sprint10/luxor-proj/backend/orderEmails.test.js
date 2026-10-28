@@ -128,3 +128,29 @@ test('pedido sin correo no envía y avisa', async () => {
   assert.deepEqual(result, { sent: false });
   assert.equal(logger.calls.warn.length, 1);
 });
+
+// SFTWRKEY-449
+test('el correo muestra el envío y a dónde se entrega, con la dirección escapada', () => {
+  const { text, html } = buildOrderEmail({
+    ...baseOrder,
+    status: 'pagado',
+    total: 815,
+    shipping: 35,
+    delivery: { method: 'envio', address: { billingAddress: '<b>Zona 10</b>', city: 'Guatemala', postalCode: '01010', country: 'Guatemala' } },
+  });
+  assert.match(text, /Envío: Q35\.00/);
+  assert.match(text, /Envío a <b>Zona 10<\/b>, Guatemala/);
+  assert.match(html, /&lt;b&gt;Zona 10&lt;\/b&gt;/);
+  assert.doesNotMatch(html, /<b>Zona 10<\/b>/);
+});
+
+test('recoger en tienda sale como gratis con el nombre del local', () => {
+  const { text } = buildOrderEmail({
+    ...baseOrder,
+    status: 'pagado',
+    shipping: 0,
+    delivery: { method: 'recoger', store: { name: 'Joyería Luxor', address: 'C.C. San Isidro, Zona 16' } },
+  });
+  assert.match(text, /Recoger en tienda: Gratis/);
+  assert.match(text, /Recoger en Joyería Luxor, C\.C\. San Isidro, Zona 16/);
+});

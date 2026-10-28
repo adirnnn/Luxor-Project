@@ -70,15 +70,33 @@ const escapeHtml = (value) =>
 
 const money = (value) => `Q${Number(value).toFixed(2)}`;
 
-export function buildOrderEmail({ status, orderId, customerName, items = [], total, accountUrl }) {
+// SFTWRKEY-449: texto de la entrega (dirección o local para recoger)
+const deliveryText = (delivery) => {
+  if (delivery?.method === 'recoger' && delivery.store) {
+    return `Recoger en ${delivery.store.name}, ${delivery.store.address}`;
+  }
+  if (delivery?.method === 'envio' && delivery.address) {
+    const a = delivery.address;
+    return `Envío a ${a.billingAddress}, ${a.city}, ${a.postalCode}, ${a.country}`;
+  }
+  return null;
+};
+
+export function buildOrderEmail({ status, orderId, customerName, items = [], total, shipping = 0, delivery = null, accountUrl }) {
   const copy = ORDER_COPY[status];
   if (!copy) throw new Error(`Estado sin correo: ${status}`);
 
   const hello = customerName ? `Hola ${customerName},` : 'Hola,';
   const lines = items.map((i) => `- ${i.name} x${i.quantity}: ${money(Number(i.unit_price) * i.quantity)}`);
+  const entrega = deliveryText(delivery);
+  const envioLabel = delivery?.method === 'recoger' ? 'Recoger en tienda' : 'Envío';
+  const envioMonto = shipping ? money(shipping) : 'Gratis';
+  // el envío aparece aunque sea gratis, para que se entienda el total
+  if (delivery) lines.push(`- ${envioLabel}: ${envioMonto}`);
 
   const text =
     `${hello}\n\n${copy.intro}\n\nPedido #${orderId}\n${lines.join('\n')}\n\nTotal: ${money(total)}\n\n` +
+    (entrega ? `${entrega}\n\n` : '') +
     (accountUrl ? `Mira tu pedido en Mi cuenta: ${accountUrl}\n\n` : '') +
     `Perfumería Victoria`;
 
@@ -88,7 +106,10 @@ export function buildOrderEmail({ status, orderId, customerName, items = [], tot
         `<tr><td style="padding:6px 0">${escapeHtml(i.name)} × ${i.quantity}</td>` +
         `<td style="padding:6px 0;text-align:right">${money(Number(i.unit_price) * i.quantity)}</td></tr>`
     )
-    .join('');
+    .join('') +
+    (delivery
+      ? `<tr><td style="padding:6px 0">${envioLabel}</td><td style="padding:6px 0;text-align:right">${envioMonto}</td></tr>`
+      : '');
 
   const html =
     `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0f0d0a;color:#f3e9d2;padding:28px">` +
@@ -99,6 +120,7 @@ export function buildOrderEmail({ status, orderId, customerName, items = [], tot
     `<table style="width:100%;border-collapse:collapse;color:#f3e9d2">${rows}` +
     `<tr><td style="padding-top:10px;border-top:1px solid #d4af37"><strong>Total</strong></td>` +
     `<td style="padding-top:10px;border-top:1px solid #d4af37;text-align:right"><strong>${money(total)}</strong></td></tr></table>` +
+    (entrega ? `<p style="margin-top:16px">${escapeHtml(entrega)}</p>` : '') +
     (accountUrl
       ? `<p style="margin-top:20px"><a href="${escapeHtml(accountUrl)}" style="color:#d4af37">Ver mi pedido en Mi cuenta</a></p>`
       : '') +

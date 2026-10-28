@@ -1,3 +1,5 @@
+import { deliveryView } from './shipping.js';
+
 export function createOrderConfirmationHandler({ pool }) {
     return async (req, res) => {
         res.set('Cache-Control', 'no-store');
@@ -17,7 +19,7 @@ export function createOrderConfirmationHandler({ pool }) {
 
         try {
         const result = await pool.query(
-            `SELECT id, total, status, created_at
+            `SELECT id, total, status, created_at, shipping_cost, delivery_method, delivery_address
             FROM orders
             WHERE id = $1 AND user_id = $2`,
             [id, req.user.id]
@@ -62,6 +64,9 @@ export function createOrderConfirmationHandler({ pool }) {
             total: Number(order.total),
             status: order.status,
             created_at: order.created_at,
+            // SFTWRKEY-449: envío y forma de entrega
+            shipping: Number(order.shipping_cost ?? 0),
+            delivery: deliveryView(order),
             items: itemsResult.rows.map((item) => ({
                 product_id: item.product_id,
                 name: item.name ?? item.product_id,

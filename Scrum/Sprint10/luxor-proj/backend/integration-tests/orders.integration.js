@@ -131,7 +131,9 @@ test('GET /admin/orders/:id trae productos, historial y los estados permitidos',
   assert.equal(res.status, 200);
   const { order } = res.body;
   assert.equal(order.status, 'pagado');
-  assert.equal(order.total, 240);
+  // SFTWRKEY-449: Q240 en productos + Q35 de envío
+  assert.equal(order.total, 275);
+  assert.equal(order.shipping, 35);
   assert.deepEqual(order.items.map((i) => [i.product_id, i.quantity, i.unit_price, i.subtotal]), [[perfume.id, 2, 120, 240]]);
   assert.deepEqual(order.history.map((h) => h.to_status), ['pagado']);
   assert.deepEqual(order.allowedNextStatuses, ['en_preparacion', 'cancelado']);

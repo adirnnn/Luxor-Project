@@ -5,6 +5,8 @@ import { notifyOrderStatus } from '../services/orderEmails.js';
 import { isValidStatus, canTransition, ORDER_TRANSITIONS } from '../services/orderStatus.js';
 import { createOrderConfirmationHandler } from '../services/orderConfirmation.js';
 
+import { deliveryView } from '../services/shipping.js';
+
 const router = Router();
 
 // Confirmación de pedido de usuario autenticado
@@ -109,6 +111,7 @@ router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req,
   try {
     const orderResult = await pool.query(
       `SELECT o.id, o.created_at, o.total, o.status,
+              o.shipping_cost, o.delivery_method, o.delivery_address,
               u.name AS user_name, u.email AS user_email,
               g.guest_name, g.guest_email, g.address
        FROM orders o
@@ -150,7 +153,9 @@ router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req,
         is_guest: !o.user_name,
         customer_name: o.user_name ?? (o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
         customer_email: o.user_email ?? o.guest_email ?? null,
-        guest_address: o.address ?? null,
+        // SFTWRKEY-449: a dónde se entrega (o en qué local se recoge) y cuánto fue el envío
+        shipping: Number(o.shipping_cost ?? 0),
+        delivery: deliveryView({ ...o, guestAddress: o.address }),
         items: itemsResult.rows.map((item) => ({
           product_id: item.product_id,
           name: item.name ?? item.product_id,

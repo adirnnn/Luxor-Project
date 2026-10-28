@@ -22,6 +22,9 @@ test("un cliente agrega un perfume, paga en Recurrente y ve el pedido en Mi cuen
   const numero = page.url().split("/").pop();
   await expect(page.getByText(`#${numero}`).first()).toBeVisible();
   await expect(page.getByText(PERFUME.name).first()).toBeVisible();
+  // SFTWRKEY-449: la confirmación muestra el envío y a dónde se entrega
+  await expect(page.getByText("Q35.00")).toBeVisible();
+  await expect(page.getByText(/Envío a Zona 10, Ciudad de Guatemala/)).toBeVisible();
 
   // el carrito quedó vacío
   await page.goto("/cart");

@@ -8,6 +8,7 @@ import { API_URL } from "../services/apiClient";
 import { PageMeta } from "../components/seo/PageMeta";
 import { statusLabel, statusStyle } from "../constants/orderStatus";
 import { formatPrice } from "../utils/formatPrice";
+import { describeDelivery, shippingLabel, type Delivery } from "../utils/shipping";
 import { validatePassword } from "../validation/passwordPolicy";
 import { fetchMyReviews, type MyReview } from "../services/reviewService";
 import { OrderItemReview } from "../features/reviews/OrderItemReview";
@@ -34,6 +35,9 @@ interface Order {
   created_at: string;
   items: OrderItem[];
   history: OrderHistory[];
+  // SFTWRKEY-449: envío y forma de entrega (null en pedidos anteriores)
+  shipping?: number;
+  delivery?: Delivery | null;
 }
 
 interface UserInfo {
@@ -555,6 +559,15 @@ export default function UserPage() {
                                 </li>
                               ))}
                             </ul>
+                            {order.delivery && (
+                              <div className="flex flex-col gap-1 border-t border-white/10 pt-3 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-primary-champagne/60">{order.delivery.method === "recoger" ? "Recoger en tienda" : "Envío"}</span>
+                                  <span className="text-primary-champagne/80">{shippingLabel(order.shipping ?? 0)}</span>
+                                </div>
+                                <p className="text-xs text-primary-champagne/50">{describeDelivery(order.delivery)}</p>
+                              </div>
+                            )}
                             <div className="flex justify-between border-t border-white/10 pt-3">
                               <span className="text-xs uppercase tracking-widest text-primary-champagne/60">Total</span>
                               <span className="font-bold text-primary-gold">{formatPrice(order.total)}</span>

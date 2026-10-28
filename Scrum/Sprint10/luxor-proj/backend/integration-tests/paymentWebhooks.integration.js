@@ -4,7 +4,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   startServer, stopServer, api, apiUrl, registerClient, insertProduct, productStock, cleanup, pool,
-  fakeGateway, sendWebhook,
+  fakeGateway, sendWebhook, addressPayload,
 } from './helpers.js';
 
 const created = { users: [], products: [] };
@@ -23,7 +23,7 @@ after(async () => {
 async function abrirPago(stock = 5, quantity = 2) {
   const perfume = await insertProduct(created.products, { price: 150, stock });
   await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: perfume.id, quantity }] });
-  const res = await api('POST', `/checkout/${client.id}`, { token: client.token, body: {} });
+  const res = await api('POST', `/checkout/${client.id}`, { token: client.token, body: addressPayload });
   assert.equal(res.status, 201);
   return { perfume, reference: res.body.reference, checkoutId: await fakeGateway.checkoutId(res.body.reference) };
 }

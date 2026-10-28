@@ -37,7 +37,14 @@ function abrir(path: string) {
 const pagado = (guest: boolean) => ({
   status: "pagado" as const,
   guest,
-  order: { id: 42, total: 780, created_at: "2026-10-28", items: [{ name: "Lattafa Khamrah", quantity: 2, price: 390 }] },
+  order: {
+    id: 42,
+    total: 780,
+    created_at: "2026-10-28",
+    items: [{ name: "Lattafa Khamrah", quantity: 2, price: 390 }],
+    shipping: 0,
+    delivery: { method: "recoger" as const, store: { id: "luxor", name: "Joyería Luxor", address: "C.C. San Isidro, Zona 16" } },
+  },
   payment: { brand: "VISA", last4: "4242" },
 });
 
@@ -54,6 +61,10 @@ describe("PaymentResultPage", () => {
     expect(await screen.findByText("#42")).toBeInTheDocument();
     expect(screen.getByText("Lattafa Khamrah × 2")).toBeInTheDocument();
     expect(screen.getByText(/VISA •••• 4242/)).toBeInTheDocument();
+    // SFTWRKEY-449: envío y local donde recoge
+    expect(screen.getByText("Recoger en tienda")).toBeInTheDocument();
+    expect(screen.getByText("Gratis")).toBeInTheDocument();
+    expect(screen.getByText(/Recoger en Joyería Luxor, C\.C\. San Isidro/)).toBeInTheDocument();
     expect(confirmar).toHaveBeenCalledWith(REF);
   });
 

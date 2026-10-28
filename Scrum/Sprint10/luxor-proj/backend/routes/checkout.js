@@ -4,6 +4,7 @@ import { authenticate, authorizeSelfOrRoles } from '../services/auth.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from '../services/securityEvents.js';
 import { PaymentGatewayError } from '../services/paymentGateway.js';
+import { parseDelivery, shippingOptions } from '../services/shipping.js';
 import {
   UUID_REGEX,
   ensureCheckoutTables,
@@ -45,6 +46,12 @@ const reference = (req) => {
 };
 
 const returnLimit = rateLimit({ windowMs: 60_000, max: 30, onBlock });
+
+// SFTWRKEY-449: tarifa de envío y locales para recoger, para mostrarlos antes de pagar.
+// Es solo informativo: el cobro lo vuelve a calcular el servidor al abrir el pago.
+router.get('/shipping', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300').json(shippingOptions());
+});
 
 router.post('/checkout/confirm', returnLimit, async (req, res) => {
   const ref = reference(req);
@@ -91,6 +98,9 @@ router.post(
         return res.status(400).json({ success: false, code: 'EMPTY_CART', message: 'Tu carrito está vacío.' });
       }
 
+      // SFTWRKEY-449: envío a domicilio (con dirección) o recoger en uno de los locales
+      const delivery = parseDelivery(req.body);
+
       // un pago que el usuario dejó a medias libera su stock antes de abrir otro
       await cancelPendingForUser(userId);
 
@@ -99,7 +109,7 @@ router.post(
       try {
         await client.query('BEGIN');
         const { lines, cents } = await reserveStock(client, cart.rows);
-        session = await createSession(client, { userId, lines, cents });
+        session = await createSession(client, { userId, lines, cents, delivery });
         await client.query('COMMIT');
       } catch (err) {
         await client.query('ROLLBACK').catch(() => {});

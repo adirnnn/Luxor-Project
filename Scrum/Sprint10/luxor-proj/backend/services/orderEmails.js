@@ -1,6 +1,7 @@
 // SFTWRKEY-447 / SFTWRKEY-448: busca los datos del pedido y manda el correo al cliente.
 // Nunca lanza error: si el correo falla, la compra o el cambio de estado ya quedaron guardados.
 import { isMailConfigured, sendOrderEmail, ORDER_EMAIL_STATUSES } from './mailer.js';
+import { deliveryView } from './shipping.js';
 
 export async function notifyOrderStatus(db, orderId, status, deps = {}) {
   const { send = sendOrderEmail, env = process.env, logger = console } = deps;
@@ -12,7 +13,7 @@ export async function notifyOrderStatus(db, orderId, status, deps = {}) {
     }
 
     const orderResult = await db.query(
-      `SELECT o.id, o.user_id, o.total,
+      `SELECT o.id, o.user_id, o.total, o.shipping_cost, o.delivery_method, o.delivery_address,
               COALESCE(u.email, g.guest_email) AS email,
               COALESCE(u.name, g.guest_name) AS name
        FROM orders o
@@ -45,6 +46,9 @@ export async function notifyOrderStatus(db, orderId, status, deps = {}) {
       customerName: order.name,
       items: itemsResult.rows.map((i) => ({ ...i, name: i.name ?? 'Producto' })),
       total: Number(order.total),
+      // SFTWRKEY-449: el correo muestra el envío para que los renglones sumen el total
+      shipping: Number(order.shipping_cost ?? 0),
+      delivery: deliveryView(order),
       // los invitados no tienen cuenta: sin enlace, porque los llevaría al login
       accountUrl: order.user_id ? `${base}/mi-cuenta` : null,
     });

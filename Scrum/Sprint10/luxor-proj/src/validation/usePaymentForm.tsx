@@ -1,7 +1,10 @@
 import { useState, useCallback } from "react";
 
-// SFTWRKEY-445: la tarjeta se ingresa en la página de Recurrente; aquí solo va la dirección
+// SFTWRKEY-445: la tarjeta se ingresa en la página de Recurrente; aquí solo va la entrega.
+// SFTWRKEY-449: envío a domicilio (con dirección) o recoger en uno de los locales.
 export interface PaymentFormState {
+    deliveryMethod: "envio" | "recoger";
+    pickupStore: string;
     billingAddress: string;
     city: string;
     postalCode: string;
@@ -9,6 +12,7 @@ export interface PaymentFormState {
 }
 
 export interface PaymentFormErrors {
+    pickupStore?: string;
     billingAddress?: string;
     city?: string;
     postalCode?: string;
@@ -21,6 +25,8 @@ export const COUNTRY_OPTIONS = [
 ];
 
 const INITIAL_STATE: PaymentFormState = {
+    deliveryMethod: "envio",
+    pickupStore: "",
     billingAddress: "",
     city: "",
     postalCode: "",
@@ -45,6 +51,12 @@ function applyMask(field: keyof PaymentFormState, value: string): string {
 
     function validate(values: PaymentFormState): PaymentFormErrors {
     const errs: PaymentFormErrors = {};
+
+    // al recoger en tienda solo hace falta elegir el local
+    if (values.deliveryMethod === "recoger") {
+        if (!values.pickupStore) errs.pickupStore = "Elige el local donde vas a recoger tu pedido.";
+        return errs;
+    }
 
     if (!values.billingAddress.trim()) {
         errs.billingAddress = "La dirección de envío es requerida.";

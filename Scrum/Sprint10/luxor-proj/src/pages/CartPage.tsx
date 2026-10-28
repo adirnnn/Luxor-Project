@@ -10,9 +10,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageMeta } from "../components/seo/PageMeta";
 import { formatPrice } from "../utils/formatPrice";
+import { freeShippingHint, shippingFor, shippingLabel, useShippingOptions } from "../utils/shipping";
 
 export default function CartPage() {
   const { cart, totalPrice, setQuantity, removeFromCart } = useCart();
+  // SFTWRKEY-449: el carrito muestra el envío a domicilio; al pagar se puede elegir recoger en tienda
+  const shippingOptions = useShippingOptions();
+  const shipping = shippingFor(totalPrice, "envio", shippingOptions);
   const { user } = useAuth();
   const navigate = useNavigate();
   const outOfStockItems = cart.filter(
@@ -150,13 +154,27 @@ export default function CartPage() {
                   ))}
                 </div>
                 <div className="h-px bg-white/5 mb-6" />
+                {/* SFTWRKEY-449: envío a domicilio (Q35, gratis desde Q500) o gratis al recoger en tienda */}
+                <div className="flex flex-col gap-2 mb-6 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-primary-champagne/40">Subtotal</span>
+                    <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-primary-champagne/40">Envío a domicilio</span>
+                    <span className="text-primary-champagne/70 font-bold">{shippingLabel(shipping)}</span>
+                  </div>
+                  <p className="text-xs text-primary-champagne/30">
+                    {shipping > 0 ? `${freeShippingHint(shippingOptions)}. ` : ""}Recoger en tienda es gratis.
+                  </p>
+                </div>
                 {/* Total */}
                 <div className="flex justify-between items-center mb-8">
                   <span className="text-primary-champagne/40 text-xs tracking-[0.3em] uppercase font-black">
                     Total
                   </span>
                   <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    {formatPrice(totalPrice)}
+                    {formatPrice(totalPrice + shipping)}
                   </span>
                 </div>
                 {hasStockIssue && (

@@ -221,6 +221,12 @@ const seedUsers = async () => {
         status VARCHAR(20) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      -- SFTWRKEY-449: el total ya incluye el envío; aquí queda cuánto fue y a dónde se entrega.
+      -- delivery_address: la dirección (envío a domicilio) o el local (recoger en tienda).
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_cost NUMERIC(10, 2) NOT NULL DEFAULT 0;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method VARCHAR(10);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address JSONB;
     `);
 
     await pool.query(`

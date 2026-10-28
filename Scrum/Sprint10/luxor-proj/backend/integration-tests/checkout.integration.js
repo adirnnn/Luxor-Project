@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {
   startServer, stopServer, api, apiUrl, registerClient, insertProduct, productStock, cleanup, pool,
-  fakeGateway, buyWithAccount, addressPayload,
+  fakeGateway, buyWithAccount, addressPayload, loginAdmin,
 } from './helpers.js';
 import { sweepExpiredSessions } from '../services/checkoutSessions.js';
 
@@ -24,7 +24,7 @@ after(async () => {
 
 const abrirPago = async (perfume, quantity) => {
   await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: perfume.id, quantity }] });
-  return api('POST', `/checkout/${client.id}`, { token: client.token, body: {} });
+  return api('POST', `/checkout/${client.id}`, { token: client.token, body: addressPayload });
 };
 const confirmar = (reference) => api('POST', '/checkout/confirm', { body: { reference } });
 const ordenesDelCliente = async () =>
@@ -38,13 +38,16 @@ test('abrir el pago aparta el stock, devuelve el enlace de Recurrente y todavía
 
   assert.equal(res.status, 201);
   assert.match(res.body.checkoutUrl, /^https:\/\/recurrente\.test\/checkout-session\//);
-  assert.equal(res.body.total, 300);
+  assert.equal(res.body.total, 335, 'Q300 en productos + Q35 de envío (SFTWRKEY-449)');
   assert.equal(await productStock(perfume.id), 3, 'las 2 unidades quedan apartadas');
   assert.equal(await ordenesDelCliente(), ordenesAntes, 'sin pago confirmado no hay pedido');
 
   // a Recurrente le llega el total calculado en el servidor y las rutas de vuelta a la tienda
   const enviado = await fakeGateway.request(res.body.reference);
-  assert.deepEqual(enviado.items, [{ product_id: perfume.id, name: perfume.name, quantity: 2, price: 150 }]);
+  assert.deepEqual(enviado.items, [
+    { product_id: perfume.id, name: perfume.name, quantity: 2, price: 150 },
+    { name: 'Envío a domicilio', quantity: 1, price: 35 },
+  ]);
   assert.match(enviado.successUrl, new RegExp(`/pago/resultado\\?ref=${res.body.reference}$`));
   assert.match(enviado.cancelUrl, new RegExp(`/pago/cancelado\\?ref=${res.body.reference}$`));
 });
@@ -59,16 +62,24 @@ test('pago aprobado: al volver se crea el pedido pagado con su pago y se vacía 
   assert.equal(res.status, 200);
   assert.equal(res.body.status, 'pagado');
   assert.equal(res.body.guest, false);
-  assert.equal(res.body.order.total, 300);
+  assert.equal(res.body.order.total, 335);
+  assert.equal(res.body.order.shipping, 35);
+  assert.deepEqual(res.body.order.delivery, { method: 'envio', address: addressPayload });
   assert.deepEqual(res.body.payment, { brand: 'VISA', last4: '4242' });
   const orderId = res.body.order.id;
 
-  const orden = await pool.query('SELECT total, status, user_id FROM orders WHERE id = $1', [orderId]);
-  assert.deepEqual(orden.rows[0], { total: '300.00', status: 'pagado', user_id: client.id });
+  const orden = await pool.query(
+    'SELECT total, status, user_id, shipping_cost, delivery_method, delivery_address FROM orders WHERE id = $1',
+    [orderId]
+  );
+  assert.deepEqual(orden.rows[0], {
+    total: '335.00', status: 'pagado', user_id: client.id,
+    shipping_cost: '35.00', delivery_method: 'envio', delivery_address: addressPayload,
+  });
   const items = await pool.query('SELECT product_id, quantity, unit_price FROM order_items WHERE order_id = $1', [orderId]);
   assert.deepEqual(items.rows, [{ product_id: perfume.id, quantity: 2, unit_price: '150.00' }]);
   const pago = await pool.query('SELECT status, amount, card_brand, card_last4, gateway_reference FROM payments WHERE order_id = $1', [orderId]);
-  assert.deepEqual(pago.rows, [{ status: 'aprobado', amount: '300.00', card_brand: 'VISA', card_last4: '4242', gateway_reference: pago.rows[0].gateway_reference }]);
+  assert.deepEqual(pago.rows, [{ status: 'aprobado', amount: '335.00', card_brand: 'VISA', card_last4: '4242', gateway_reference: pago.rows[0].gateway_reference }]);
   assert.match(pago.rows[0].gateway_reference, /^pa_ch_test_/);
 
   assert.equal(await productStock(perfume.id), 3, 'el stock apartado no se descuenta dos veces');
@@ -161,7 +172,7 @@ test('barrido de pagos vencidos: devuelve el stock de los abandonados y crea el 
 
   const a = await abrirPago(abandonado, 2);
   await api('POST', `/cart/${otro.id}`, { token: otro.token, body: [{ product_id: pagado.id, quantity: 1 }] });
-  const b = await api('POST', `/checkout/${otro.id}`, { token: otro.token, body: {} });
+  const b = await api('POST', `/checkout/${otro.id}`, { token: otro.token, body: addressPayload });
   await fakeGateway.expire(a.body.reference);
   await fakeGateway.pay(b.body.reference);
   // el cliente cerró la pestaña: las sesiones vencieron hace rato
@@ -209,7 +220,11 @@ test('compra como invitado: paga en Recurrente y el pedido queda con sus datos d
   const recibo = await pool.query('SELECT guest_name, guest_email, address FROM guest_receipts WHERE order_id = $1', [
     confirmado.body.order.id,
   ]);
-  assert.deepEqual(recibo.rows[0], { guest_name: 'Invitada Prueba', guest_email: 'invitada@prueba.com', address: addressPayload });
+  assert.deepEqual(recibo.rows[0], {
+    guest_name: 'Invitada Prueba',
+    guest_email: 'invitada@prueba.com',
+    address: { method: 'envio', address: addressPayload },
+  });
   const pago = await pool.query('SELECT status, user_id FROM payments WHERE order_id = $1', [confirmado.body.order.id]);
   assert.deepEqual(pago.rows, [{ status: 'aprobado', user_id: null }]);
 });
@@ -232,6 +247,7 @@ test('invitado: si el precio cambió responde 409 y no aparta stock', async () =
 test('el cuerpo del checkout ya no acepta tarjetas: nunca se guardan ni se mandan a Recurrente', async () => {
   const perfume = await insertProduct(created.products, { stock: 2 });
   const res = await buyWithAccount(client, [{ product_id: perfume.id, quantity: 1 }], {
+    ...addressPayload,
     cardNumber: '4242424242424242',
     cvv: '123',
   });
@@ -258,3 +274,103 @@ async function guestCheckout(body, key) {
   });
   return { status: res.status, body: await res.json() };
 }
+
+// ── SFTWRKEY-449: envío y forma de entrega ─────────────────────────────────
+
+test('desde Q500 en productos el envío es gratis y no se agrega renglón en Recurrente', async () => {
+  // cliente nuevo para esta sección: el checkout permite 10 intentos por minuto por usuario
+  client = await registerClient(created.users);
+  const perfume = await insertProduct(created.products, { price: 250, stock: 5 });
+  const abierto = await abrirPago(perfume, 2);
+
+  assert.equal(abierto.body.total, 500);
+  const enviado = await fakeGateway.request(abierto.body.reference);
+  assert.equal(enviado.items.length, 1);
+});
+
+test('recoger en tienda: sin costo de envío y el pedido guarda el local', async () => {
+  const perfume = await insertProduct(created.products, { price: 120, stock: 5 });
+  await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: perfume.id, quantity: 1 }] });
+  const abierto = await api('POST', `/checkout/${client.id}`, {
+    token: client.token,
+    body: { deliveryMethod: 'recoger', pickupStore: 'luxor' },
+  });
+  assert.equal(abierto.status, 201);
+  assert.equal(abierto.body.total, 120);
+
+  await fakeGateway.pay(abierto.body.reference);
+  const res = await confirmar(abierto.body.reference);
+  const orden = await pool.query('SELECT shipping_cost, delivery_method, delivery_address FROM orders WHERE id = $1', [res.body.order.id]);
+  assert.deepEqual(orden.rows[0], {
+    shipping_cost: '0.00',
+    delivery_method: 'recoger',
+    delivery_address: { id: 'luxor', name: 'Joyería Luxor', address: 'C.C. San Isidro, Zona 16' },
+  });
+});
+
+test('un costo de envío enviado por el navegador se ignora', async () => {
+  const perfume = await insertProduct(created.products, { price: 100, stock: 5 });
+  await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: perfume.id, quantity: 1 }] });
+  const res = await api('POST', `/checkout/${client.id}`, {
+    token: client.token,
+    body: { ...addressPayload, shipping: 0, shippingCost: 0, total: 100 },
+  });
+  assert.equal(res.body.total, 135);
+});
+
+test('sin dirección (envío) o con un local que no existe responde 400 sin apartar stock', async () => {
+  const perfume = await insertProduct(created.products, { price: 100, stock: 5 });
+  await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: perfume.id, quantity: 1 }] });
+
+  const sinDireccion = await api('POST', `/checkout/${client.id}`, { token: client.token, body: {} });
+  const otroLocal = await api('POST', `/checkout/${client.id}`, {
+    token: client.token,
+    body: { deliveryMethod: 'recoger', pickupStore: 'bodega-secreta' },
+  });
+
+  assert.equal(sinDireccion.status, 400);
+  assert.equal(otroLocal.status, 400);
+  assert.equal(await productStock(perfume.id), 5);
+});
+
+test('el cliente y el admin ven el envío y la dirección del pedido', async () => {
+  const perfume = await insertProduct(created.products, { price: 150, stock: 5 });
+  const compra = await buyWithAccount(client, [{ product_id: perfume.id, quantity: 1 }]);
+  const orderId = compra.body.order.id;
+
+  const historial = await api('GET', `/user/${client.id}/orders`, { token: client.token });
+  const pedido = historial.body.orders.find((o) => o.id === orderId);
+  assert.equal(pedido.shipping, 35);
+  assert.deepEqual(pedido.delivery, { method: 'envio', address: addressPayload });
+
+  const confirmacion = await api('GET', `/orders/${orderId}/confirmation`, { token: client.token });
+  assert.equal(confirmacion.body.order.total, 185);
+  assert.equal(confirmacion.body.order.shipping, 35);
+
+  const adminToken = await loginAdmin();
+  const detalle = await api('GET', `/admin/orders/${orderId}`, { token: adminToken });
+  assert.equal(detalle.body.order.shipping, 35);
+  assert.deepEqual(detalle.body.order.delivery, { method: 'envio', address: addressPayload });
+});
+
+test('invitado que recoge en tienda: no pide dirección y el admin ve el local', async () => {
+  const perfume = await insertProduct(created.products, { price: 200, stock: 5 });
+  const res = await guestCheckout(
+    {
+      guest: { name: 'Invitado Recoge', email: 'recoge@prueba.com' },
+      items: [{ product_id: perfume.id, quantity: 1 }],
+      address: { deliveryMethod: 'recoger', pickupStore: 'victoria' },
+      expectedCents: 20000,
+    },
+    crypto.randomUUID()
+  );
+  assert.equal(res.status, 201);
+  await fakeGateway.pay(res.body.reference);
+  const confirmado = await confirmar(res.body.reference);
+  assert.equal(confirmado.body.order.total, 200);
+  assert.equal(confirmado.body.order.delivery.method, 'recoger');
+
+  const adminToken = await loginAdmin();
+  const detalle = await api('GET', `/admin/orders/${confirmado.body.order.id}`, { token: adminToken });
+  assert.equal(detalle.body.order.delivery.store.name, 'Joyería Victoria');
+});

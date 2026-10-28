@@ -10,7 +10,7 @@ Locales:
 - Joyería Glamour: C.C. El Pueblito, Zona 1.
 - Joyería Luxor: C.C. San Isidro, Zona 16.
 
-Envíos: a todo el país, con entrega garantizada en 24 a 48 horas, empaque de lujo y certificado de autenticidad.
+Envíos: a todo el país por Q35, gratis desde Q500 en productos, con entrega garantizada en 24 a 48 horas, empaque de lujo y certificado de autenticidad. También se puede recoger gratis en cualquiera de los tres locales eligiendo "Recoger en tienda" al pagar.
 
 Pagos en el sitio web: con tarjeta de crédito o débito. También se puede comprar sin crear una cuenta.
 

@@ -169,7 +169,12 @@ test('GET /admin/orders/:id: detalle con productos, subtotal, historial y estado
   assert.equal(res.status, 200);
   assert.equal(order.customer_name, 'Invitado · Pedro');
   assert.equal(order.total, 820);
-  assert.deepEqual(order.guest_address, { billingAddress: 'Zona 1', city: 'Guatemala', postalCode: '01001', country: 'Guatemala' });
+  // SFTWRKEY-449: un pedido de invitado anterior al cambio usa la dirección de guest_receipts
+  assert.deepEqual(order.delivery, {
+    method: 'envio',
+    address: { billingAddress: 'Zona 1', city: 'Guatemala', postalCode: '01001', country: 'Guatemala' },
+  });
+  assert.equal(order.shipping, 0);
   assert.deepEqual(order.items.map((i) => [i.name, i.quantity, i.unit_price, i.subtotal]), [
     ['Lattafa Khamrah', 2, 390, 780],
     ['borrado', 1, 40, 40],
@@ -187,7 +192,7 @@ test('GET /admin/orders/:id: un pedido entregado no ofrece ningún cambio de est
 
   const { order } = await (await pedir('/admin/orders/6')).json();
   assert.deepEqual(order.allowedNextStatuses, []);
-  assert.equal(order.guest_address, null);
+  assert.equal(order.delivery, null);
 });
 
 test('GET /admin/orders/:id: id inválido 400 y pedido que no existe 404', async (t) => {
