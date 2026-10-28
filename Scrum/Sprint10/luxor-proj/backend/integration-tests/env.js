@@ -12,6 +12,8 @@ const defaults = {
   JWT_SECRET: 'integration-test-secret',
   // SFTWRKEY-445: Recurrente se simula en helpers.js; la llave solo marca la pasarela como configurada
   RECURRENTE_SECRET_KEY: 'sk_test_integracion',
+  // SFTWRKEY-446: secreto con el que se firman los webhooks simulados
+  RECURRENTE_WEBHOOK_SECRET: 'whsec_Y2xhdmUtZGUtd2ViaG9vay1kZS1wcnVlYmFzISE=',
   ADMIN_EMAIL: 'admin@luxor.com',
   ADMIN_PASSWORD: 'admin-pruebas-integracion',
   // SFTWRKEY-458: clave interna del chatbot (solo para pruebas)

@@ -57,7 +57,36 @@ export const ensureCheckoutTables = () => {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
         CREATE INDEX IF NOT EXISTS checkout_sessions_pendientes ON checkout_sessions (status, expires_at);
+        CREATE INDEX IF NOT EXISTS checkout_sessions_checkout ON checkout_sessions (gateway_checkout_id);
+
+        -- SFTWRKEY-446: cada aviso (webhook) que llega de Recurrente, para revisarlo si algo falla.
+        -- provider_event_id es el svix-id: un aviso repetido no se procesa dos veces.
+        CREATE TABLE IF NOT EXISTS payment_webhook_events (
+          id SERIAL PRIMARY KEY,
+          provider_event_id VARCHAR(100) UNIQUE,
+          event_type VARCHAR(60),
+          checkout_id VARCHAR(100),
+          status VARCHAR(20) NOT NULL,
+          order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+          detail TEXT,
+          payload JSONB,
+          ip VARCHAR(45),
+          received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          processed_at TIMESTAMPTZ
+        );
       `)
+      .then(() =>
+        // SFTWRKEY-446: un mismo pago de Recurrente nunca se registra dos veces como aprobado.
+        // Va aparte: si no se pudiera crear (pagos repetidos de antes), el checkout sigue
+        // funcionando, porque el FOR UPDATE de la sesión ya impide crear dos pedidos.
+        pool
+          .query(
+            `CREATE UNIQUE INDEX IF NOT EXISTS payments_aprobado_referencia_unica
+               ON payments (gateway_reference)
+               WHERE status = 'aprobado' AND gateway_reference IS NOT NULL`
+          )
+          .catch((err) => console.error('No se pudo crear el índice único de pagos:', err.message))
+      )
       .catch((err) => {
         tablesReady = undefined;
         throw err;
@@ -357,4 +386,11 @@ export async function sweepExpiredSessions() {
     await cancelSession(id).catch((err) => console.error(`No se pudo revisar la sesión vencida ${id}:`, err.message));
   }
   return expired.rows.length;
+}
+
+// SFTWRKEY-446: el webhook de Recurrente trae el id del checkout; aquí se busca la sesión de la tienda
+export async function findSessionIdByCheckout(checkoutId) {
+  await ensureCheckoutTables();
+  const result = await pool.query('SELECT id FROM checkout_sessions WHERE gateway_checkout_id = $1', [checkoutId]);
+  return result.rows[0]?.id ?? null;
 }

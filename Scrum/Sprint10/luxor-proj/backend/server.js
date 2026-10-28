@@ -16,6 +16,7 @@ import reportsRouter from './routes/reports.js';
 import securityRouter from './routes/security.js';
 import checkoutRouter from './routes/checkout.js';
 import { sweepExpiredSessions } from './services/checkoutSessions.js';
+import paymentWebhooksRouter from './routes/paymentWebhooks.js';
 import chatbotRouter from './routes/chatbot.js';
 
 import ordersRouter from './routes/orders.js';
@@ -57,6 +58,8 @@ app.use((_req, res, next) => {
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 // SFTWRKEY-451: las peticiones que cambian datos solo se aceptan desde nuestro frontend (CSRF)
 app.use(csrfProtection);
+// SFTWRKEY-446: el webhook de Recurrente va antes de express.json porque verifica la firma sobre el cuerpo exacto
+app.use(paymentWebhooksRouter);
 app.use(express.json({ limit: "2mb" }));
 
 // SFTWRKEY-425: rutas separadas por funcionalidad.

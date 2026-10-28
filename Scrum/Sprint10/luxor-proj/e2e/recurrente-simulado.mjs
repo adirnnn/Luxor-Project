@@ -3,6 +3,7 @@
 // "página de pago" con botones para pagar, rechazar la tarjeta o salirse, que regresan a la tienda
 // igual que la página real. El backend lo usa con RECURRENTE_API_URL (solo fuera de producción).
 import http from "node:http";
+import { randomUUID } from "node:crypto";
 
 const PORT = Number(process.env.PORT ?? 3200);
 const BASE = `http://localhost:${PORT}`;
@@ -59,7 +60,8 @@ const servidor = http.createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/api/checkouts") {
     if (!req.headers["x-secret-key"]) return json(res, 401, { message: "Falta X-SECRET-KEY" });
     const cuerpo = JSON.parse((await leerCuerpo(req)) || "{}");
-    const id = `ch_e2e_${++siguiente}`;
+    // único entre corridas: la base de pruebas local guarda los pagos de corridas anteriores
+    const id = `ch_e2e_${++siguiente}_${randomUUID().slice(0, 8)}`;
     checkouts.set(id, { status: "unpaid", items: cuerpo.items ?? [], successUrl: cuerpo.success_url, cancelUrl: cuerpo.cancel_url });
     return json(res, 201, comoApi(id, checkouts.get(id)));
   }

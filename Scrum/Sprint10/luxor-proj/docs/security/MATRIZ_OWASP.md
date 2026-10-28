@@ -1,6 +1,6 @@
 # Matriz de riesgos OWASP Top 10 — Perfumería Victoria
 
-**Marco:** OWASP Top 10 (2025) · **Última actualización:** 27/10/2026
+**Marco:** OWASP Top 10 (2025) · **Última actualización:** 28/10/2026
 
 Documento vivo de los Sprints 8 y 9. Se actualiza cada vez que se termina una tarea de seguridad y al cierre se exporta a PDF como anexo del informe.
 
@@ -100,6 +100,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-56 | A04 | Backend / Frontend | `services/paymentGateway.js`, `routes/checkout.js`, `PaymentForm.tsx` | El número de tarjeta o el CVV pasan por el servidor o quedan en la base o en los logs | El cliente paga en la página de Recurrente; el formulario de la tienda ya no tiene campos de tarjeta y el backend no los lee. De Recurrente solo se guardan la marca y los últimos 4 dígitos. Una petición que manda `cardNumber` y `cvv` igual se procesa sin guardarlos (`checkout.integration.js`, `paymentGateway.test.js`) | Pasa | PA | Crítica | SFTWRKEY-445 | Verificado |
 | SEC-57 | A08 | Backend | `services/checkoutSessions.js`, `POST /checkout/confirm` | Marcar un pedido como pagado sin pagar (abrir a mano `/pago/resultado`, repetir la confirmación o pagar menos) | El pedido solo se crea cuando el backend le pregunta a Recurrente con la llave secreta y el checkout responde `paid`; el total del checkout lo calcula el backend. La referencia es un UUID aleatorio. Dos confirmaciones al mismo tiempo crean un solo pedido (`FOR UPDATE`). Un pago rechazado o abandonado no crea pedido y devuelve el stock (`checkout.integration.js`, 12 casos con PostgreSQL) | Pasa | PA | Crítica | SFTWRKEY-445 | Verificado |
 | SEC-58 | A02 | Backend / Render | `RECURRENTE_SECRET_KEY` | La llave de Recurrente expuesta en el repositorio o en el frontend | Solo vive en las variables de entorno de Render (`render.yaml` con `sync: false`) y en `.env` local; el frontend nunca la usa. `.env.example` la documenta vacía | Pasa | RC | Alta | SFTWRKEY-445 | Verificado |
+| SEC-59 | A08 | Backend | `POST /webhooks/recurrente` (`routes/paymentWebhooks.js`, `services/webhookSignature.js`) | Un aviso de pago falso o repetido marca como pagado un pedido que no se cobró, o crea dos pedidos y descuenta el stock dos veces | La firma Svix (HMAC-SHA256 con `RECURRENTE_WEBHOOK_SECRET`, comparación de tiempo constante y ventana de 5 minutos) se verifica sobre el cuerpo exacto: sin firma, con otro secreto o con un aviso viejo responde 401 y no cambia nada. Aun con firma válida, el pedido solo se crea si la API de Recurrente confirma el checkout como `paid`. Un aviso repetido (mismo `svix-id`) no se reprocesa, el `FOR UPDATE` de la sesión evita dos pedidos y `payments.gateway_reference` es único entre los pagos aprobados. Cada aviso queda en `payment_webhook_events` sin nombre ni correo del cliente (`webhookSignature.test.js`, `paymentWebhooks.integration.js`, 9 casos con PostgreSQL) | Pasa | PA | Crítica | SFTWRKEY-446 | Verificado |
 
 ## Escaneo dinámico
 

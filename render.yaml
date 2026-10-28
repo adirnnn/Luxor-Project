@@ -65,6 +65,9 @@ services:
       # sk_test_... del sandbox para pruebas y sk_live_... para cobrar de verdad. Nunca en git.
       - key: RECURRENTE_SECRET_KEY
         sync: false
+      # SFTWRKEY-446: secreto whsec_... con el que Recurrente firma los avisos a /webhooks/recurrente
+      - key: RECURRENTE_WEBHOOK_SECRET
+        sync: false
       # clave compartida con el chatbot para POST /chatbot/queries. render la genera
       # la primera vez y el chatbot la copia con fromService (no viaja por git).
       - key: CHATBOT_INTERNAL_KEY

@@ -165,6 +165,7 @@ Los pagos van con [Recurrente](https://recurrente.com). El cliente paga en la p�
 1. Al pulsar "Continuar al pago seguro", el backend recalcula el total con los precios de la base, aparta el stock por 30 minutos y crea el checkout en Recurrente (`backend/services/checkoutSessions.js` y `paymentGateway.js`).
 2. El cliente paga y Recurrente lo regresa a `/pago/resultado`, donde el backend le pregunta a Recurrente si el cobro quedó aprobado. Solo entonces se crea el pedido `pagado`, se registra el pago y se manda el correo.
 3. Si el cliente se sale (`/pago/cancelado`) o cierra la pestaña, el stock regresa y no se crea ningún pedido. El backend revisa los pagos vencidos cada 5 minutos.
+4. Si el cliente paga y cierra la página antes de volver, Recurrente avisa por webhook a `POST /webhooks/recurrente` (`backend/routes/paymentWebhooks.js`). Se verifica la firma con `RECURRENTE_WEBHOOK_SECRET` (sin firma válida responde 401), se le vuelve a preguntar a Recurrente si está pagado y se crea el pedido por el mismo camino que el paso 2. Un aviso repetido no crea otro pedido ni descuenta stock dos veces, y cada aviso queda en la tabla `payment_webhook_events`.
 
 La llave va en `RECURRENTE_SECRET_KEY`: `sk_test_...` de un Sandbox para probar (tarjeta `4242 4242 4242 4242` aprobada, `4000 0000 0000 0002` rechazada) y `sk_live_...` en Render para cobrar de verdad. Las pruebas automáticas nunca llaman a Recurrente: lo simulan.
 

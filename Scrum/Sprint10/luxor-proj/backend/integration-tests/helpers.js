@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import pool from '../db.js';
 import app from '../server.js';
 import { gateway } from '../services/paymentGateway.js';
+import { signPayload } from '../services/webhookSignature.js';
 
 export { pool };
 
@@ -19,7 +20,8 @@ const checkouts = new Map();
 let nextCheckout = 0;
 
 gateway.createCheckout = async (request) => {
-  const id = `ch_test_${++nextCheckout}`;
+  // único entre corridas: la base de pruebas local guarda los pagos de corridas anteriores
+  const id = `ch_test_${++nextCheckout}_${randomUUID().slice(0, 8)}`;
   checkouts.set(id, { status: 'unpaid', request });
   return { id, url: `https://recurrente.test/checkout-session/${id}`, status: 'unpaid' };
 };
@@ -44,6 +46,7 @@ const gatewayIdOf = async (reference) =>
     ?.gateway_checkout_id;
 
 export const fakeGateway = {
+  checkoutId: gatewayIdOf,
   // lo que el backend le mandó a Recurrente al crear el checkout
   request: async (reference) => checkouts.get(await gatewayIdOf(reference))?.request,
   pay: async (reference) => {
@@ -59,6 +62,24 @@ export const fakeGateway = {
     checkouts.get(await gatewayIdOf(reference)).status = 'payment_in_progress';
   },
 };
+
+// SFTWRKEY-446: manda un webhook como lo haría Recurrente, firmado con el secreto de pruebas
+// (o con otro, para probar firmas inválidas). Devuelve el status y el cuerpo de la respuesta.
+export async function sendWebhook(event, { id = `msg_${randomUUID()}`, secret = process.env.RECURRENTE_WEBHOOK_SECRET, timestamp } = {}) {
+  const body = JSON.stringify(event);
+  const ts = timestamp ?? String(Math.floor(Date.now() / 1000));
+  const res = await fetch(`${baseUrl}/webhooks/recurrente`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'svix-id': id,
+      'svix-timestamp': ts,
+      'svix-signature': `v1,${signPayload({ secret, id, timestamp: ts, body })}`,
+    },
+    body,
+  });
+  return { status: res.status, body: await res.json().catch(() => null) };
+}
 
 // Dirección de envío que pide el formulario (ya no lleva datos de tarjeta)
 export const addressPayload = {
