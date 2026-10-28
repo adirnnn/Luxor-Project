@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { validatePassword } from "./passwordPolicy";
+import { API_URL } from "../services/apiClient";
 
 export interface RegisterFormState {
   name: string;
@@ -50,7 +51,6 @@ function validate(values: RegisterFormState): RegisterFormErrors {
   return errs;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export function useRegisterForm() {
   const [values, setValues] = useState<RegisterFormState>({

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { API_URL, authHeaders, friendlyError } from '../services/apiClient';
+import { API_URL, friendlyError } from '../services/apiClient';
 import { PaymentForm } from '../validation/PaymentForm';
 import type { PaymentFormState } from '../validation/usePaymentForm';
 import { MainLayout } from '../components/layout/MainLayout';
@@ -170,7 +170,6 @@ export function GoogleAccess({
 
                   headers: {
                     'Content-Type': 'application/json',
-                    ...(linkMode ? authHeaders() : {}),
                   },
 
                   body: JSON.stringify({
@@ -199,7 +198,7 @@ export function GoogleAccess({
                   password.current.value = '';
                 }
               } else {
-                loginRef.current(data.user, data.token);
+                loginRef.current(data.user);
               }
             } catch (error) {
               if (!cancelled) {
@@ -340,7 +339,6 @@ function AdminAlerts() {
     async function update() {
       try {
         const next = await fetch(`${API_URL}/admin/alerts`, {
-          headers: authHeaders(),
           signal: controller.signal,
         }).then(jsonResponse);
 
@@ -377,7 +375,6 @@ function AdminAlerts() {
 
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders(),
         },
 
         body: JSON.stringify({

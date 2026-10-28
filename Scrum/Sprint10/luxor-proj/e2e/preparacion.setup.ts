@@ -1,11 +1,13 @@
 // SFTWRKEY-456: antes de los flujos se crea (o se repone) el perfume de las pruebas, con stock
 // de sobra, para no gastar el stock de los perfumes reales del seed.
+import { writeFileSync } from "node:fs";
 import { test as setup, expect } from "@playwright/test";
-import { ADMIN, BACKEND_URL, PERFUME } from "./datos";
+import { ADMIN, ARCHIVO_TOKEN_ADMIN, BACKEND_URL, PERFUME } from "./datos";
 import { tokenDe } from "./ayudas";
 
 setup("crear el perfume de las pruebas", async ({ request }) => {
   const token = await tokenDe(request, ADMIN.email, ADMIN.password);
+  writeFileSync(ARCHIVO_TOKEN_ADMIN, token);
   const perfume = {
     name: PERFUME.name,
     price: PERFUME.price,

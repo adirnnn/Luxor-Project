@@ -24,19 +24,19 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | Categoría | Filas | Pasa | Falla | Pendiente |
 |---|---|---|---|---|
-| A01 Pérdida de control de acceso | 9 | 9 | 0 | 0 |
-| A02 Configuración de seguridad incorrecta | 11 | 11 | 0 | 0 |
+| A01 Pérdida de control de acceso | 10 | 10 | 0 | 0 |
+| A02 Configuración de seguridad incorrecta | 12 | 12 | 0 | 0 |
 | A03 Cadena de suministro de software | 4 | 4 | 0 | 0 |
-| A04 Fallas criptográficas | 3 | 3 | 0 | 0 |
+| A04 Fallas criptográficas | 4 | 4 | 0 | 0 |
 | A05 Inyección | 7 | 7 | 0 | 0 |
 | A06 Diseño inseguro | 4 | 4 | 0 | 0 |
-| A07 Fallas de autenticación | 8 | 6 | 2 | 0 |
-| A08 Integridad de software y datos | 3 | 3 | 0 | 0 |
+| A07 Fallas de autenticación | 8 | 8 | 0 | 0 |
+| A08 Integridad de software y datos | 5 | 5 | 0 | 0 |
 | A09 Registro y alertas | 3 | 3 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 3 | 0 | 0 |
-| **Total** | **55** | **53** | **2** | **0** |
+| **Total** | **60** | **60** | **0** | **0** |
 
-**Riesgos abiertos (Falla + Abierto) por severidad:** 0 Críticas · 0 Altas · 2 Medias · 0 Bajas (SEC-33, SEC-50). SEC-35 está en `Falla` pero como riesgo `Aceptado`.
+**Riesgos abiertos (Falla) por severidad:** 0 Críticas · 0 Altas · 0 Medias · 0 Bajas. SEC-33 (SFTWRKEY-409), SEC-35 (SFTWRKEY-451) y SEC-50 ya están verificadas.
 
 ## Matriz
 
@@ -76,7 +76,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-32 | A07 | Backend | `POST /register` | Sin rate limit: creación masiva de cuentas | `rateLimit` de 6 registros por hora por IP: el 7.º → 429, otra IP → 201, y el bloqueo queda como evento `RATE_LIMITED` en las alertas (`security.config.test.js`) | Pasa | PA | Media | SFTWRKEY-408 | Verificado |
 | SEC-33 | A07 | Backend / Frontend | `authHandlers.js`, `PUT /user/:id/password`, formularios | Contraseñas débiles (mínimo 6 caracteres, sin más reglas) | `services/passwordPolicy.js` (26/10/2026): mínimo 12 caracteres y máximo 72 bytes (límite de bcrypt) en registro, alta de usuarios por el admin, cambio de contraseña y recuperación; el navegador avisa con la misma regla (`src/validation/passwordPolicy.ts`). El login no la aplica, para no dejar fuera cuentas anteriores (`passwordPolicy.test.js`, `auth.test.js`, `passwordPolicy.test.ts`) | Pasa | PA | Media | SFTWRKEY-409 | Verificado |
 | SEC-34 | A07 | Backend | `POST /login`, `POST /register` | Enumeración de usuarios | Login: mismo 401 y tiempo similar (`DUMMY_HASH`) con usuario inexistente o clave incorrecta. Registro: responde 409 si el correo existe | Pasa | RC | Baja | SFTWRKEY-381 | Aceptado |
-| SEC-35 | A07 | Frontend | `AuthContext.tsx`, `apiClient.ts` | JWT en `localStorage`: un XSS podría robarlo | Mitigado con la CSP (SEC-11) y el escape de React (SEC-21). La migración a cookie `httpOnly` queda para un sprint futuro | Falla | RC | Media | SFTWRKEY-380 | Aceptado |
+| SEC-35 | A07 | Frontend / Backend | `services/auth.js`, `AuthContext.tsx`, `apiClient.ts`, `vercel.json` | JWT en `localStorage`: un XSS podría robarlo | Corregido en SFTWRKEY-451: el token solo viaja en la cookie `luxor_sesion` (`HttpOnly`, `SameSite=Lax`, `Secure` en producción, 8 horas) y ya no está en `localStorage` ni en la respuesta del login; el sitio llama al backend por su mismo dominio (`/api`, rewrite de Vercel) y `POST /logout` borra la cookie. Desde la página `document.cookie` no la muestra, no hay ningún JWT en `localStorage` y el token viejo se borra de los navegadores que lo tenían. Inicio y cierre de sesión probados en Chromium, Firefox y WebKit (`e2e/sesion.spec.ts`, `session.test.js`, `AuthContext.test.tsx`) | Pasa | PA | Media | SFTWRKEY-380 / 451 | Verificado |
 | SEC-36 | A07 | Backend | `POST /auth/google`, `users.password` NULL | Login con Google: token no verificado, correo no verificado, o login con contraseña vacía en cuentas de Google | Token inválido, correo no verificado, nonce distinto y token reutilizado responden 401; un correo que ya tiene contraseña responde 409 sin vincularse; una cuenta de Google no entra por `/login` (`security.sprint9.test.js`, 6 casos). Producción (13/10/2026): el login con Google está apagado porque falta `GOOGLE_CLIENT_ID`; `POST /auth/google` responde 503 sin crear sesión | Pasa | PA, PM | Alta | SFTWRKEY-398 / 411 | Verificado |
 | SEC-37 | A08 | Chatbot | `backend/chatbot/requirements.txt` | Dependencias sin versión fija: builds no reproducibles | Versiones fijadas con `==` en `requirements.txt` (las que resolvía pip el 29/09/2026); las 74 pruebas del chatbot pasan con esas versiones | Pasa | PA | Baja | SFTWRKEY-382 | Verificado |
 | SEC-38 | A08 | CI | `.github/workflows/tests.yml`, `package-lock.json` | Instalaciones no reproducibles o sin pruebas | `npm ci` con lockfile y 3 jobs de pruebas en cada push | Pasa | RC | Baja | SFTWRKEY-382 | Abierto |
@@ -101,6 +101,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-57 | A08 | Backend | `services/checkoutSessions.js`, `POST /checkout/confirm` | Marcar un pedido como pagado sin pagar (abrir a mano `/pago/resultado`, repetir la confirmación o pagar menos) | El pedido solo se crea cuando el backend le pregunta a Recurrente con la llave secreta y el checkout responde `paid`; el total del checkout lo calcula el backend. La referencia es un UUID aleatorio. Dos confirmaciones al mismo tiempo crean un solo pedido (`FOR UPDATE`). Un pago rechazado o abandonado no crea pedido y devuelve el stock (`checkout.integration.js`, 12 casos con PostgreSQL) | Pasa | PA | Crítica | SFTWRKEY-445 | Verificado |
 | SEC-58 | A02 | Backend / Render | `RECURRENTE_SECRET_KEY` | La llave de Recurrente expuesta en el repositorio o en el frontend | Solo vive en las variables de entorno de Render (`render.yaml` con `sync: false`) y en `.env` local; el frontend nunca la usa. `.env.example` la documenta vacía | Pasa | RC | Alta | SFTWRKEY-445 | Verificado |
 | SEC-59 | A08 | Backend | `POST /webhooks/recurrente` (`routes/paymentWebhooks.js`, `services/webhookSignature.js`) | Un aviso de pago falso o repetido marca como pagado un pedido que no se cobró, o crea dos pedidos y descuenta el stock dos veces | La firma Svix (HMAC-SHA256 con `RECURRENTE_WEBHOOK_SECRET`, comparación de tiempo constante y ventana de 5 minutos) se verifica sobre el cuerpo exacto: sin firma, con otro secreto o con un aviso viejo responde 401 y no cambia nada. Aun con firma válida, el pedido solo se crea si la API de Recurrente confirma el checkout como `paid`. Un aviso repetido (mismo `svix-id`) no se reprocesa, el `FOR UPDATE` de la sesión evita dos pedidos y `payments.gateway_reference` es único entre los pagos aprobados. Cada aviso queda en `payment_webhook_events` sin nombre ni correo del cliente (`webhookSignature.test.js`, `paymentWebhooks.integration.js`, 9 casos con PostgreSQL) | Pasa | PA | Crítica | SFTWRKEY-446 | Verificado |
+| SEC-60 | A01 | Backend | `services/csrf.js`, cookie de sesión | CSRF: con la sesión en una cookie, otra página podría mandar peticiones a la API con la sesión del cliente | La cookie es `SameSite=Lax` y toda petición POST/PUT/PATCH/DELETE que trae un `Origin` distinto del frontend responde 403 sin tocar la base, incluidos el login y el cierre de sesión; desde el frontend y para los clientes que no son navegador (sin `Origin`, con Bearer) sigue funcionando (`session.test.js`). Producción (27/10/2026): login desde otro origen → 403, desde el sitio → 401 con datos falsos | Pasa | PA, PM | Media | SFTWRKEY-451 | Verificado |
 
 ## Escaneo dinámico
 

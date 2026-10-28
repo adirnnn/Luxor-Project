@@ -26,11 +26,8 @@ export default function LoginPage() {
         return <Navigate to={from} replace />;
     }
 
-    const handleSuccess = (
-        user: AuthUser,
-        token: string,
-    ) => {
-        login(user, token);
+    const handleSuccess = (user: AuthUser) => {
+        login(user);
         navigate(from, { replace: true });
     };
 

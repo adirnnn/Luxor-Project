@@ -2,7 +2,8 @@ name: Pruebas de extremo a extremo (Playwright)
 
 # SFTWRKEY-456: un navegador real recorre los flujos críticos (registro e inicio de sesión,
 # compra con tarjeta de prueba, compra de invitado y cambio de estado del pedido por el admin)
-# contra el backend y una base PostgreSQL de prueba.
+# contra el backend y una base PostgreSQL de prueba. SFTWRKEY-451: la sesión en cookie httpOnly
+# se prueba además en Firefox y WebKit.
 on:
   push:
     branches: [main, staging]
@@ -76,8 +77,9 @@ jobs:
         working-directory: Scrum/Sprint10/luxor-proj/backend
         run: npm run test:db:seed
 
-      - name: Instalar Chromium para Playwright
-        run: npx playwright install --with-deps chromium
+      # Firefox y WebKit (el motor de Safari) solo corren la prueba de la sesión (SFTWRKEY-451)
+      - name: Instalar Chromium, Firefox y WebKit para Playwright
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Pruebas de extremo a extremo
         run: npm run test:e2e

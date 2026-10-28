@@ -1,5 +1,5 @@
 // alertas de seguridad (admin)
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 export type SecurityAlert = {
     kind: "ip" | "account";
@@ -25,7 +25,7 @@ export type SecurityAlertsData = {
 };
 
 export async function fetchSecurityAlerts(signal?: AbortSignal): Promise<SecurityAlertsData> {
-    const res = await fetch(`${API_URL}/admin/security-alerts`, { headers: authHeaders(), signal });
+    const res = await fetch(`${API_URL}/admin/security-alerts`, { signal });
     const body = await res.json().catch(() => null);
     if (!res.ok) {
         throw new Error(body?.message || "Error al obtener las alertas de seguridad");

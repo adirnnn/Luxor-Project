@@ -8,6 +8,9 @@ const METODOS_QUE_CAMBIAN = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 export const allowedOrigin = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 
 export const csrfProtection = (req, res, next) => {
+  // los avisos de Recurrente (SFTWRKEY-446) los manda su servidor, no un navegador: se validan con
+  // su firma y no usan la cookie de sesión, así que aquí no aplica
+  if (req.path.startsWith('/webhooks/')) return next();
   const origin = req.get('origin');
   if (METODOS_QUE_CAMBIAN.has(req.method) && origin && origin !== allowedOrigin()) {
     return res.status(403).json({ success: false, message: 'Origen no permitido.' });

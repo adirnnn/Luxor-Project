@@ -1,3 +1,5 @@
+import { API_URL } from "../services/apiClient";
+
 export interface LoginCredentials {
     email: string;
     password: string;
@@ -13,11 +15,8 @@ export interface AuthUser {
 export interface AuthResult {
     success: boolean;
     user?: AuthUser;
-    token?: string;
     error?: string;
 }
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export async function login(
     credentials: LoginCredentials
@@ -33,10 +32,10 @@ export async function login(
 
         const data = await response.json();
 
+        // SFTWRKEY-451: la sesión queda en la cookie httpOnly que pone el backend
         if (response.ok && data.success) {
             return {
                 success: true,
-                token: data.token,
                 user: {
                     id: data.user.id,
                     name: data.user.name,

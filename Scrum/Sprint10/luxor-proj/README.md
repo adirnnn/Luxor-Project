@@ -106,7 +106,7 @@ npm run seed
 npm run dev
 ```
 
-Para que el frontend use otra API, define `VITE_API_URL` en `.env.local`.
+El navegador llama al backend por `/api` en el mismo dominio del sitio (así la cookie de sesión no es de otro sitio). En local lo reenvía el proxy de `vite.config.ts` a `http://localhost:3000`; para usar otro backend define `BACKEND_URL` al levantar Vite (por ejemplo `BACKEND_URL=http://localhost:3100 npm run dev`).
 
 ## Pruebas
 
@@ -125,7 +125,7 @@ GitHub Actions corre las pruebas del frontend, el backend y el chatbot, más el 
 
 ### Pruebas de extremo a extremo (Playwright)
 
-Un navegador real (Chromium) recorre el sitio como lo haría una persona, contra el backend y una base PostgreSQL de prueba. Están en `e2e/` y cubren los cuatro flujos críticos:
+Un navegador real recorre el sitio como lo haría una persona, contra el backend y una base PostgreSQL de prueba. Están en `e2e/` y cubren los cuatro flujos críticos y la sesión:
 
 | Archivo | Flujo |
 | --- | --- |
@@ -133,6 +133,7 @@ Un navegador real (Chromium) recorre el sitio como lo haría una persona, contra
 | `e2e/compra.spec.ts` | Un cliente agrega un perfume, paga en Recurrente (simulado por `e2e/recurrente-simulado.mjs`), ve la confirmación y el pedido aparece en Mi cuenta como pagado; si la tarjeta se rechaza y se sale, no hay pedido y el carrito sigue igual |
 | `e2e/invitado.spec.ts` | Un visitante sin cuenta compra como invitado y recibe su número de pedido |
 | `e2e/admin-estado.spec.ts` | El admin abre un pedido en el panel, lo pasa a "En preparación" y luego a "Enviado", y el cliente ve el estado nuevo |
+| `e2e/sesion.spec.ts` | La sesión queda en una cookie `httpOnly` que JavaScript no puede leer, sigue al recargar y se borra al salir. Corre en Chromium, Firefox y WebKit (el motor de Safari) |
 
 Para correrlas en local (desde esta carpeta):
 
@@ -140,18 +141,18 @@ Para correrlas en local (desde esta carpeta):
 # 1. base de pruebas (la misma de las pruebas de integración)
 cd backend && npm run test:db:up && npm run test:db:seed && cd ..
 
-# 2. la primera vez, el navegador de Playwright
-npx playwright install chromium
+# 2. la primera vez, los navegadores de Playwright
+npx playwright install chromium firefox webkit
 
 # 3. las pruebas
 npm run test:e2e
 ```
 
-Playwright levanta solo el backend (puerto 3100) contra esa base y un build del frontend (puerto 4180), así que no hace falta tener nada corriendo; usa puertos propios para no tocar por error un backend que esté apuntando a otra base. Antes de los flujos crea el perfume `e2e-perfume` con stock de sobra, para no gastar el stock de los perfumes reales. Los correos no se envían (`RESEND_API_KEY` va vacía) y cada corrida usa correos nuevos, así que se pueden repetir sin limpiar la base. Para ver el navegador mientras corren: `npx playwright test --headed`. Si algo falla en el CI, el reporte con capturas y la traza queda como artefacto del workflow.
+Playwright levanta solo el backend (puerto 3100) contra esa base y un build del frontend (puerto 4180), que llama al backend por `/api` igual que en producción, así que no hace falta tener nada corriendo; usa puertos propios para no tocar por error un backend que esté apuntando a otra base. Antes de los flujos crea el perfume `e2e-perfume` con stock de sobra, para no gastar el stock de los perfumes reales. Los correos no se envían (`RESEND_API_KEY` va vacía) y cada corrida usa correos nuevos, así que se pueden repetir sin limpiar la base. Para ver el navegador mientras corren: `npx playwright test --headed`. Si algo falla en el CI, el reporte con capturas y la traza queda como artefacto del workflow.
 
 ## Seguridad
 
-- Contraseñas con bcrypt (12 rondas) y sesiones con JWT firmado (HS256, 8 horas).
+- Contraseñas con bcrypt (12 rondas) y sesiones con JWT firmado (HS256, 8 horas) guardado en una cookie `HttpOnly`, `SameSite=Lax` y `Secure`: el JavaScript de la página no puede leerlo. Las peticiones que cambian datos desde otro origen se rechazan (CSRF).
 - Autorización en el backend (`backend/services/auth.js`): cada usuario solo accede a sus propios datos; reportes, inventario, importaciones y pedidos son solo para `ADMIN`. El frontend además protege las rutas por rol.
 - Límite de intentos en el inicio de sesión, el cambio de contraseña y el checkout de invitado, con alertas para el administrador.
 - El total de cada compra se recalcula en el servidor con los precios de la base de datos.
@@ -209,7 +210,7 @@ id,name,price,image,description,stock,salida,corazon,fondo
 | Chatbot (FastAPI) | Render, servicio Docker `luxor-chatbot` | https://luxor-chatbot.onrender.com |
 | Base de datos | PostgreSQL en Render (`luxor-db`) | host interno |
 
-- **Vercel** redepliega en cada push a `main`. Variables: `VITE_API_URL` y `VITE_CHATBOT_URL` (las funciones de `api/` también usan `VITE_API_URL`).
+- **Vercel** redepliega en cada push a `main`. El rewrite `/api/:path*` de `vercel.json` reenvía las llamadas del sitio al backend de Render. Variables: `VITE_CHATBOT_URL` y `VITE_API_URL` (esta última solo la usan las funciones de `api/`).
 - **Render** usa el blueprint `render.yaml` de la raíz del repositorio (servicios, base de datos y variables). Render genera `JWT_SECRET` y `CHATBOT_INTERNAL_KEY`; `LLM_API_KEY` (Groq) se carga a mano en el panel y no viaja en el repositorio.
 - **Inicio de sesión con Google:** crear un id de cliente OAuth en Google Cloud (origen autorizado: el dominio del frontend) y cargarlo como `VITE_GOOGLE_CLIENT_ID` en Vercel y `GOOGLE_CLIENT_ID` en `luxor-backend` (Render). Sin esas variables el botón de Google no aparece y el resto del sitio funciona igual.
 - La base de datos del plan gratuito de Render vence a los 30 días; la actual vence el **6 de noviembre de 2026**. Al recrearla, el seed vuelve a crear las tablas y el catálogo inicial.

@@ -1,4 +1,4 @@
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 export interface OrderConfirmation {
     order: {
@@ -27,7 +27,6 @@ export interface OrderConfirmation {
     const res = await fetch(
         `${API_URL}/orders/${encodeURIComponent(id)}/confirmation`,
         {
-        headers: authHeaders(),
         cache: "no-store",
         signal,
         }

@@ -2,31 +2,31 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// SFTWRKEY-457: las fotos subidas desde el panel las sirve el backend. En local (dev y preview)
-// las reenvía este proxy; en Vercel las reenvía el rewrite de vercel.json.
-const fotosDelBackend = {
-  '/product-images': { target: process.env.VITE_API_URL || 'http://localhost:3000', changeOrigin: true },
+// SFTWRKEY-451: el navegador llama al backend por el mismo dominio del sitio (/api), así la
+// cookie de sesión es del mismo sitio. En local (dev y preview) lo reenvía este proxy y en
+// Vercel el rewrite de vercel.json. BACKEND_URL cambia el destino (docker-compose usa
+// http://backend:3000 y las pruebas e2e su propio puerto).
+// SFTWRKEY-457: las fotos subidas desde el panel también las sirve el backend.
+const backend = process.env.BACKEND_URL || 'http://localhost:3000'
+const proxyAlBackend = {
+  '/api': {
+    target: backend,
+    changeOrigin: true,
+    rewrite: (path: string) => path.replace(/^\/api/, ''),
+  },
+  '/product-images': { target: backend, changeOrigin: true },
 }
 
 export default defineConfig({
   plugins: [react()],
-  // ojo: este proxy solo funciona con `npm run dev`. en el build de produccion
-  // (vercel) no existe, ahi el frontend pega directo a VITE_API_URL.
   server: {
     // en docker (windows/mac) los cambios de archivos del volumen montado no llegan
     // como eventos, asi que vite no se entera. docker-compose define VITE_USE_POLLING.
     watch: process.env.VITE_USE_POLLING === 'true' ? { usePolling: true, interval: 300 } : undefined,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      },
-      ...fotosDelBackend,
-    }
+    proxy: proxyAlBackend,
   },
   preview: {
-    proxy: fotosDelBackend,
+    proxy: proxyAlBackend,
   },
   // configuracion de vitest. correr con `npm run test`.
   test: {

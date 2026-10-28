@@ -520,11 +520,11 @@ router.post(
       };
     });
 
-    // SFTWRKEY-451: igual que /login, la sesión queda en la cookie httpOnly
+    // SFTWRKEY-451: igual que /login, el token solo va en la cookie httpOnly
     setSessionCookie(res, result.token);
     res.json({
       success: true,
-      ...result,
+      user: result.user,
     });
   }),
 );

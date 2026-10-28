@@ -1,26 +1,33 @@
 // SFTWRKEY-456: pasos que se repiten en varios flujos.
+import { readFileSync } from "node:fs";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
-import { BACKEND_URL, PERFUME, DIRECCION, correoUnico } from "./datos";
+import { ARCHIVO_TOKEN_ADMIN, BACKEND_URL, PERFUME, DIRECCION, correoUnico } from "./datos";
 
 // ── por la API (solo para preparar datos, el flujo que se prueba va por el navegador) ──
 
+// SFTWRKEY-451: el token solo viene en la cookie de sesión (httpOnly)
 export async function tokenDe(request: APIRequestContext, email: string, password: string) {
   const res = await request.post(`${BACKEND_URL}/login`, { data: { email, password } });
   expect(res.status(), `login de ${email}`).toBe(200);
-  return (await res.json()).token as string;
+  const cookie = res.headersArray().find((h) => h.name.toLowerCase() === "set-cookie")?.value ?? "";
+  return decodeURIComponent(cookie.match(/luxor_sesion=([^;]+)/)?.[1] ?? "");
 }
+
+// token del admin que guardó el paso de preparación
+export const tokenAdmin = () => readFileSync(ARCHIVO_TOKEN_ADMIN, "utf8");
 
 export async function crearCliente(request: APIRequestContext) {
   const cliente = { name: "Cliente Pruebas E2E", email: correoUnico("cliente"), password: "clave-segura-e2e" };
   const res = await request.post(`${BACKEND_URL}/register`, { data: cliente });
   expect(res.status(), "registro por la API").toBe(201);
   const { user } = await res.json();
-  return { ...cliente, id: user.id as number, token: await tokenDe(request, cliente.email, cliente.password) };
+  return { ...cliente, id: user.id as number };
 }
 
-// compra de 1 perfume pagada en el Recurrente simulado; devuelve el número de pedido
-export async function comprarPorApi(request: APIRequestContext, cliente: { id: number; token: string }) {
-  const auth = { Authorization: `Bearer ${cliente.token}` };
+// el admin compra 1 perfume a nombre del cliente, pagado en el Recurrente simulado; devuelve el
+// número de pedido (con el token del admin, para no iniciar sesión de más: SFTWRKEY-451)
+export async function comprarPorApi(request: APIRequestContext, cliente: { id: number }) {
+  const auth = { Authorization: `Bearer ${tokenAdmin()}` };
   const carrito = await request.post(`${BACKEND_URL}/cart/${cliente.id}`, {
     headers: auth,
     data: [{ product_id: PERFUME.id, quantity: 1 }],

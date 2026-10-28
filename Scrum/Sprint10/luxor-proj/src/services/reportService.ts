@@ -1,5 +1,5 @@
 // uso de los endpoints de metricas
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 export type GeneralMetrics = {
     totalUsers: number;
@@ -37,7 +37,7 @@ export type CategoryInventory = {
 };
 
 async function getJson(path: string, errorMessage: string) {
-    const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() });
+    const res = await fetch(`${API_URL}${path}`);
     if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.message || errorMessage);

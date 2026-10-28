@@ -1,4 +1,4 @@
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 export type ImportError = { row: number; field: string; message: string };
 export type ImportSummary = {
@@ -12,7 +12,7 @@ export type ImportSummary = {
 };
 
 export async function downloadCsvTemplate() {
-  const response = await fetch(`${API_URL}/imports/products/template`, { headers: authHeaders() });
+  const response = await fetch(`${API_URL}/imports/products/template`);
   if (!response.ok) throw new Error("No se pudo descargar la plantilla.");
   const blob = await response.blob();
   const link = document.createElement("a");
@@ -26,7 +26,7 @@ export async function importProducts(file: File): Promise<ImportSummary> {
   const csv = await file.text();
   const response = await fetch(`${API_URL}/imports/products`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fileName: file.name, csv }),
   });
   const data = await response.json();
@@ -35,7 +35,7 @@ export async function importProducts(file: File): Promise<ImportSummary> {
 }
 
 export async function fetchImportHistory(): Promise<ImportSummary[]> {
-  const response = await fetch(`${API_URL}/imports/products`, { headers: authHeaders() });
+  const response = await fetch(`${API_URL}/imports/products`);
   if (!response.ok) throw new Error("No se pudo cargar el historial.");
   const data = await response.json();
   return data.imports;

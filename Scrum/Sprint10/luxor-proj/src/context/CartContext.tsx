@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { Product } from "../services/productService";
 import { fetchProducts } from "../services/productService";
 import { useAuth } from "./AuthContext";
-import { authHeaders } from "../services/apiClient";
+import { API_URL } from "../services/apiClient";
 import { maxQuantityFor } from "./cartLimits";
 import { trackAddToCart } from "../utils/analytics";
 
@@ -33,7 +33,6 @@ type CartApiItem = { product_id: string; quantity: number };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -59,7 +58,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (user && !isNaN(numericUserId)) {
         try {
-          const res = await fetch(`${API_URL}/cart/${numericUserId}`, { headers: authHeaders() });
+          const res = await fetch(`${API_URL}/cart/${numericUserId}`);
           if (res.ok) items = await res.json();
         } catch (err) {
           console.error("Error loading cart from backend", err);
@@ -116,7 +115,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }));
           await fetch(`${API_URL}/cart/${numericUserId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
         } catch (err) {

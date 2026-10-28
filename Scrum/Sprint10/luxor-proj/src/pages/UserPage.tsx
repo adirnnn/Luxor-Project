@@ -4,7 +4,7 @@ import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H2, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
-import { API_URL, authHeaders, getToken } from "../services/apiClient";
+import { API_URL } from "../services/apiClient";
 import { PageMeta } from "../components/seo/PageMeta";
 import { statusLabel, statusStyle } from "../constants/orderStatus";
 import { formatPrice } from "../utils/formatPrice";
@@ -95,7 +95,7 @@ export default function UserPage() {
   const loadUserInfo = () => {
     if (!user) return;
     setLoadingInfo(true);
-    fetch(`${API_URL}/user/${user.id}`, { headers: authHeaders() })
+    fetch(`${API_URL}/user/${user.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener datos del usuario");
         return res.json();
@@ -119,7 +119,7 @@ export default function UserPage() {
     loadUserInfo();
 
     // SFTWRKEY-323: Historial real de pedidos (orders + order_items)
-    fetch(`${API_URL}/user/${user.id}/orders`, { headers: authHeaders() })
+    fetch(`${API_URL}/user/${user.id}/orders`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener historial");
         return res.json();
@@ -160,7 +160,7 @@ export default function UserPage() {
     try {
       const res = await fetch(`${API_URL}/user/${user.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editName, email: editEmail }),
       });
       const data = await res.json();
@@ -170,8 +170,7 @@ export default function UserPage() {
       }
       setUserInfo(data.user);
       // Actualiza también la sesión (para que el nombre se refleje en toda la app)
-      const token = getToken();
-      if (token) login({ ...user, name: data.user.name, email: data.user.email }, token);
+      login({ ...user, name: data.user.name, email: data.user.email });
       setInfoMessage({ type: "success", text: "Información actualizada correctamente." });
       setIsEditingInfo(false);
     } catch {
@@ -201,7 +200,7 @@ export default function UserPage() {
     try {
       const res = await fetch(`${API_URL}/user/${user.id}/password`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();

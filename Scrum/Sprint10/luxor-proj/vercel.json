@@ -20,9 +20,16 @@
     { "source": "/product-images/:file", "destination": "https://luxor-backend-9ov9.onrender.com/product-images/:file" },
     { "source": "/assets/products/:foto([^/]+)\\.png", "destination": "/assets/products/:foto.webp" },
     { "source": "/assets/products/:foto([^/]+)\\.jpg", "destination": "/assets/products/:foto.webp" },
+    { "source": "/api/:path*", "destination": "https://luxor-backend-9ov9.onrender.com/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "x-vercel-enable-rewrite-caching", "value": "0" }
+      ]
+    },
     {
       "source": "/product-images/:file",
       "headers": [

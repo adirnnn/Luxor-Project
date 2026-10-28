@@ -1,5 +1,5 @@
 // SFTWRKEY-419: pedidos del panel de admin
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 export type AdminOrder = {
     id: number;
@@ -40,7 +40,7 @@ export type OrderFilters = {
 };
 
 async function getJson(path: string, errorMessage: string, init?: RequestInit) {
-    const res = await fetch(`${API_URL}${path}`, { ...init, headers: { ...authHeaders(), ...init?.headers } });
+    const res = await fetch(`${API_URL}${path}`, init);
     const body = await res.json().catch(() => null);
     if (!res.ok) {
         throw new Error(body?.message || errorMessage);

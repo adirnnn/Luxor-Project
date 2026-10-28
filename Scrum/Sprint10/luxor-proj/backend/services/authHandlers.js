@@ -30,10 +30,10 @@ export const createLoginHandler = ({ pool, bcrypt, signToken, setSessionCookie =
     const user = result.rows[0];
     const publicUser = { id: user.id, name: user.name, role: user.role };
     const token = signToken(publicUser);
-    // SFTWRKEY-451: la sesión del navegador queda en una cookie httpOnly. El token sigue en la
-    // respuesta solo mientras el frontend viejo siga publicado; se quita en el paso 2.
+    // SFTWRKEY-451: el token solo viaja en la cookie httpOnly; en la respuesta no va, así un
+    // script en la página (XSS) nunca lo ve
     setSessionCookie(res, token);
-    return res.json({ success: true, token, user: publicUser });
+    return res.json({ success: true, user: publicUser });
   } catch (err) {
     return res.status(500).json({ success: false });
   }

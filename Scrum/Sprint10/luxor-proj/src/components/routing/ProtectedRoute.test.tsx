@@ -6,7 +6,6 @@ import { MemoryRouter, Routes, Route, useLocation, useNavigate } from "react-rou
 import { AnimatePresence, motion } from "framer-motion";
 import { vi } from "vitest";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
-import { TOKEN_KEY } from "../../services/apiClient";
 import LoginPage from "../../pages/LoginPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AdminRoute } from "./AdminRoute";
@@ -23,7 +22,7 @@ vi.mock("../../features/CommerceFeatures", async () => {
     GoogleAccess: () => {
       const { login: entrar } = useAuth();
       return (
-        <button onClick={() => entrar({ id: 9, name: "Luis", email: "luis@gmail.com", role: "CLIENTE" }, "token-google")}>
+        <button onClick={() => entrar({ id: 9, name: "Luis", email: "luis@gmail.com", role: "CLIENTE" })}>
           Google simulado
         </button>
       );
@@ -59,7 +58,6 @@ function abrir(ruta: string) {
 }
 
 function sesionDe(role: string) {
-  localStorage.setItem(TOKEN_KEY, "token-de-prueba");
   localStorage.setItem("luxor-auth-user", JSON.stringify({ id: 7, name: "Ana", email: "ana@test.com", role }));
 }
 
@@ -106,7 +104,6 @@ describe("ProtectedRoute", () => {
   it("un visitante que abre /mi-cuenta termina en /login y, tras iniciar sesion, vuelve a /mi-cuenta", async () => {
     loginApi.mockResolvedValue({
       success: true,
-      token: "token-nuevo",
       user: { id: 7, name: "Ana", email: "ana@test.com", role: "CLIENTE" },
     });
     const user = userEvent.setup();
@@ -121,7 +118,9 @@ describe("ProtectedRoute", () => {
 
     expect(await screen.findByText("Mi cuenta")).toBeInTheDocument();
     expect(screen.getByTestId("ruta")).toHaveTextContent("/mi-cuenta");
-    expect(localStorage.getItem(TOKEN_KEY)).toBe("token-nuevo");
+    // SFTWRKEY-451: el token queda en la cookie httpOnly, nunca en localStorage
+    expect(localStorage.getItem("luxor-auth-token")).toBeNull();
+    expect(JSON.parse(localStorage.getItem("luxor-auth-user") ?? "{}").id).toBe(7);
   });
 
   it("con Google tambien vuelve a /mi-cuenta despues de entrar", async () => {
@@ -138,7 +137,6 @@ describe("ProtectedRoute", () => {
   it("si se entra al login directamente, despues de iniciar sesion va al inicio como antes", async () => {
     loginApi.mockResolvedValue({
       success: true,
-      token: "token-nuevo",
       user: { id: 7, name: "Ana", email: "ana@test.com", role: "CLIENTE" },
     });
     const user = userEvent.setup();

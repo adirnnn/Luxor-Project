@@ -32,11 +32,26 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
+  // cada navegador entra con su propia IP (X-Forwarded-For; el backend usa "trust proxy"): el backend
+  // permite 10 inicios de sesión por minuto por IP y así cada uno tiene su cuenta, como clientes reales
   projects: [
-    { name: "preparacion", testMatch: /.*\.setup\.ts/ },
+    { name: "preparacion", testMatch: /.*\.setup\.ts/, use: { extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.10" } } },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.11" } },
+      dependencies: ["preparacion"],
+    },
+    // SFTWRKEY-451: el inicio y cierre de sesión con la cookie también en Firefox y Safari (WebKit)
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"], extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.12" } },
+      testMatch: /sesion\.spec\.ts/,
+      dependencies: ["preparacion"],
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"], extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.13" } },
+      testMatch: /sesion\.spec\.ts/,
       dependencies: ["preparacion"],
     },
   ],
@@ -75,7 +90,8 @@ export default defineConfig({
       url: FRONTEND_URL,
       reuseExistingServer: false,
       timeout: 180_000,
-      env: { VITE_API_URL: BACKEND_URL },
+      // el sitio llama a /api y el proxy de vite lo reenvía a este backend (SFTWRKEY-451)
+      env: { BACKEND_URL },
     },
   ],
 });

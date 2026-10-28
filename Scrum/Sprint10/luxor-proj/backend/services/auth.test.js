@@ -92,12 +92,14 @@ const loginRes = () => mockRes();
 
 // /login
 
-test('POST /login: credenciales correctas devuelven 200, token y usuario público', async () => {
+test('POST /login: credenciales correctas devuelven 200, la cookie de sesión y el usuario público', async () => {
   const passwordHash = await bcrypt.hash('SecretaSegura123', TEST_SALT_ROUNDS);
   const pool = mockPool({
     rows: [{ id: 42, name: 'Ana Cliente', email: 'ana@luxor.com', password_hash: passwordHash, role: 'CLIENTE' }],
   });
-  const handler = createLoginHandler({ pool, bcrypt, signToken });
+  // SFTWRKEY-451: el token va en la cookie httpOnly, no en el cuerpo de la respuesta
+  let cookie;
+  const handler = createLoginHandler({ pool, bcrypt, signToken, setSessionCookie: (_res, token) => { cookie = token; } });
   const req = { body: { email: 'ana@luxor.com', password: 'SecretaSegura123' } };
   const res = loginRes();
 
@@ -105,10 +107,10 @@ test('POST /login: credenciales correctas devuelven 200, token y usuario públic
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.success, true);
-  assert.ok(res.body.token, 'debe devolver un token');
+  assert.equal(res.body.token, undefined, 'el token no viaja en la respuesta');
   assert.deepEqual(res.body.user, { id: 42, name: 'Ana Cliente', role: 'CLIENTE' });
-  // El token es válido y no filtra el hash ni el correo.
-  const payload = jwt.verify(res.body.token, process.env.JWT_SECRET);
+  // El token de la cookie es válido y no filtra el hash ni el correo.
+  const payload = jwt.verify(cookie, process.env.JWT_SECRET);
   assert.equal(payload.id, 42);
   assert.equal(payload.role, 'CLIENTE');
   assert.equal(payload.password_hash, undefined);

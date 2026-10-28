@@ -6,7 +6,9 @@ import jwt from 'jsonwebtoken';
 
 process.env.JWT_SECRET = 'test-secret';
 process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
+process.env.GOOGLE_CLIENT_ID = 'cliente-de-prueba.apps.googleusercontent.com';
 
+const { OAuth2Client } = await import('google-auth-library');
 const { default: bcrypt } = await import('bcryptjs');
 const { default: pool } = await import('./db.js');
 const { signToken, SESSION_COOKIE } = await import('./services/auth.js');
@@ -76,6 +78,10 @@ test('el login guarda la sesión en una cookie httpOnly, SameSite=Lax, de 8 hora
 
   const res = await login();
   assert.equal(res.status, 200);
+  // el token solo va en la cookie: la respuesta (que sí puede leer JavaScript) no lo trae
+  const body = await res.json();
+  assert.equal(body.token, undefined);
+  assert.deepEqual(body.user, { id: 7, name: 'Ana', role: 'CLIENTE' });
 
   const cookie = res.headers.get('set-cookie');
   assert.match(cookie, new RegExp(`^${SESSION_COOKIE}=`));
@@ -190,4 +196,41 @@ test('las lecturas (GET) y los clientes que no son navegador (sin Origin, con Be
   assert.equal((await pedir('GET', '/products', { origin: 'https://otro-sitio.com' })).status, 200);
   assert.equal((await pedir('POST', '/cart/7', { token, body: [{ product_id: 'khamrah', quantity: 1 }] })).status, 200);
   assert.equal((await pedir('GET', '/me', { token })).status, 200);
+});
+
+test('el login con Google también deja la sesión solo en la cookie', async (t) => {
+  const original = OAuth2Client.prototype.verifyIdToken;
+  OAuth2Client.prototype.verifyIdToken = async () => ({
+    getPayload: () => ({ sub: 'google-7', email: 'ana@gmail.com', email_verified: true, nonce: 'n-1', name: 'Ana', exp: 9999999999 }),
+  });
+  const { restore } = fakeDb([
+    [/INSERT INTO google_used_tokens/i, { rows: [{ token_hash: 'x' }] }],
+    [/FROM google_accounts g/i, { rows: [{ id: 7, name: 'Ana', email: 'ana@gmail.com', role: 'CLIENTE' }] }],
+  ]);
+  t.after(() => { restore(); OAuth2Client.prototype.verifyIdToken = original; });
+
+  const res = await pedir('POST', '/auth/google', { origin: FRONTEND, body: { credential: 'token-de-google', nonce: 'n-1' } });
+
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.token, undefined);
+  assert.equal(body.user.id, 7);
+  const cookie = res.headers.get('set-cookie');
+  assert.match(cookie, new RegExp(`^${SESSION_COOKIE}=`));
+  assert.match(cookie, /HttpOnly/);
+  assert.equal(jwt.verify(decodeURIComponent(cookie.split(';')[0].split('=')[1]), 'test-secret').id, 7);
+});
+
+test('CSRF no aplica al webhook de Recurrente: lo valida su firma, no el origen', async (t) => {
+  const { restore } = fakeDb();
+  t.after(restore);
+
+  const res = await fetch(`${baseUrl}/webhooks/recurrente`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: 'https://app.recurrente.com' },
+    body: JSON.stringify({ event_type: 'intent.succeeded' }),
+  });
+  // lo atiende el webhook (que sin su clave o sin firma válida no procesa nada), no la protección CSRF
+  assert.notEqual(res.status, 403);
+  assert.notEqual((await res.json()).message, 'Origen no permitido.');
 });

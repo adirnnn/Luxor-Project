@@ -123,10 +123,18 @@ export async function api(method, path, { token, body } = {}) {
   return { status: res.status, body: data };
 }
 
+// SFTWRKEY-451: el token ya no viene en la respuesta del login, solo en la cookie de sesión.
+// Las pruebas lo sacan de la cookie y lo mandan como Bearer (igual de válido para el backend).
 export async function login(email, password) {
-  const res = await api('POST', '/login', { body: { email, password } });
+  const res = await fetch(`${baseUrl}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
   if (res.status !== 200) throw new Error(`Login falló para ${email}: ${res.status}`);
-  return res.body;
+  const cookie = res.headers.get('set-cookie') || '';
+  const token = decodeURIComponent(cookie.match(/luxor_sesion=([^;]+)/)?.[1] || '');
+  return { ...(await res.json()), token };
 }
 
 export const loginAdmin = async () => (await login(SEED_ADMIN.email, SEED_ADMIN.password)).token;

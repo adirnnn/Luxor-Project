@@ -8,8 +8,8 @@ import { Button } from "../components/ui/Button";
 import clsx from "clsx";
 import { PageMeta } from "../components/seo/PageMeta";
 import { PASSWORD_HINT, validatePassword } from "../validation/passwordPolicy";
+import { API_URL } from "../services/apiClient";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 interface FormData {
   name: string;

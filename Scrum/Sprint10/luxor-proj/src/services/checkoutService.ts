@@ -1,5 +1,5 @@
 import type { PaymentFormState } from "../validation/usePaymentForm";
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 // SFTWRKEY-445: el pago se hace en la página de Recurrente. La tienda abre el pago, manda al
 // cliente a Recurrente y al volver confirma con el backend si el cobro quedó aprobado.
@@ -53,9 +53,9 @@ async function post<T>(path: string, body: unknown, headers: Record<string, stri
   return data as T;
 }
 
-// Abre el pago del carrito del usuario con sesión
+// Abre el pago del carrito del usuario con sesión (SFTWRKEY-451: la sesión va en la cookie)
 export const startCheckout = (userId: number, address: PaymentFormState) =>
-  post<CheckoutStarted>(`/checkout/${userId}`, address, authHeaders() as Record<string, string>);
+  post<CheckoutStarted>(`/checkout/${userId}`, address);
 
 // Al volver de Recurrente: ¿quedó pagado?
 export const confirmPayment = (reference: string) =>

@@ -6,7 +6,6 @@ import { vi } from "vitest";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
 import { SearchProvider } from "../context/SearchContext";
-import { TOKEN_KEY } from "../services/apiClient";
 import UserPage from "./UserPage";
 
 const PEDIDOS = [
@@ -41,7 +40,6 @@ function apiFalsa(pedidos = PEDIDOS) {
 }
 
 function abrir() {
-  localStorage.setItem(TOKEN_KEY, "token-de-prueba");
   localStorage.setItem("luxor-auth-user", JSON.stringify({ id: 7, name: "María García", email: "maria@luxor.com", role: "CLIENTE" }));
   return render(
     <AuthProvider>

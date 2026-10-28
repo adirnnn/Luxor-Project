@@ -1,4 +1,4 @@
-import { API_URL, authHeaders } from "./apiClient";
+import { API_URL } from "./apiClient";
 
 export type Product = {
   id: string;
@@ -57,7 +57,7 @@ export async function fetchProductById(id: string): Promise<Product> {
 export async function createProduct(product: Product): Promise<void> {
   const res = await fetch(`${API_URL}/products`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product),
   });
   if (!res.ok) {
@@ -73,7 +73,7 @@ export const FOTO_MAX_BYTES = 5 * 1024 * 1024;
 export async function uploadProductImage(file: File): Promise<string> {
   const res = await fetch(`${API_URL}/admin/product-images`, {
     method: 'POST',
-    headers: { 'Content-Type': file.type, ...authHeaders() },
+    headers: { 'Content-Type': file.type },
     body: file,
   });
   const body = await res.json().catch(() => null);
@@ -86,7 +86,7 @@ export async function uploadProductImage(file: File): Promise<string> {
 export async function updateProduct(id: string, product: Partial<Product>): Promise<void> {
   const res = await fetch(`${API_URL}/products/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product),
   });
   if (!res.ok) {
@@ -98,7 +98,6 @@ export async function updateProduct(id: string, product: Partial<Product>): Prom
 export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/products/${id}`, {
     method: 'DELETE',
-    headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Error al eliminar producto');
 }

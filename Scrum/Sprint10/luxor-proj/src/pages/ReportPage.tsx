@@ -5,7 +5,7 @@ import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
 import { BarChart } from "../components/charts/BarChart";
 import { DonutChart } from "../components/charts/DonutChart";
-import { API_URL, authHeaders } from "../services/apiClient";
+import { API_URL } from "../services/apiClient";
 import {
     fetchGeneralMetrics,
     fetchMonthlySales,
@@ -57,7 +57,7 @@ export default function ReportPage() {
         setError(null);
         setAnalyticsError(null);
 
-        const reportPromise = fetch(`${API_URL}/report`, { headers: authHeaders() })
+        const reportPromise = fetch(`${API_URL}/report`)
             .then((res) => {
                 if (!res.ok) throw new Error("Error al cargar reporte");
                 return res.json();

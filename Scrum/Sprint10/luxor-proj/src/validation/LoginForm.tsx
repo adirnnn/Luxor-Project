@@ -151,7 +151,7 @@ return (
 // ─── Main form ────────────────────────────────────────────────────────────────
 
 type LoginFormProps = {
-    onSuccess: (user: AuthUser, token: string) => void;
+    onSuccess: (user: AuthUser) => void;
 };
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {

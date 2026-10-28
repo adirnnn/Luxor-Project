@@ -15,6 +15,8 @@ services:
       NODE_ENV: development
       # vite no recibe los eventos de cambio del volumen montado: revisa los archivos por sondeo.
       VITE_USE_POLLING: "true"
+      # SFTWRKEY-451: el proxy /api de vite corre dentro de este contenedor
+      BACKEND_URL: http://backend:3000
     depends_on:
       - backend
 

@@ -82,9 +82,9 @@ describe("AdminProductPage: subir foto", () => {
 describe("uploadProductImage", () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
-  it("manda el archivo tal cual con su tipo y el token del admin", async () => {
+  // SFTWRKEY-451: la sesión del admin va en la cookie httpOnly, que el navegador manda solo
+  it("manda el archivo tal cual con su tipo, por /api y sin token en las cabeceras", async () => {
     const { uploadProductImage: real } = await vi.importActual<typeof import("../services/productService")>("../services/productService");
-    localStorage.setItem("luxor-auth-token", "token-admin");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ image: "/product-images/7.webp" }), { status: 201 })
     );
@@ -93,11 +93,10 @@ describe("uploadProductImage", () => {
     await expect(real(archivo)).resolves.toBe("/product-images/7.webp");
 
     const [url, opciones] = fetchMock.mock.calls[0];
-    expect(String(url)).toMatch(/\/admin\/product-images$/);
+    expect(String(url)).toBe("/api/admin/product-images");
     expect(opciones?.method).toBe("POST");
     expect(opciones?.body).toBe(archivo);
-    expect(opciones?.headers).toMatchObject({ "Content-Type": "image/png", Authorization: "Bearer token-admin" });
-    localStorage.removeItem("luxor-auth-token");
+    expect(opciones?.headers).toEqual({ "Content-Type": "image/png" });
   });
 
   it("lanza el mensaje del backend cuando falla", async () => {

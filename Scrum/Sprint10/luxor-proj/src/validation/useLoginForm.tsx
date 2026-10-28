@@ -20,7 +20,7 @@ export interface UseLoginFormReturn {
     isLoading: boolean;
     isSuccess: boolean;
     handleChange: (field: keyof LoginFormState, value: string) => void;
-    handleSubmit: (onSuccess: (user: AuthUser, token: string) => void) => Promise<void>;
+    handleSubmit: (onSuccess: (user: AuthUser) => void) => Promise<void>;
     isValid: boolean;
 }
 
@@ -62,7 +62,7 @@ export function useLoginForm(): UseLoginFormReturn {
     );
     
     const handleSubmit = useCallback(
-    async (onSuccess: (user: AuthUser, token: string) => void) => {
+    async (onSuccess: (user: AuthUser) => void) => {
       // Run validation
         const validationErrors = validate(values);
         if (Object.keys(validationErrors).length > 0) {
@@ -76,9 +76,9 @@ export function useLoginForm(): UseLoginFormReturn {
         try {
         const result = await login(values);
 
-        if (result.success && result.user && result.token) {
+        if (result.success && result.user) {
             setIsSuccess(true);
-            onSuccess(result.user, result.token);
+            onSuccess(result.user);
         } else {
             setErrors({ credentials: result.error });
         }

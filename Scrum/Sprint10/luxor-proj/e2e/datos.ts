@@ -1,4 +1,6 @@
 // SFTWRKEY-456: datos compartidos por las pruebas de extremo a extremo.
+import os from "node:os";
+import path from "node:path";
 
 // puertos propios para no usar por error un backend que ya esté corriendo con otra base
 export const BACKEND_URL = "http://localhost:3100";
@@ -11,6 +13,10 @@ export const ADMIN = {
   email: process.env.ADMIN_EMAIL ?? "admin@luxor.com",
   password: process.env.ADMIN_PASSWORD ?? "admin-pruebas-integracion",
 };
+
+// el paso de preparación guarda aquí el token del admin para no iniciar sesión de más
+// (el backend permite 10 inicios de sesión por minuto desde una misma IP)
+export const ARCHIVO_TOKEN_ADMIN = path.join(os.tmpdir(), "luxor-e2e-token-admin");
 
 // perfume que se crea solo para estas pruebas, con stock de sobra (ver preparacion.setup.ts)
 export const PERFUME = {
