@@ -3,7 +3,7 @@
 Tienda en línea de perfumes árabes y de diseñador: catálogo con búsqueda por notas olfativas, carrito, compra con o sin cuenta, seguimiento de pedidos, asistente virtual y panel de administración con reportes e importación de inventario.
 
 - **Sitio en producción:** https://luxor-project-green.vercel.app
-- **Código actual (Sprint 9):** [`Scrum/Sprint9/luxor-proj`](Scrum/Sprint9/luxor-proj). Su [README](Scrum/Sprint9/luxor-proj/README.md) explica cómo instalarlo, correr las pruebas y desplegarlo.
+- **Código actual (Sprint 10):** [`Scrum/Sprint9/luxor-proj`](Scrum/Sprint10/luxor-proj). Su [README](Scrum/Sprint10/luxor-proj/README.md) explica cómo instalarlo, correr las pruebas y desplegarlo.
 
 ## Organización del repositorio
 
@@ -11,8 +11,8 @@ Se trabaja con Scrum. Cada sprint tiene su propia carpeta con el incremento entr
 
 | Carpeta | Contenido |
 | --- | --- |
-| `Scrum/Sprint1` … `Scrum/Sprint8` | Incrementos anteriores (solo referencia) |
-| `Scrum/Sprint9/luxor-proj` | Incremento actual; es el que se despliega y el que prueba el CI |
+| `Scrum/Sprint1` … `Scrum/Sprint9` | Incrementos anteriores (solo referencia) |
+| `Scrum/Sprint10/luxor-proj` | Incremento actual; es el que se despliega y el que prueba el CI |
 | `.github/workflows/` | Pruebas automáticas (frontend, backend, chatbot, integración y regresión) |
 | `render.yaml` | Blueprint de Render (backend, chatbot y base de datos) |
 
@@ -29,7 +29,7 @@ Se trabaja con Scrum. Cada sprint tiene su propia carpeta con el incremento entr
 ## Inicio rápido
 
 ```bash
-cd Scrum/Sprint9/luxor-proj
+cd Scrum/Sprint10/luxor-proj
 cp .env.example .env   # completar los valores
 docker compose up --build
 ```
@@ -39,7 +39,7 @@ Abre `http://localhost:5173`. Más detalles en el [README del proyecto](Scrum/Sp
 ## Pruebas
 
 ```bash
-cd Scrum/Sprint9/luxor-proj
+cd Scrum/Sprint10/luxor-proj
 npm ci && npm run test:run && npm run build   # frontend
 cd backend && npm ci && npm test              # backend
 ```
