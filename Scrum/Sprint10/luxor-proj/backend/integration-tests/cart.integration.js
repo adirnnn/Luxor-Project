@@ -59,3 +59,24 @@ test('un producto inexistente viola la FK, la transacción hace ROLLBACK y el ca
   assert.equal(res.status, 500);
   assert.deepEqual(await itemsEnBase(client.id), antes, 'el DELETE e INSERT parciales se revierten');
 });
+
+// SFTWRKEY-456: lo encontraron las pruebas de extremo a extremo. Al iniciar sesión y agregar un
+// perfume, el frontend manda dos sincronizaciones casi juntas; si el cliente todavía no tenía
+// carrito, las dos intentaban crearlo y una fallaba con 500 (carts_user_id_key).
+test('dos sincronizaciones al mismo tiempo de un cliente sin carrito responden 200 y no pierden el carrito', async () => {
+  for (let intento = 0; intento < 5; intento++) {
+    const nuevo = await registerClient(created.users);
+    const respuestas = await Promise.all([
+      api('POST', `/cart/${nuevo.id}`, { token: nuevo.token, body: [{ product_id: perfumeA.id, quantity: 1 }] }),
+      api('POST', `/cart/${nuevo.id}`, { token: nuevo.token, body: [{ product_id: perfumeB.id, quantity: 2 }] }),
+    ]);
+    assert.deepEqual(respuestas.map((r) => r.status), [200, 200], `intento ${intento + 1}`);
+
+    // un solo carrito y con los items de una de las dos (la última que terminó)
+    const { rows } = await pool.query('SELECT COUNT(*)::int AS carritos FROM carts WHERE user_id = $1', [nuevo.id]);
+    assert.equal(rows[0].carritos, 1);
+    const items = await itemsEnBase(nuevo.id);
+    assert.equal(items.length, 1);
+    assert.ok([perfumeA.id, perfumeB.id].includes(items[0].product_id));
+  }
+});

@@ -51,9 +51,15 @@ router.post("/cart/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    let cartResult = await client.query('SELECT id FROM carts WHERE user_id = $1', [userId]);
-    if (cartResult.rows.length === 0)
-      cartResult = await client.query('INSERT INTO carts (user_id) VALUES ($1) RETURNING id', [userId]);
+    // SFTWRKEY-456: el carrito se crea o se toma en una sola consulta. Antes era SELECT y luego
+    // INSERT: con dos sincronizaciones juntas las dos intentaban crearlo y una fallaba con 500.
+    // Con ON CONFLICT la segunda espera a que termine la primera y sigue con el mismo carrito.
+    const cartResult = await client.query(
+      `INSERT INTO carts (user_id) VALUES ($1)
+       ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()
+       RETURNING id`,
+      [userId]
+    );
     const cartId = cartResult.rows[0].id;
     await client.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
     for (const item of items) {

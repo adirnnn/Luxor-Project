@@ -47,6 +47,7 @@ luxor-proj/
 ├── backend/                # API Express (server.js, commerce.js, routes/, services/, seed.js)
 │   ├── integration-tests/  # pruebas contra una base PostgreSQL real
 │   └── chatbot/            # servicio FastAPI del asistente virtual
+├── e2e/                    # pruebas de extremo a extremo con Playwright (playwright.config.ts)
 ├── docs/                   # CSV, PerfumAPI, colección de Postman y seguridad (matriz OWASP)
 ├── performance/k6/         # pruebas de carga, estrés y picos
 ├── docker-compose.yml
@@ -117,9 +118,36 @@ Para que el frontend use otra API, define `VITE_API_URL` en `.env.local`.
 | Backend (unitarias) | `npm test` | `backend/` |
 | Backend contra PostgreSQL real | `npm run test:db:up`, `npm run test:db:seed`, `npm run test:integration`, `npm run test:regression`, `npm run test:db:down` | `backend/` (requiere Docker) |
 | Chatbot (pytest) | `pip install -r requirements-dev.txt` y luego `pytest` | `backend/chatbot/` |
+| De extremo a extremo (Playwright) | ver abajo | esta carpeta (requiere Docker) |
 | Carga (k6) | `k6 run performance/k6/load-test.js` | esta carpeta |
 
-GitHub Actions corre las pruebas del frontend, el backend y el chatbot, más el build, en cada push o pull request a `main` (`.github/workflows/tests.yml`), y las de integración y regresión cuando cambia el backend (`.github/workflows/integration-regression.yml`). Los detalles de estas últimas están en [backend/integration-tests/README.md](backend/integration-tests/README.md).
+GitHub Actions corre las pruebas del frontend, el backend y el chatbot, más el build, en cada push o pull request a `main` (`.github/workflows/tests.yml`), las de integración y regresión cuando cambia el backend (`.github/workflows/integration-regression.yml`) y las de extremo a extremo en cada cambio del proyecto (`.github/workflows/e2e.yml`). Los detalles de las de integración están en [backend/integration-tests/README.md](backend/integration-tests/README.md).
+
+### Pruebas de extremo a extremo (Playwright)
+
+Un navegador real (Chromium) recorre el sitio como lo haría una persona, contra el backend y una base PostgreSQL de prueba. Están en `e2e/` y cubren los cuatro flujos críticos:
+
+| Archivo | Flujo |
+| --- | --- |
+| `e2e/registro-login.spec.ts` | El admin registra un cliente desde su panel, el cliente no entra con una contraseña equivocada, entra con la suya, ve sus datos en Mi cuenta y cierra sesión |
+| `e2e/compra.spec.ts` | Un cliente agrega un perfume, paga con la tarjeta de prueba, ve la confirmación y el pedido aparece en Mi cuenta como pagado |
+| `e2e/invitado.spec.ts` | Un visitante sin cuenta compra como invitado y recibe su número de pedido |
+| `e2e/admin-estado.spec.ts` | El admin abre un pedido en el panel, lo pasa a "En preparación" y luego a "Enviado", y el cliente ve el estado nuevo |
+
+Para correrlas en local (desde esta carpeta):
+
+```bash
+# 1. base de pruebas (la misma de las pruebas de integración)
+cd backend && npm run test:db:up && npm run test:db:seed && cd ..
+
+# 2. la primera vez, el navegador de Playwright
+npx playwright install chromium
+
+# 3. las pruebas
+npm run test:e2e
+```
+
+Playwright levanta solo el backend (puerto 3100) contra esa base y un build del frontend (puerto 4180), así que no hace falta tener nada corriendo; usa puertos propios para no tocar por error un backend que esté apuntando a otra base. Antes de los flujos crea el perfume `e2e-perfume` con stock de sobra, para no gastar el stock de los perfumes reales. Los correos no se envían (`RESEND_API_KEY` va vacía) y cada corrida usa correos nuevos, así que se pueden repetir sin limpiar la base. Para ver el navegador mientras corren: `npx playwright test --headed`. Si algo falla en el CI, el reporte con capturas y la traza queda como artefacto del workflow.
 
 ## Seguridad
 

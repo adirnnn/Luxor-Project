@@ -296,7 +296,8 @@ test('checkout exitoso: descuenta stock, crea la orden con sus renglones, vacía
 test('COR-2 carrito: si falla un renglón al sincronizar, se revierte todo', async (t) => {
   let insertados = 0;
   const { log, restore } = fakeDb([
-    [Q.buscarCarrito, { rows: [{ id: CART_ID }] }],
+    // SFTWRKEY-456: el carrito se crea o se toma con INSERT ... ON CONFLICT ... RETURNING id
+    [Q.crearCarrito, { rows: [{ id: CART_ID }] }],
     [Q.borrarItems, { rows: [] }],
     [Q.insertarItem, () => {
       insertados += 1;
@@ -334,7 +335,7 @@ test('COR-2 carrito: si falla un renglón al sincronizar, se revierte todo', asy
 
 test('COR-2 carrito: si falla al crear el carrito del usuario, no queda nada a medias', async (t) => {
   const { log, restore } = fakeDb([
-    [Q.buscarCarrito, { rows: [] }], // usuario nuevo, hay que crearle carrito
+    // usuario nuevo, hay que crearle carrito
     [Q.crearCarrito, () => { throw new Error('no se pudo crear el carrito'); }],
   ]);
   t.after(restore);
@@ -371,7 +372,7 @@ test('COR-2 checkout: si falla el registro del pago, se revierten la orden y el 
 
 test('carrito: sincronizar items válidos reemplaza el contenido y confirma', async (t) => {
   const { log, restore } = fakeDb([
-    [Q.buscarCarrito, { rows: [{ id: CART_ID }] }],
+    [Q.crearCarrito, { rows: [{ id: CART_ID }] }],
     [Q.borrarItems, { rows: [] }],
     [Q.insertarItem, { rows: [] }],
   ]);

@@ -1,0 +1,94 @@
+name: Pruebas de extremo a extremo (Playwright)
+
+# SFTWRKEY-456: un navegador real recorre los flujos críticos (registro e inicio de sesión,
+# compra con tarjeta de prueba, compra de invitado y cambio de estado del pedido por el admin)
+# contra el backend y una base PostgreSQL de prueba.
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - "Scrum/Sprint10/luxor-proj/**"
+      - ".github/workflows/e2e.yml"
+  pull_request:
+    branches: [main, staging]
+    paths:
+      - "Scrum/Sprint10/luxor-proj/**"
+      - ".github/workflows/e2e.yml"
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: Navegador + API + PostgreSQL (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: Scrum/Sprint10/luxor-proj
+
+    # Base de datos real y desechable para cada ejecución.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: luxor_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d luxor_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Valores solo para CI (no son credenciales reales). El seed crea el admin con ADMIN_*
+    # y las pruebas entran con los mismos.
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: luxor_test
+      ADMIN_EMAIL: admin@luxor.com
+      ADMIN_PASSWORD: admin-pruebas-e2e-ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            Scrum/Sprint10/luxor-proj/package-lock.json
+            Scrum/Sprint10/luxor-proj/backend/package-lock.json
+
+      - name: Instalar dependencias del frontend
+        run: npm ci
+
+      - name: Instalar dependencias del backend
+        working-directory: Scrum/Sprint10/luxor-proj/backend
+        run: npm ci
+
+      - name: Preparar base de datos (esquema + datos semilla)
+        working-directory: Scrum/Sprint10/luxor-proj/backend
+        run: npm run test:db:seed
+
+      - name: Instalar Chromium para Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Pruebas de extremo a extremo
+        run: npm run test:e2e
+
+      - name: Subir reporte de Playwright (capturas y traza de lo que falló)
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-e2e-${{ github.run_number }}
+          path: |
+            Scrum/Sprint10/luxor-proj/playwright-report/
+            Scrum/Sprint10/luxor-proj/test-results/
+          retention-days: 14
+          if-no-files-found: ignore

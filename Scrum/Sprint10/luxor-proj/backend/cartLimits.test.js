@@ -26,7 +26,7 @@ function fakeDb() {
   const original = { query: pool.query, connect: pool.connect };
   const run = async (sql, params) => {
     log.push({ sql: String(sql).replace(/\s+/g, ' ').trim(), params });
-    if (/SELECT id FROM carts/i.test(sql)) return { rows: [{ id: 1 }], rowCount: 1 };
+    if (/SELECT id FROM carts|INSERT INTO carts/i.test(sql)) return { rows: [{ id: 1 }], rowCount: 1 };
     return { rows: [], rowCount: 1 };
   };
   pool.query = run;

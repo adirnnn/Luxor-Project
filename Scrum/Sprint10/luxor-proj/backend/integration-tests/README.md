@@ -6,7 +6,7 @@ Corren la API Express real contra una base PostgreSQL real (sin dobles de `pool`
 |---|---|---|
 | `auth.integration.js` | Integración | registro/login + bcrypt + JWT + tablas `users`/`rol` |
 | `products.integration.js` | Integración | CRUD de productos del admin + JOIN con `categories` |
-| `cart.integration.js` | Integración | carrito persistido, FK a `products` y ROLLBACK |
+| `cart.integration.js` | Integración | carrito persistido, FK a `products` y ROLLBACK; dos sincronizaciones al mismo tiempo de un cliente sin carrito no fallan (SFTWRKEY-456) |
 | `checkout.integration.js` | Integración | pasarela de pago + `orders`, `order_items`, `payments` y stock |
 | `orders.integration.js` | Integración | el admin lista, filtra y ve el detalle de los pedidos (SFTWRKEY-419), cambia su estado, al cancelar regresa el stock (SFTWRKEY-418) y el cliente ve el estado y su historial (SFTWRKEY-420) |
 | `productImages.integration.js` | Integración | el admin sube una foto, se guarda como WebP y se usa en un producto; el seed pasa las rutas `.png`/`.jpg` viejas a `.webp` (SFTWRKEY-457) |

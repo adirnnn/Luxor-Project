@@ -15,6 +15,11 @@ dist-ssr
 # reporte de cobertura de tests (vitest)
 coverage
 
+# SFTWRKEY-456: build y reportes de las pruebas de extremo a extremo (playwright)
+dist-e2e
+playwright-report
+test-results
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
