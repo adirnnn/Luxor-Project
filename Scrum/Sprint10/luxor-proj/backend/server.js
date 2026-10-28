@@ -27,6 +27,7 @@ import { parseCatalogParams, buildCatalogQuery } from './services/catalogQuery.j
 import commerceRouter from './commerce.js';
 import ordersRouter from './routes/orders.js';
 import passwordResetRouter from './routes/passwordReset.js';
+import { validatePassword } from './services/passwordPolicy.js';
 import wishlistRouter from './routes/wishlist.js';
 import relatedRouter from './routes/related.js';
 import productImagesRouter from './routes/productImages.js';
@@ -569,8 +570,10 @@ app.put("/user/:userId/password", authenticate, authorizeSelfOrRoles("userId", "
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: "Debes ingresar la contraseña actual y la nueva." });
   }
-  if (newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: "La nueva contraseña debe tener al menos 6 caracteres." });
+  // SFTWRKEY-409: política de contraseñas
+  const passwordError = validatePassword(newPassword);
+  if (passwordError) {
+    return res.status(400).json({ success: false, message: passwordError });
   }
   try {
     const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [req.params.userId]);

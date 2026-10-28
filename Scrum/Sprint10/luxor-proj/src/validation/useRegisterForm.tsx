@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { validatePassword } from "./passwordPolicy";
 
 export interface RegisterFormState {
   name: string;
@@ -34,8 +35,10 @@ function validate(values: RegisterFormState): RegisterFormErrors {
 
   if (!values.password) {
     errs.password = "La contraseña es requerida.";
-  } else if (values.password.length < 6) {
-    errs.password = "La contraseña debe tener al menos 6 caracteres.";
+  } else {
+    // SFTWRKEY-409: política de contraseñas
+    const passwordError = validatePassword(values.password);
+    if (passwordError) errs.password = passwordError;
   }
 
   if (!values.confirmPassword) {

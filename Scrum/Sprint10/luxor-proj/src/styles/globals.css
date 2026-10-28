@@ -98,3 +98,64 @@ html {
 .cinematic-overlay {
   background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%);
 }
+/* Respuestas del chatbot en Markdown (Chatbot.tsx) */
+.chatbot-markdown {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.chatbot-markdown p + p,
+.chatbot-markdown p + ul,
+.chatbot-markdown p + ol,
+.chatbot-markdown ul + p,
+.chatbot-markdown ol + p {
+  margin-top: 0.6rem;
+}
+
+.chatbot-markdown strong,
+.chatbot-markdown h1,
+.chatbot-markdown h2,
+.chatbot-markdown h3,
+.chatbot-markdown a,
+.chatbot-markdown th {
+  color: #D4AF37;
+  font-weight: 700;
+}
+
+.chatbot-markdown h1,
+.chatbot-markdown h2,
+.chatbot-markdown h3 {
+  font-size: 1rem;
+  margin: 0.75rem 0 0.4rem;
+}
+
+.chatbot-markdown ul,
+.chatbot-markdown ol {
+  padding-left: 1.25rem;
+}
+
+.chatbot-markdown ul { list-style-type: disc; }
+.chatbot-markdown ol { list-style-type: decimal; }
+.chatbot-markdown li + li { margin-top: 0.3rem; }
+
+.chatbot-markdown a { text-decoration: underline; }
+
+/* las tablas se desplazan de lado dentro de la burbuja en vez de romper el ancho */
+.chatbot-markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.6rem 0;
+  font-size: 0.75rem;
+}
+
+.chatbot-markdown th,
+.chatbot-markdown td {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  text-align: left;
+  vertical-align: top;
+}
+
+.chatbot-markdown th { background: rgba(212, 175, 55, 0.12); }

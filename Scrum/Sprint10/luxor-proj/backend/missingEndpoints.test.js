@@ -159,7 +159,7 @@ test('PUT /user/:userId/password: contraseña nueva muy corta responde 400', asy
 test('PUT /user/:userId/password: usuario inexistente responde 404', async (t) => {
   const { restore } = fakeDb([[Q.passwordDelUsuario, { rows: [] }]]);
   t.after(restore);
-  const res = await pedir('PUT', '/user/999/password', { currentPassword: 'actual123', newPassword: 'nuevo123' });
+  const res = await pedir('PUT', '/user/999/password', { currentPassword: 'actual123', newPassword: 'SecretaSegura123' });
   assert.equal(res.status, 404);
 });
 
@@ -168,7 +168,7 @@ test('PUT /user/:userId/password: contraseña actual incorrecta responde 401', a
   const hashReal = await bcrypt.hash('la-correcta', 12);
   const { restore } = fakeDb([[Q.passwordDelUsuario, { rows: [{ password: hashReal }] }]]);
   t.after(restore);
-  const res = await pedir('PUT', '/user/1/password', { currentPassword: 'otra-cosa', newPassword: 'nuevo123' });
+  const res = await pedir('PUT', '/user/1/password', { currentPassword: 'otra-cosa', newPassword: 'SecretaSegura123' });
   assert.equal(res.status, 401);
 });
 
@@ -180,7 +180,7 @@ test('PUT /user/:userId/password: cambio válido responde 200', async (t) => {
     [Q.actualizarPassword, { rows: [], rowCount: 1 }],
   ]);
   t.after(restore);
-  const res = await pedir('PUT', '/user/1/password', { currentPassword: 'la-correcta', newPassword: 'nuevo123' });
+  const res = await pedir('PUT', '/user/1/password', { currentPassword: 'la-correcta', newPassword: 'SecretaSegura123' });
   const body = await res.json();
   assert.equal(res.status, 200);
   assert.equal(body.success, true);

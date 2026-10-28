@@ -21,7 +21,9 @@
     "lucide-react": "^1.16.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.0"
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.14.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -40,7 +42,7 @@
     "globals": "^17.4.0",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.9",
-    "sharp": "0.34.5",
+    "sharp": "0.35.5",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",

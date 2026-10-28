@@ -8,6 +8,7 @@ import { API_URL, authHeaders, getToken } from "../services/apiClient";
 import { PageMeta } from "../components/seo/PageMeta";
 import { statusLabel, statusStyle } from "../constants/orderStatus";
 import { formatPrice } from "../utils/formatPrice";
+import { validatePassword } from "../validation/passwordPolicy";
 
 interface OrderItem {
   product_id: string;
@@ -185,8 +186,10 @@ export default function UserPage() {
     e.preventDefault();
     setPasswordMessage(null);
 
-    if (newPassword.length < 6) {
-      setPasswordMessage({ type: "error", text: "La nueva contraseña debe tener al menos 6 caracteres." });
+    // SFTWRKEY-409: política de contraseñas
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setPasswordMessage({ type: "error", text: passwordError });
       return;
     }
     if (newPassword !== confirmPassword) {
