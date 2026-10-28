@@ -1,0 +1,4 @@
+# pip-audit — chatbot, Sprint 10 (27/10/2026)
+# pip-audit -r requirements.txt
+
+No known vulnerabilities found

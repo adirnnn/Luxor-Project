@@ -15,13 +15,14 @@ import {
   cancelSession,
   cancelPendingForUser,
 } from '../services/checkoutSessions.js';
+import { clientIp } from '../services/clientIp.js';
 
 // SFTWRKEY-445: compra con cuenta y vuelta desde la página de pago de Recurrente.
 // La compra como invitado empieza en commerce.js (/guest-checkout) y vuelve por estas mismas rutas.
 const router = Router();
 
 const onBlock = (req) =>
-  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: req.ip, path: req.path });
+  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: clientIp(req), path: req.path });
 
 // Respuesta común para errores de la pasarela y del stock
 export function sendCheckoutError(res, err) {

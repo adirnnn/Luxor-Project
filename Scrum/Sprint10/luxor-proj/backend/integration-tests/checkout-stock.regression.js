@@ -7,7 +7,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  startServer, stopServer, registerClient, insertProduct, productStock, cleanup, pool, buyWithAccount, addressPayload,
+  startServer, stopServer, api, registerClient, insertProduct, productStock, cleanup, pool, buyWithAccount, addressPayload,
 } from './helpers.js';
 
 const created = { users: [], products: [] };
@@ -60,4 +60,22 @@ test('el total se calcula con el precio de la base, no con el monto que envía e
   assert.equal(res.body.order.total, 840);
   const { rows } = await pool.query('SELECT amount FROM payments WHERE order_id = $1', [res.body.order.id]);
   assert.equal(rows[0].amount, '840.00');
+});
+
+// SFTWRKEY-453 (SEC-27): dos clientes abren el pago de la última unidad al mismo tiempo. El FOR UPDATE
+// de reserveStock (services/checkoutSessions.js) hace que uno espere al otro: solo uno la aparta.
+test('dos clientes que pagan la última unidad al mismo tiempo: uno la aparta, el otro recibe 409 y el stock no queda negativo', async () => {
+  const otro = await registerClient(created.users);
+  for (let intento = 0; intento < 5; intento++) {
+    const perfume = await insertProduct(created.products, { price: 120, stock: 1 });
+    for (const quien of [client, otro]) {
+      await api('POST', `/cart/${quien.id}`, { token: quien.token, body: [{ product_id: perfume.id, quantity: 1 }] });
+    }
+
+    const respuestas = await Promise.all([client, otro].map((quien) =>
+      api('POST', `/checkout/${quien.id}`, { token: quien.token, body: addressPayload })));
+
+    assert.deepEqual(respuestas.map((r) => r.status).sort(), [201, 409], `intento ${intento + 1}`);
+    assert.equal(await productStock(perfume.id), 0, 'el stock queda en 0, no en -1');
+  }
 });

@@ -25,6 +25,7 @@ import {
   cancelSession,
 } from './services/checkoutSessions.js';
 import { sendCheckoutError } from './routes/checkout.js';
+import { clientIp } from './services/clientIp.js';
 
 const router = Router();
 const google = new OAuth2Client();
@@ -170,7 +171,7 @@ function sameOrigin(req, res, next) {
 const onBlock = req =>
   recordSecurityEvent({
     type: SECURITY_EVENT_TYPES.RATE_LIMITED,
-    ip: req.ip,
+    ip: clientIp(req),
     path: req.path,
   });
 

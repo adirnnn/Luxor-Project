@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { requireInternalKey } from '../services/internalKey.js';
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from '../services/securityEvents.js';
+import { clientIp } from '../services/clientIp.js';
 
 const router = Router();
 
@@ -50,7 +51,7 @@ const demasiados = (res) =>
 router.post('/internal/orders/lookup', requireInternalKey, async (req, res) => {
   // la ip del cliente la manda el chatbot (todas las consultas llegan desde el chatbot)
   const enviada = req.get('x-client-ip');
-  const ip = enviada && IP_REGEX.test(enviada) ? enviada : req.ip;
+  const ip = enviada && IP_REGEX.test(enviada) ? enviada : clientIp(req);
 
   const consultas = sumar(`cliente:${ip}`, LIMITES.cliente);
   if (consultas > LIMITES.cliente.max) {

@@ -6,6 +6,7 @@ import { createLoginHandler, createRegisterHandler } from '../services/authHandl
 import { rateLimit } from '../services/rateLimit.js';
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from '../services/securityEvents.js';
 import { onRateLimitBlock } from '../services/securityAudit.js';
+import { clientIp } from '../services/clientIp.js';
 
 const router = Router();
 const SALT_ROUNDS = 12;
@@ -13,7 +14,7 @@ const SALT_ROUNDS = 12;
 // ── Auth ──────────────────────────────────────────────────────────────────────
 // SFTWRKEY-401: guardar logins fallidos y bloqueos
 const onLoginFailed = ({ email, req }) =>
-  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.LOGIN_FAILED, ip: req.ip, email, path: req.path });
+  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.LOGIN_FAILED, ip: clientIp(req), email, path: req.path });
 
 router.post("/login", rateLimit({ windowMs: 60_000, max: 10, onBlock: onRateLimitBlock }), createLoginHandler({ pool, bcrypt, signToken, setSessionCookie, onLoginFailed }));
 

@@ -1,0 +1,51 @@
+# npm audit — frontend, Sprint 10 (27/10/2026), antes de corregir
+
+# npm audit report
+
+@vitest/mocker  5.0.0-beta.1 - 5.0.2
+Severity: moderate
+Vitest: Code injection via unauthenticated manual mock registration - https://github.com/advisories/GHSA-qxg6-89mg-rqv8
+Vitest: Windows backslash traversal bypasses the @vitest/mocker redirect allowlist fix - https://github.com/advisories/GHSA-xp26-3454-mjgp
+fix available via `npm audit fix`
+node_modules/@vitest/mocker
+  vitest  5.0.0-beta.1 - 5.0.2
+  Depends on vulnerable versions of @vitest/coverage-v8
+  Depends on vulnerable versions of @vitest/mocker
+  node_modules/vitest
+    @vitest/coverage-v8  5.0.0-beta.1 - 5.0.2
+    Depends on vulnerable versions of vitest
+    node_modules/@vitest/coverage-v8
+
+postcss-selector-parser  <6.1.5
+Severity: moderate
+PostCSS: Quadratic complexity in flat selector parsing allows CPU exhaustion - https://github.com/advisories/GHSA-rj75-hqrm-r3gf
+fix available via `npm audit fix`
+node_modules/postcss-selector-parser
+
+source-map-js  1.0.0 - 1.2.1
+Severity: high
+source-map-js allows event-loop denial of service through indexed source-map section offsets - https://github.com/advisories/GHSA-68fv-2mgg-jv7q
+fix available via `npm audit fix`
+node_modules/source-map-js
+
+vite  8.3.0 - 8.3.2
+Severity: high
+launch-editor: escapeCmdArgs() omits % escaping on Windows - https://github.com/advisories/GHSA-698v-4r3x-3vcv
+launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors - https://github.com/advisories/GHSA-r825-w8mm-5pxw
+launch-editor: `fs.existsSync()` existence check can be bypassed on Windows - https://github.com/advisories/GHSA-587h-7wmj-h5pm
+Vite: Cross origin script execution through Vite custom middleware - https://github.com/advisories/GHSA-9jrq-w75r-8gcw
+Vite: Files outside `server.fs.allow` could be served when project paths match system paths on non-Windows machine - https://github.com/advisories/GHSA-rq7h-c2jc-7f22
+Vite: First 4 bytes of files outside of `server.fs` setting is exposed by `?vite-wasm-instance` - https://github.com/advisories/GHSA-vfpm-58rq-9qcg
+fix available via `npm audit fix`
+node_modules/vite
+
+zod  <4.6.6
+Severity: high
+Zod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5
+fix available via `npm audit fix`
+node_modules/zod
+
+7 vulnerabilities (4 moderate, 3 high)
+
+To address all issues, run:
+  npm audit fix

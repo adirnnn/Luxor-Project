@@ -3,6 +3,7 @@ import pool from '../db.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { verifyWebhookSignature } from '../services/webhookSignature.js';
 import { ensureCheckoutTables, findSessionIdByCheckout, confirmSession } from '../services/checkoutSessions.js';
+import { clientIp } from '../services/clientIp.js';
 
 // SFTWRKEY-446: Recurrente avisa aquí cuando un pago se aprueba o se rechaza, aunque el cliente
 // haya cerrado la página antes de volver a la tienda.
@@ -70,7 +71,7 @@ router.post(
         await pool.query(
           `INSERT INTO payment_webhook_events (status, ip, detail, processed_at)
            VALUES ('firma_invalida', $1, $2, NOW())`,
-          [req.ip, providerEventId ? `svix-id ${String(providerEventId).slice(0, 100)}` : 'sin svix-id']
+          [clientIp(req), providerEventId ? `svix-id ${String(providerEventId).slice(0, 100)}` : 'sin svix-id']
         );
         return res.status(401).json({ received: false });
       }
@@ -90,7 +91,7 @@ router.post(
          VALUES ($1, $2, $3, 'recibido', $4, $5)
          ON CONFLICT (provider_event_id) DO NOTHING
          RETURNING id`,
-        [providerEventId, eventType, checkoutId, summarize(event), req.ip]
+        [providerEventId, eventType, checkoutId, summarize(event), clientIp(req)]
       );
       let eventRowId = inserted.rows[0]?.id;
       if (!eventRowId) {
