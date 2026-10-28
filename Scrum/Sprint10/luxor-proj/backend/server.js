@@ -25,6 +25,7 @@ import relatedRouter from './routes/related.js';
 import productImagesRouter from './routes/productImages.js';
 import orderLookupRouter from './routes/orderLookup.js';
 import commerceRouter from './commerce.js';
+import { csrfProtection } from './services/csrf.js';
 
 dotenv.config();
 
@@ -53,6 +54,8 @@ app.use((_req, res, next) => {
   next();
 });
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+// SFTWRKEY-451: las peticiones que cambian datos solo se aceptan desde nuestro frontend (CSRF)
+app.use(csrfProtection);
 app.use(express.json({ limit: "2mb" }));
 
 // SFTWRKEY-425: rutas separadas por funcionalidad.

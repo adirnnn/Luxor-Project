@@ -13,11 +13,51 @@ const getSecret = () => {
 export const signToken = (user) =>
   jwt.sign({ id: user.id, role: user.role }, getSecret(), { expiresIn: JWT_EXPIRES_IN });
 
-// Verifica el Bearer token y adjunta { id, role } en req.user.
+// SFTWRKEY-451: la sesión del navegador va en una cookie httpOnly (JavaScript no la puede leer,
+// así que un XSS no puede robar el token). Dura lo mismo que el JWT.
+export const SESSION_COOKIE = 'luxor_sesion';
+const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+
+const cookieOptions = () => ({
+  httpOnly: true,
+  // en producción solo por https; en local (http://localhost) Safari no guardaría una cookie Secure
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+});
+
+export const setSessionCookie = (res, token) =>
+  res.cookie(SESSION_COOKIE, token, { ...cookieOptions(), maxAge: SESSION_MAX_AGE_MS });
+
+export const clearSessionCookie = (res) => res.clearCookie(SESSION_COOKIE, cookieOptions());
+
+// lee una cookie del encabezado Cookie (sin instalar cookie-parser)
+const readCookie = (req, name) => {
+  for (const part of (req.headers.cookie || '').split(';')) {
+    const [key, ...value] = part.trim().split('=');
+    if (key === name) {
+      try {
+        return decodeURIComponent(value.join('='));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+};
+
+// el Bearer sigue sirviendo para clientes que no son navegador (pruebas, Postman);
+// el navegador usa la cookie
+const tokenFromRequest = (req) => {
+  const [scheme, token] = (req.headers.authorization || '').split(' ');
+  if (scheme === 'Bearer' && token) return token;
+  return readCookie(req, SESSION_COOKIE);
+};
+
+// Verifica el token (Bearer o cookie de sesión) y adjunta { id, role } en req.user.
 export const authenticate = (req, res, next) => {
-  const header = req.headers.authorization || '';
-  const [scheme, token] = header.split(' ');
-  if (scheme !== 'Bearer' || !token) {
+  const token = tokenFromRequest(req);
+  if (!token) {
     return res.status(401).json({ success: false, message: 'No autenticado.' });
   }
   try {

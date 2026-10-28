@@ -10,7 +10,7 @@ const DUMMY_HASH = '$2a$12$invalidhashforcomparisononlyx';
 export const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
 
 // SFTWRKEY-401: onLoginFailed guarda el intento fallido
-export const createLoginHandler = ({ pool, bcrypt, signToken, onLoginFailed = async () => {} }) => async (req, res) => {
+export const createLoginHandler = ({ pool, bcrypt, signToken, setSessionCookie = () => {}, onLoginFailed = async () => {} }) => async (req, res) => {
   const { password } = req.body;
   const email = normalizeEmail(req.body.email);
   if (!email || !password) return res.status(400).json({ success: false, message: "Requerido" });
@@ -30,6 +30,9 @@ export const createLoginHandler = ({ pool, bcrypt, signToken, onLoginFailed = as
     const user = result.rows[0];
     const publicUser = { id: user.id, name: user.name, role: user.role };
     const token = signToken(publicUser);
+    // SFTWRKEY-451: la sesión del navegador queda en una cookie httpOnly. El token sigue en la
+    // respuesta solo mientras el frontend viejo siga publicado; se quita en el paso 2.
+    setSessionCookie(res, token);
     return res.json({ success: true, token, user: publicUser });
   } catch (err) {
     return res.status(500).json({ success: false });

@@ -7,6 +7,7 @@ import {
   authenticate,
   requireRoles,
   signToken,
+  setSessionCookie,
 } from './services/auth.js';
 import { notifyOrderStatus } from './services/orderEmails.js';
 import { rateLimit } from './services/rateLimit.js';
@@ -666,6 +667,8 @@ router.post(
       };
     });
 
+    // SFTWRKEY-451: igual que /login, la sesión queda en la cookie httpOnly
+    setSessionCookie(res, result.token);
     res.json({
       success: true,
       ...result,

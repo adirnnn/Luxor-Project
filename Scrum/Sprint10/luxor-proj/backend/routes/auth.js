@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import pool from '../db.js';
-import { signToken } from '../services/auth.js';
+import { signToken, setSessionCookie, clearSessionCookie, authenticate } from '../services/auth.js';
 import { createLoginHandler, createRegisterHandler } from '../services/authHandlers.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from '../services/securityEvents.js';
@@ -15,7 +15,34 @@ const SALT_ROUNDS = 12;
 const onLoginFailed = ({ email, req }) =>
   recordSecurityEvent({ type: SECURITY_EVENT_TYPES.LOGIN_FAILED, ip: req.ip, email, path: req.path });
 
-router.post("/login", rateLimit({ windowMs: 60_000, max: 10, onBlock: onRateLimitBlock }), createLoginHandler({ pool, bcrypt, signToken, onLoginFailed }));
+router.post("/login", rateLimit({ windowMs: 60_000, max: 10, onBlock: onRateLimitBlock }), createLoginHandler({ pool, bcrypt, signToken, setSessionCookie, onLoginFailed }));
+
+// SFTWRKEY-451: cerrar sesión borra la cookie (con la cookie httpOnly el frontend no puede borrarla)
+router.post("/logout", (_req, res) => {
+  clearSessionCookie(res);
+  res.json({ success: true });
+});
+
+// SFTWRKEY-451: el frontend pregunta aquí si la sesión de la cookie sigue vigente y de quién es
+router.get("/me", authenticate, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.id, u.name, u.email, r.nombre AS role
+       FROM users u JOIN rol r ON u.role = r.id_rol
+       WHERE u.id = $1`,
+      [req.user.id]
+    );
+    if (result.rows.length === 0) {
+      clearSessionCookie(res);
+      return res.status(401).json({ success: false, message: 'Sesión inválida o expirada.' });
+    }
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('Error leyendo la sesión:', err.message);
+    res.status(500).json({ success: false });
+  }
+});
 
 // SFTWRKEY-220 + SFTWRKEY-223: Register con validación de campos y email duplicado
 // SFTWRKEY-408: máximo 6 registros por hora por IP (evita cuentas masivas y averiguar
