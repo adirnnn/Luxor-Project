@@ -26,7 +26,10 @@ const PEDIDOS = [
 
 const detalleDe = (status: string, allowedNextStatuses: string[]): AdminOrderDetail => ({
   id: 12, created_at: "2026-10-05T10:00:00Z", total: 780, status, is_guest: false,
-  customer_name: "María García", customer_email: "maria@luxor.com", guest_address: null,
+  customer_name: "María García", customer_email: "maria@luxor.com",
+  // SFTWRKEY-449
+  shipping: 0,
+  delivery: { method: "envio", address: { billingAddress: "Zona 10, 5a avenida", city: "Guatemala", postalCode: "01010", country: "Guatemala" } },
   items: [{ product_id: "khamrah", name: "Lattafa Khamrah", image: null, quantity: 2, unit_price: 390, subtotal: 780 }],
   history: [{ from_status: null, to_status: "pagado", changed_at: "2026-10-05T10:00:00Z", changed_by_name: null }],
   allowedNextStatuses,
@@ -91,6 +94,9 @@ describe("AdminOrdersPage", () => {
     await user.click(await screen.findByText("#12"));
     const dialogo = await screen.findByRole("dialog");
     await within(dialogo).findByText("Lattafa Khamrah");
+    // SFTWRKEY-449: el admin ve a dónde enviar y el envío
+    expect(within(dialogo).getByText("Zona 10, 5a avenida, Guatemala, 01010, Guatemala")).toBeInTheDocument();
+    expect(within(dialogo).getByText("Gratis")).toBeInTheDocument();
 
     const opciones = within(within(dialogo).getByLabelText("Nuevo estado")).getAllByRole("option").map((o) => o.textContent);
     expect(opciones).toEqual(["Selecciona el nuevo estado", "En preparación", "Cancelado"]);

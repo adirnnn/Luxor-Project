@@ -10,7 +10,7 @@ const sections: LegalSection[] = [
     title: "Cobertura y tiempos de entrega",
     content: (
       <ul className={lista}>
-        <li>Enviamos a todo el país.</li>
+        <li>Enviamos a todo el país por Q35. El envío es gratis desde Q500 en productos.</li>
         <li>La entrega es en 24 a 48 horas después de confirmado el pago.</li>
         <li>Cada perfume va en empaque de lujo y con su certificado de autenticidad.</li>
       </ul>
@@ -30,7 +30,7 @@ const sections: LegalSection[] = [
     title: "Recogida en tienda",
     content: (
       <>
-        <p>Si prefieres, puedes acercarte a cualquiera de nuestros locales:</p>
+        <p>Si prefieres, elige "Recoger en tienda" al pagar (sin costo de envío) y pasa por tu pedido a cualquiera de nuestros locales:</p>
         <ul className={lista}>
           <li>Joyería Victoria: Metro Centro, 19 calle 3-31, Zona 1.</li>
           <li>Joyería Glamour: C.C. El Pueblito, Zona 1.</li>

@@ -68,8 +68,8 @@ const GROUPS: Array<{ title: string; faqs: Faq[] }> = [
     title: "Envíos y devoluciones",
     faqs: [
       {
-        question: "¿Hacen envíos a todo el país? ¿Cuánto tardan?",
-        answer: "Sí, enviamos a todo el país. La entrega es en 24 a 48 horas después de confirmado el pago, en empaque de lujo y con certificado de autenticidad.",
+        question: "¿Hacen envíos a todo el país? ¿Cuánto cuestan y cuánto tardan?",
+        answer: "Sí, enviamos a todo el país por Q35, y el envío es gratis desde Q500 en productos. La entrega es en 24 a 48 horas después de confirmado el pago, en empaque de lujo y con certificado de autenticidad. También puedes recoger tu pedido gratis en cualquiera de nuestros locales.",
       },
       {
         question: "¿Cómo sé en qué va mi pedido?",

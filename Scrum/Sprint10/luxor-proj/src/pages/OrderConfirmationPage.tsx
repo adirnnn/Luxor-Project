@@ -11,6 +11,7 @@ import { statusLabel, statusStyle } from "../constants/orderStatus";
 import { fetchOrderConfirmation, type OrderConfirmation } from "../services/orderConfirmationService";
 import { friendlyError } from "../services/apiClient";
 import { formatPrice } from "../utils/formatPrice";
+import { describeDelivery, shippingLabel } from "../utils/shipping";
 
 type Result = {
     key: string;
@@ -230,6 +231,21 @@ const cancelled = confirmation?.order.status === "cancelado";
                     </li>
                 ))}
                 </ul>
+
+                {/* SFTWRKEY-449: envío y a dónde se entrega */}
+                <div className="flex items-center justify-between gap-4 border-t border-white/10 py-4 text-sm">
+                <span className="text-primary-champagne/70">
+                    {confirmation.order.delivery?.method === "recoger" ? "Recoger en tienda" : "Envío"}
+                </span>
+                <span className="font-bold text-primary-champagne">
+                    {shippingLabel(confirmation.order.shipping ?? 0)}
+                </span>
+                </div>
+                {describeDelivery(confirmation.order.delivery) && (
+                <p className="text-sm text-primary-champagne/60">
+                    {describeDelivery(confirmation.order.delivery)}
+                </p>
+                )}
 
                 <div className="mt-4 flex items-center justify-between gap-4 border-t border-primary-gold/20 pt-6">
                 <span className="font-bold text-primary-champagne">

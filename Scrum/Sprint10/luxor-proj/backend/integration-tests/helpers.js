@@ -174,7 +174,7 @@ export async function insertProduct(createdProducts, overrides = {}) {
 
 // Compra completa con cuenta: llena el carrito, abre el pago, Recurrente lo aprueba y el cliente
 // vuelve a la tienda. Devuelve la respuesta de /checkout/confirm (o la del checkout si falló).
-export async function buyWithAccount(client, items, extraBody = {}) {
+export async function buyWithAccount(client, items, extraBody = addressPayload) {
   await api('POST', `/cart/${client.id}`, { token: client.token, body: items });
   const checkout = await api('POST', `/checkout/${client.id}`, { token: client.token, body: extraBody });
   if (checkout.status !== 201) return checkout;

@@ -8,6 +8,7 @@ import { useCart } from "../context/CartContext";
 import { confirmPayment, type CheckoutError, type PaymentResult } from "../services/checkoutService";
 import { formatPrice } from "../utils/formatPrice";
 import { trackPurchase } from "../utils/analytics";
+import { describeDelivery, shippingLabel } from "../utils/shipping";
 
 // SFTWRKEY-445: Recurrente regresa aquí después del pago (/pago/resultado?ref=...).
 // El backend le pregunta a Recurrente si el cobro quedó aprobado; solo entonces existe el pedido.
@@ -103,7 +104,15 @@ export default function PaymentResultPage() {
                   </li>
                 ))}
               </ul>
-              <p className="flex justify-between border-t border-white/10 pt-4 font-black text-primary-gold">
+              {/* SFTWRKEY-449: envío y forma de entrega */}
+              <p className="flex justify-between gap-4 text-sm">
+                <span>{result.order.delivery?.method === "recoger" ? "Recoger en tienda" : "Envío"}</span>
+                <span>{shippingLabel(result.order.shipping ?? 0)}</span>
+              </p>
+              {describeDelivery(result.order.delivery) && (
+                <p className="mt-2 text-xs text-primary-champagne/50">{describeDelivery(result.order.delivery)}</p>
+              )}
+              <p className="mt-4 flex justify-between border-t border-white/10 pt-4 font-black text-primary-gold">
                 <span>Total</span>
                 <span>{formatPrice(result.order.total)}</span>
               </p>

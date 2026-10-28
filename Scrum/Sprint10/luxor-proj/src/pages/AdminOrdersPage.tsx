@@ -13,6 +13,7 @@ import { fetchAdminOrder, fetchAdminOrders, updateOrderStatus } from "../service
 import type { AdminOrder, AdminOrderDetail } from "../services/orderService";
 import { friendlyError } from "../services/apiClient";
 import { formatPrice } from "../utils/formatPrice";
+import { shippingLabel } from "../utils/shipping";
 
 // SFTWRKEY-419: pedidos del admin, con filtros, paginacion y cambio de estado
 const PAGE_SIZE = 20;
@@ -327,14 +328,19 @@ function OrderDetailPanel({ orderId, onClose, onStatusChanged }: DetailProps) {
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-gold">Fecha</span>
                                 <span className="text-primary-champagne">{formatDateTime(order.created_at)}</span>
                             </div>
-                            {order.guest_address && (
-                                <div className="flex flex-col gap-1 sm:col-span-2">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-gold">Dirección del invitado</span>
-                                    <span className="text-primary-champagne">
-                                        {order.guest_address.billingAddress}, {order.guest_address.city}, {order.guest_address.postalCode}, {order.guest_address.country}
-                                    </span>
-                                </div>
-                            )}
+                            {/* SFTWRKEY-449: a dónde enviar o en qué local lo recoge (con y sin cuenta) */}
+                            <div className="flex flex-col gap-1 sm:col-span-2">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-gold">
+                                    {order.delivery?.method === "recoger" ? "Recoge en tienda" : "Dirección de entrega"}
+                                </span>
+                                <span className="text-primary-champagne">
+                                    {order.delivery?.method === "recoger"
+                                        ? `${order.delivery.store.name}, ${order.delivery.store.address}`
+                                        : order.delivery
+                                            ? `${order.delivery.address.billingAddress}, ${order.delivery.address.city}, ${order.delivery.address.postalCode}, ${order.delivery.address.country}`
+                                            : "Sin datos de entrega (pedido anterior a los envíos)"}
+                                </span>
+                            </div>
                         </div>
 
                         <div className="flex flex-col gap-3">
@@ -353,6 +359,10 @@ function OrderDetailPanel({ orderId, onClose, onStatusChanged }: DetailProps) {
                                     </li>
                                 ))}
                             </ul>
+                            <div className="flex justify-between border-t border-white/10 pt-3 text-sm">
+                                <span className="text-primary-champagne/60">{order.delivery?.method === "recoger" ? "Recoger en tienda" : "Envío"}</span>
+                                <span className="text-primary-champagne/80">{shippingLabel(order.shipping ?? 0)}</span>
+                            </div>
                             <div className="flex justify-between border-t border-white/10 pt-3">
                                 <span className="text-xs uppercase tracking-widest text-primary-champagne/60">Total</span>
                                 <span className="font-bold text-primary-gold">{formatMoney(order.total)}</span>

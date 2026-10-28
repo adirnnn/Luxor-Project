@@ -16,6 +16,7 @@ import {
   SECURITY_EVENT_TYPES,
 } from './services/securityEvents.js';
 import { PaymentGatewayError } from './services/paymentGateway.js';
+import { parseDelivery } from './services/shipping.js';
 import {
   ensureCheckoutTables,
   reserveStock,
@@ -241,24 +242,9 @@ export function validateGuest(body) {
     })
     .sort((a, b) => a.product_id.localeCompare(b.product_id));
 
-  // SFTWRKEY-445: ya no se reciben datos de tarjeta; solo la dirección de envío
-  const fields = {};
-
-  for (const field of [
-    'billingAddress',
-    'city',
-    'postalCode',
-    'country',
-  ]) {
-    fields[field] = text(body.address?.[field], 200, field);
-  }
-
-  const address = {
-    billingAddress: fields.billingAddress,
-    city: fields.city,
-    postalCode: fields.postalCode,
-    country: fields.country,
-  };
+  // SFTWRKEY-445/449: ya no se reciben datos de tarjeta; solo la forma de entrega
+  // (dirección de envío o local para recoger)
+  const delivery = parseDelivery(body.address ?? {});
 
   if (
     !Number.isSafeInteger(body.expectedCents) ||
@@ -271,7 +257,7 @@ export function validateGuest(body) {
     name,
     email,
     items,
-    address,
+    delivery,
     expectedCents: body.expectedCents,
   };
 }
@@ -294,7 +280,7 @@ router.post(
       name,
       email,
       items,
-      address,
+      delivery,
       expectedCents,
     } = validateGuest(req.body);
 
@@ -305,7 +291,7 @@ router.post(
         name,
         email,
         items,
-        address,
+        delivery,
         expectedCents,
       }),
     );
@@ -350,9 +336,11 @@ router.post(
         }
 
         return createSession(db, {
-          guest: { name, email, address, keyHash, requestHash },
+          // guest_receipts.address guarda la entrega completa (dirección o local)
+          guest: { name, email, address: delivery, keyHash, requestHash },
           lines,
           cents,
+          delivery,
         });
       });
 

@@ -7,7 +7,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  startServer, stopServer, registerClient, insertProduct, productStock, cleanup, pool, buyWithAccount,
+  startServer, stopServer, registerClient, insertProduct, productStock, cleanup, pool, buyWithAccount, addressPayload,
 } from './helpers.js';
 
 const created = { users: [], products: [] };
@@ -24,7 +24,7 @@ after(async () => {
 
 // SFTWRKEY-445: compra completa con Recurrente simulado (helpers.js)
 const comprar = (productId, quantity, extraBody = {}) =>
-  buyWithAccount(client, [{ product_id: productId, quantity }], extraBody);
+  buyWithAccount(client, [{ product_id: productId, quantity }], { ...addressPayload, ...extraBody });
 
 const ordenesDelCliente = async () =>
   (await pool.query('SELECT COUNT(*)::int AS n FROM orders WHERE user_id = $1', [client.id])).rows[0].n;

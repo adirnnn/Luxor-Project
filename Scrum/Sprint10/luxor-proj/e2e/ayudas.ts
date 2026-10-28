@@ -79,7 +79,7 @@ export async function llenarDireccion(page: Page) {
   await page.getByLabel("Dirección de envío").fill(DIRECCION.direccion);
   await page.getByLabel("Ciudad").fill(DIRECCION.ciudad);
   await page.getByLabel("Código postal").fill(DIRECCION.postal);
-  await page.getByLabel("País").selectOption(DIRECCION.pais);
+  await page.getByLabel("País", { exact: true }).selectOption(DIRECCION.pais);
 }
 
 // en la página de Recurrente (simulado): "Pagar", "Rechazar tarjeta" o "Salir sin pagar"

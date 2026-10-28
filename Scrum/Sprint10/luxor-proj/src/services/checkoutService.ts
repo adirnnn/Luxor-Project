@@ -1,5 +1,6 @@
 import type { PaymentFormState } from "../validation/usePaymentForm";
 import { API_URL } from "./apiClient";
+import type { Delivery } from "../utils/shipping";
 
 // SFTWRKEY-445: el pago se hace en la página de Recurrente. La tienda abre el pago, manda al
 // cliente a Recurrente y al volver confirma con el backend si el cobro quedó aprobado.
@@ -24,6 +25,9 @@ export interface PaymentResult {
     total: number;
     created_at: string;
     items: { name: string; quantity: number; price: number }[];
+    // SFTWRKEY-449
+    shipping: number;
+    delivery: Delivery | null;
   };
   payment?: { brand: string | null; last4: string | null } | null;
 }

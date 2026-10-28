@@ -34,10 +34,11 @@ Esta guía te explica, paso a paso, cómo comprar en la tienda. No necesitas sab
 
 1. Toca el carrito (arriba a la derecha) para ver tu selección.
 2. Toca **Comprar como invitado** (debajo del botón de pagar).
-3. Escribe tu nombre completo, tu correo y tu dirección de entrega.
-4. Toca **Continuar al pago seguro**. Se abre la página de Recurrente, nuestro procesador de pagos: ahí escribes los datos de tu tarjeta y pagas.
-5. Al terminar regresas a la tienda y verás tu número de pedido. **Guárdalo**: lo necesitas si quieres preguntar por tu compra por WhatsApp.
-6. Te llegará un correo con el resumen de tu pedido al correo que escribiste.
+3. Escribe tu nombre completo y tu correo.
+4. Elige **Envío a domicilio** (Q35, gratis desde Q500 en productos) o **Recoger en tienda** (gratis, eliges el local). El resumen muestra el envío y el total.
+5. Toca **Continuar al pago seguro**. Se abre la página de Recurrente, nuestro procesador de pagos: ahí escribes los datos de tu tarjeta y pagas.
+6. Al terminar regresas a la tienda y verás tu número de pedido. **Guárdalo**: lo necesitas si quieres preguntar por tu compra por WhatsApp.
+7. Te llegará un correo con el resumen de tu pedido al correo que escribiste.
 
 ![Carrito como invitado](img/05-carrito-invitado.png)
 
@@ -51,7 +52,7 @@ Con una cuenta puedes guardar tu carrito, ver tu historial y seguir tus pedidos.
 
 1. Toca **Entrar**, escribe tu correo y tu contraseña, y toca **Iniciar sesión**. (Las cuentas las crea el administrador de la tienda o puedes entrar con tu cuenta de Google. Si no tienes ninguna, compra como invitado, como en el punto 3.)
 2. Agrega tus perfumes al carrito y toca **Ir a pagar**.
-3. Escribe tu dirección de envío: dirección, ciudad, código postal y país.
+3. Elige **Envío a domicilio** y escribe tu dirección, o **Recoger en tienda** y elige el local. El envío cuesta Q35 y es gratis desde Q500 en productos o al recoger.
 4. Toca **Continuar al pago seguro**. En la página de Recurrente escribes los datos de tu tarjeta y pagas.
 5. Al regresar a la tienda verás la confirmación con tu número de pedido y recibirás un correo con el resumen.
 
