@@ -81,6 +81,11 @@ export default function AdminDashboard() {
                                     <Button variant="outline" className="transition-all">Pedidos</Button>
                                 </Link>
 
+                                {/* SFTWRKEY-431: moderación de reseñas */}
+                                <Link to="/admin/resenas">
+                                    <Button variant="outline" className="transition-all">Reseñas</Button>
+                                </Link>
+
                                 <Link to="/admin/importar">
                                     <Button variant="outline" className="transition-all">Importar CSV</Button>
                                 </Link>

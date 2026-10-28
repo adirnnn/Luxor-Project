@@ -13,6 +13,8 @@ export type Product = {
   external_source?: string | null;
   external_id?: string | null;
   synced_at?: string | null;
+  rating_avg?: number | string | null;
+  rating_count?: number;
   notes: {
     salida: string;
     corazon: string;

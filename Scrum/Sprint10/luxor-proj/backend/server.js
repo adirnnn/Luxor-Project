@@ -26,6 +26,7 @@ import wishlistRouter from './routes/wishlist.js';
 import relatedRouter from './routes/related.js';
 import productImagesRouter from './routes/productImages.js';
 import orderLookupRouter from './routes/orderLookup.js';
+import reviewsRouter from './routes/reviews.js';
 import commerceRouter from './commerce.js';
 import { csrfProtection } from './services/csrf.js';
 
@@ -94,6 +95,9 @@ app.use(productImagesRouter);
 
 // SFTWRKEY-458: el chatbot consulta el estado de un pedido (número + correo)
 app.use(orderLookupRouter);
+
+// SFTWRKEY-431: reseñas y calificaciones
+app.use(reviewsRouter);
 
 // Checkout de invitado, login con Google y alertas del admin. Va al final porque su
 // middleware prepara las tablas en cada petición que entra al router: así solo lo

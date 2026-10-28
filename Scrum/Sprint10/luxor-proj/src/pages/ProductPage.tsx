@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { RelatedProducts } from "../features/perfumes/RelatedProducts";
 import { ProductDetail } from "../features/perfumes/ProductDetail";
+import { ProductReviews } from "../features/reviews/ProductReviews";
 import { fetchProductById, ProductNotFoundError } from "../services/productService";
 import type { Product } from "../services/productService";
 import { friendlyError } from "../services/apiClient";
@@ -68,6 +69,8 @@ export default function ProductPage() {
         />
       )}
       {product && <ProductDetail {...product} />}
+      {/* SFTWRKEY-431 */}
+      {product && <ProductReviews productId={product.id} />}
       {/* SFTWRKEY-430 */}
       {product && <RelatedProducts productId={product.id} />}
     </MainLayout>

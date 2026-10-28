@@ -48,6 +48,8 @@ export const FeaturedPerfumesSection = () => {
                     price={product.price}
                     image={product.image}
                     stock={product.stock}
+                    ratingAvg={product.rating_avg}
+                    ratingCount={product.rating_count}
                     description={product.notes ? `${product.notes.salida} · ${product.notes.corazon}` : product.description}
                   />
                 ))}

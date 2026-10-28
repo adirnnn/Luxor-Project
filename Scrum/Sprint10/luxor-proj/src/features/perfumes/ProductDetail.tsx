@@ -8,6 +8,7 @@ import { maxQuantityFor } from "../../context/cartLimits";
 import { QuantitySelector } from "../../components/ui/QuantitySelector";
 import { WishlistButton } from "../wishlist/WishlistButton";
 import { formatPrice } from "../../utils/formatPrice";
+import { RatingSummary } from "../reviews/StarRating";
 
 export type ProductDetailProps = {
   id: string;
@@ -16,6 +17,9 @@ export type ProductDetailProps = {
   image: string;
   description: string;
   stock?: number;
+  // SFTWRKEY-431: llegan tal cual del producto ({...product} en ProductPage)
+  rating_avg?: number | string | null;
+  rating_count?: number;
   notes: {
     salida: string;
     corazon: string;
@@ -31,6 +35,8 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   description,
   stock,
   notes,
+  rating_avg,
+  rating_count,
 }) => {
   const { addToCart } = useCart();
   // SFTWRKEY-391: cantidad a agregar de una vez (máximo: stock real, tope de 10).
@@ -57,6 +63,10 @@ export const ProductDetail: FC<ProductDetailProps> = ({
             <div className="flex flex-col gap-2 md:gap-4">
               <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words md:break-normal">{name}</H1>
               <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">{formatPrice(price)}</span>
+              {/* SFTWRKEY-431: lleva a la lista de reseñas (ProductReviews, en ProductPage) */}
+              <a href="#resenas" className="self-start rounded hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-gold">
+                <RatingSummary average={rating_avg} count={rating_count} size="lg" />
+              </a>
             </div>
           </div>
 
