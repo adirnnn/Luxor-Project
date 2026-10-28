@@ -4,6 +4,7 @@ import pool from '../db.js';
 import { authenticate, authorizeSelfOrRoles, requireRoles } from '../services/auth.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { onRateLimitBlock } from '../services/securityAudit.js';
+import { validatePassword } from '../services/passwordPolicy.js';
 
 const router = Router();
 const SALT_ROUNDS = 12;
@@ -113,8 +114,10 @@ router.put("/user/:userId/password", authenticate, authorizeSelfOrRoles("userId"
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: "Debes ingresar la contraseña actual y la nueva." });
   }
-  if (newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: "La nueva contraseña debe tener al menos 6 caracteres." });
+  // SFTWRKEY-409: política de contraseñas
+  const passwordError = validatePassword(newPassword);
+  if (passwordError) {
+    return res.status(400).json({ success: false, message: passwordError });
   }
   try {
     const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [req.params.userId]);

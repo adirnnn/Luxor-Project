@@ -5,8 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
     usePaymentForm,
     COUNTRY_OPTIONS,
-    MONTH_OPTIONS,
-    YEAR_OPTIONS,
     type PaymentFormState,
 } from "./usePaymentForm";
 
@@ -243,82 +241,16 @@ export const PaymentForm = ({ isProcessing, onValidSubmit }: PaymentFormProps) =
     return (
         <>
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
-            <FormField
-            id="pay-name"
-            label="Nombre del titular"
-            value={values.cardholderName}
-            error={errors.cardholderName}
-            placeholder="Como aparece en la tarjeta"
-            autoComplete="cc-name"
-            onChange={(v) => handleChange("cardholderName", v)}
-            />
-
-            <FormField
-            id="pay-card-number"
-            label="Número de tarjeta"
-            value={values.cardNumber}
-            error={errors.cardNumber}
-            placeholder="0000 0000 0000 0000"
-            autoComplete="cc-number"
-            inputMode="numeric"
-            onChange={(v) => handleChange("cardNumber", v)}
-            />
-
-            <div className="grid grid-cols-3 gap-5">
-            <FormSelect
-                id="pay-expiry-month"
-                label="Mes"
-                value={values.expiryMonth}
-                error={errors.expiry}
-                placeholder="Mes"
-                options={MONTH_OPTIONS}
-                onChange={(v) => handleChange("expiryMonth", v)}
-            />
-            <FormSelect
-                id="pay-expiry-year"
-                label="Año"
-                value={values.expiryYear}
-                placeholder="Año"
-                options={YEAR_OPTIONS}
-                onChange={(v) => handleChange("expiryYear", v)}
-            />
-            <FormField
-                id="pay-cvv"
-                label="CVV"
-                value={values.cvv}
-                error={errors.cvv}
-                placeholder="123"
-                autoComplete="cc-csc"
-                inputMode="numeric"
-                onChange={(v) => handleChange("cvv", v)}
-            />
-            </div>
-            {errors.expiry && (
-            <p className="-mt-3 text-xs text-red-500 flex items-center gap-1">
-                <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                {errors.expiry}
+            {/* SFTWRKEY-445: la tarjeta se ingresa en la página segura de Recurrente, no aquí */}
+            <p className="text-sm leading-relaxed text-primary-champagne/60">
+                Ingresa tu dirección de envío. Después te llevamos a la página segura de{" "}
+                <span className="text-primary-gold font-bold">Recurrente</span> para pagar con tarjeta; tus datos de
+                tarjeta nunca pasan por nuestra tienda.
             </p>
-            )}
-
-            <div className="h-px bg-white/5 my-1" />
 
             <FormField
             id="pay-address"
-            label="Dirección de facturación"
+            label="Dirección de envío"
             value={values.billingAddress}
             error={errors.billingAddress}
             placeholder="Calle, número, zona"
@@ -391,10 +323,10 @@ export const PaymentForm = ({ isProcessing, onValidSubmit }: PaymentFormProps) =
                     <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
                     <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
                 </svg>
-                Procesando pago…
+                Abriendo el pago seguro…
                 </span>
             ) : (
-                "Confirmar y pagar"
+                "Continuar al pago seguro"
             )}
             </button>
 

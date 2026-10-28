@@ -4,7 +4,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   startServer, stopServer, api, registerClient, insertProduct, productStock, cleanup, pool,
-  cardPayload, loginAdmin,
+  buyWithAccount, loginAdmin,
 } from './helpers.js';
 
 const created = { users: [], products: [] };
@@ -26,9 +26,8 @@ const cambiarEstado = (orderId, status) =>
 
 // compra real por la API: llena el carrito y paga
 async function comprar(perfume, quantity) {
-  await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: perfume.id, quantity }] });
-  const res = await api('POST', `/checkout/${client.id}`, { token: client.token, body: cardPayload() });
-  assert.equal(res.status, 201);
+  const res = await buyWithAccount(client, [{ product_id: perfume.id, quantity }]);
+  assert.equal(res.body.status, 'pagado');
   return res.body.order.id;
 }
 

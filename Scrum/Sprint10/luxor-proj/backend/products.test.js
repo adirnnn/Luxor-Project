@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 
 process.env.JWT_SECRET = 'test-secret';
-process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 
 const { default: pool } = await import('./db.js');
 const { signToken } = await import('./services/auth.js');

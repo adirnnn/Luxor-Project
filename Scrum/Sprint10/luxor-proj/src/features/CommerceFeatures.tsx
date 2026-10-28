@@ -7,7 +7,6 @@ import { PaymentForm } from '../validation/PaymentForm';
 import type { PaymentFormState } from '../validation/usePaymentForm';
 import { MainLayout } from '../components/layout/MainLayout';
 import { formatPrice } from "../utils/formatPrice";
-import { trackPurchase } from "../utils/analytics";
 
 const panel =
   'mx-auto max-w-3xl rounded-xl border border-yellow-700 bg-stone-950 p-6 text-white';
@@ -497,20 +496,10 @@ type Quote = {
   quantity: number;
 };
 
-type Receipt = {
-  order: {
-    id: number;
-    total: number;
-  };
-
-  payment: {
-    brand: string;
-    last4: string;
-  };
-};
-
+// SFTWRKEY-445: el invitado deja su nombre, correo y dirección, y paga en la página de Recurrente.
+// Al volver, /pago/resultado muestra el comprobante (PaymentResultPage.tsx).
 export function GuestCheckoutPage() {
-  const { cart, clearCart } = useCart();
+  const { cart } = useCart();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -519,56 +508,7 @@ export function GuestCheckoutPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const [receipt, setReceipt] =
-    useState<Receipt | null>(null);
-
   const sending = useRef(false);
-  const clearRef = useRef(clearCart);
-
-  clearRef.current = clearCart;
-
-  // Recupera compras confirmadas cuya respuesta se haya perdido.
-  useEffect(() => {
-    let cancelled = false;
-
-    const key = sessionStorage.getItem(
-      'luxor-guest-purchase',
-    );
-
-    if (key) {
-      void fetch(`${API_URL}/guest-checkout/status`, {
-        method: 'POST',
-
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': key,
-        },
-
-        body: '{}',
-      })
-        .then(jsonResponse)
-        .then(data => {
-          if (!cancelled && data.receipt) {
-            setReceipt(data.receipt);
-
-            sessionStorage.removeItem(
-              'luxor-guest-purchase',
-            );
-
-            clearRef.current();
-          }
-        })
-        .catch(e => {
-          if (!cancelled) {
-            setError(message(e));
-          }
-        });
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const itemsJson = JSON.stringify(
     cart.map(item => ({
@@ -634,7 +574,7 @@ export function GuestCheckoutPage() {
     0,
   );
 
-  async function pay(card: PaymentFormState) {
+  async function pay(address: PaymentFormState) {
     if (sending.current) return;
 
     if (
@@ -653,6 +593,7 @@ export function GuestCheckoutPage() {
     setError('');
 
     try {
+      // la misma clave hace que reintentar no aparte el stock dos veces
       let key = sessionStorage.getItem(
         'luxor-guest-purchase',
       );
@@ -684,7 +625,7 @@ export function GuestCheckoutPage() {
 
             items: JSON.parse(itemsJson),
 
-            card,
+            address,
 
             expectedCents: cents,
           }),
@@ -693,17 +634,14 @@ export function GuestCheckoutPage() {
 
       const result = await jsonResponse(response);
 
-      setReceipt(result);
-
-      sessionStorage.removeItem(
-        'luxor-guest-purchase',
-      );
-
-      trackPurchase(Number(result.order.total), cart.reduce((n, i) => n + i.quantity, 0));
-      clearCart();
+      // ya estaba pagado (por ejemplo, volvió atrás desde Recurrente): se muestra el comprobante
+      if (result.status === 'pagado') {
+        window.location.assign(`/pago/resultado?ref=${result.reference}`);
+      } else {
+        window.location.assign(result.checkoutUrl);
+      }
     } catch (e) {
       setError(message(e));
-    } finally {
       sending.current = false;
       setBusy(false);
     }
@@ -713,43 +651,13 @@ export function GuestCheckoutPage() {
     <MainLayout>
       <div className="px-4 pb-16 pt-40">
         <section className={panel}>
-          {receipt ? (
-            <>
-              <h1 className="text-2xl">
-                Compra registrada
-              </h1>
-
-              <p>
-                Pedido #{receipt.order.id}
-                {' · '}{formatPrice(receipt.order.total)}
-              </p>
-
-              <p>
-                {receipt.payment.brand}
-                {' ···· '}
-                {receipt.payment.last4}
-              </p>
-
-              <p>
-                Guarda este número de pedido.
-                No se ha creado una cuenta.
-              </p>
-
-              <Link
-                className="underline"
-                to="/perfumes"
-              >
-                Seguir comprando
-              </Link>
-            </>
-          ) : (
-            <>
+          <>
               <h1 className="mb-4 text-2xl">
                 Comprar como invitado
               </h1>
 
               <p className="mb-4">
-                Pago de prueba. Usa únicamente tarjetas de prueba.
+                Pagarás con tarjeta en la página segura de Recurrente.
               </p>
 
               <Link
@@ -828,8 +736,7 @@ export function GuestCheckoutPage() {
                   </fieldset>
                 </>
               )}
-            </>
-          )}
+          </>
         </section>
       </div>
     </MainLayout>

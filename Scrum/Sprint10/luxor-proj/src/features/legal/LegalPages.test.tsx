@@ -52,9 +52,11 @@ describe("páginas legales", () => {
     expect(screen.getByText(/^última actualización:/i)).toBeInTheDocument();
   });
 
-  it("la política de privacidad aclara que no se guarda el número completo de la tarjeta", () => {
+  // SFTWRKEY-445: con Recurrente la tarjeta ni siquiera pasa por la tienda
+  it("la política de privacidad aclara que los datos de la tarjeta no pasan por la tienda", () => {
     abrir("/privacidad");
-    expect(screen.getByText(/nunca guardamos el número completo/i)).toBeInTheDocument();
+    expect(screen.getByText(/datos de tu tarjeta nunca pasan por nuestra tienda/i)).toBeInTheDocument();
+    expect(screen.getByText(/Recurrente, nuestro procesador de pagos/i)).toBeInTheDocument();
   });
 
   it("se puede navegar entre las tres páginas", async () => {

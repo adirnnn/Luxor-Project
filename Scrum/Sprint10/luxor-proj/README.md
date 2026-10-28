@@ -9,7 +9,7 @@ Sitio en producción: https://luxor-project-green.vercel.app
 **Clientes**
 - Catálogo con búsqueda por nombre, marca, categoría o nota olfativa, y ficha de cada perfume.
 - Carrito persistente para usuarios con sesión.
-- Compra con cuenta o como invitado, con pasarela de pago (actualmente en modo de prueba, ver [Pagos](#pagos)).
+- Compra con cuenta o como invitado, con pago en la página segura de Recurrente (ver [Pagos](#pagos)).
 - Registro e inicio de sesión con correo y contraseña, o con Google (requiere configurar el id de cliente de Google, ver [Despliegue](#despliegue)).
 - **Mi cuenta:** perfil, cambio de contraseña e historial de pedidos con su estado.
 - Asistente virtual (chatbot) que responde dudas de la tienda y recomienda perfumes.
@@ -71,7 +71,7 @@ luxor-proj/
    # node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
    JWT_SECRET=un_valor_aleatorio_largo
    CHATBOT_INTERNAL_KEY=otro_valor_aleatorio_largo
-   PAYMENT_GATEWAY_API_KEY=sandbox_dev_key
+   RECURRENTE_SECRET_KEY=sk_test_...   # llave del Sandbox de Recurrente
    PERFUM_API_BASE_URL=https://perfumapidatabase.onrender.com
    ```
 
@@ -130,7 +130,7 @@ Un navegador real (Chromium) recorre el sitio como lo haría una persona, contra
 | Archivo | Flujo |
 | --- | --- |
 | `e2e/registro-login.spec.ts` | El admin registra un cliente desde su panel, el cliente no entra con una contraseña equivocada, entra con la suya, ve sus datos en Mi cuenta y cierra sesión |
-| `e2e/compra.spec.ts` | Un cliente agrega un perfume, paga con la tarjeta de prueba, ve la confirmación y el pedido aparece en Mi cuenta como pagado |
+| `e2e/compra.spec.ts` | Un cliente agrega un perfume, paga en Recurrente (simulado por `e2e/recurrente-simulado.mjs`), ve la confirmación y el pedido aparece en Mi cuenta como pagado; si la tarjeta se rechaza y se sale, no hay pedido y el carrito sigue igual |
 | `e2e/invitado.spec.ts` | Un visitante sin cuenta compra como invitado y recibe su número de pedido |
 | `e2e/admin-estado.spec.ts` | El admin abre un pedido en el panel, lo pasa a "En preparación" y luego a "Enviado", y el cliente ve el estado nuevo |
 
@@ -160,7 +160,13 @@ Playwright levanta solo el backend (puerto 3100) contra esa base y un build del 
 
 ## Pagos
 
-`backend/services/paymentGateway.js` encapsula la pasarela de pago. Hoy funciona en modo de prueba con tarjetas de prueba (por ejemplo `4242 4242 4242 4242` aprobada y `4000 0000 0000 0002` rechazada por fondos insuficientes), así que no genera cobros reales. Para pasar a cobros reales se reemplaza la llamada de `chargeCard` por la del proveedor elegido; el resto del flujo (recalcular el total, transacción con el stock y registro en `payments`) no cambia. Nunca se guarda el número completo de la tarjeta: solo la marca y los últimos 4 dígitos.
+Los pagos van con [Recurrente](https://recurrente.com). El cliente paga en la página de Recurrente, así que el número de tarjeta nunca llega a nuestro servidor (solo guardamos la marca y los últimos 4 dígitos que Recurrente devuelve).
+
+1. Al pulsar "Continuar al pago seguro", el backend recalcula el total con los precios de la base, aparta el stock por 30 minutos y crea el checkout en Recurrente (`backend/services/checkoutSessions.js` y `paymentGateway.js`).
+2. El cliente paga y Recurrente lo regresa a `/pago/resultado`, donde el backend le pregunta a Recurrente si el cobro quedó aprobado. Solo entonces se crea el pedido `pagado`, se registra el pago y se manda el correo.
+3. Si el cliente se sale (`/pago/cancelado`) o cierra la pestaña, el stock regresa y no se crea ningún pedido. El backend revisa los pagos vencidos cada 5 minutos.
+
+La llave va en `RECURRENTE_SECRET_KEY`: `sk_test_...` de un Sandbox para probar (tarjeta `4242 4242 4242 4242` aprobada, `4000 0000 0000 0002` rechazada) y `sk_live_...` en Render para cobrar de verdad. Las pruebas automáticas nunca llaman a Recurrente: lo simulan.
 
 ## Importación CSV
 
@@ -181,6 +187,8 @@ id,name,price,image,description,stock,salida,corazon,fondo
 | `/producto/:id` | Ficha del perfume | Público |
 | `/cart` | Carrito | Público |
 | `/pago` | Checkout | Público (con cuenta o como invitado) |
+| `/pago/resultado` | Vuelta desde Recurrente: confirma el pago y muestra el pedido | Público (con la referencia del pago) |
+| `/pago/cancelado` | Vuelta desde Recurrente cuando no se pagó: libera el stock | Público (con la referencia del pago) |
 | `/login` | Inicio de sesión y registro | Público |
 | `/mi-cuenta` | Perfil, contraseña y pedidos | Con sesión |
 | `/privacidad`, `/terminos`, `/envios-devoluciones`, `/preguntas-frecuentes` | Información legal y ayuda | Público |

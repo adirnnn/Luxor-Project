@@ -1,152 +1,116 @@
-// SFTWRKEY-295/297: cliente de la pasarela de pago.
-// Simula la integración con una pasarela real (tipo Stripe/Recurrente) usando
-// tarjetas de prueba conocidas, para poder desarrollar y probar todo el flujo
-// de pagos sin depender de credenciales reales.
-// Depende de PAYMENT_GATEWAY_API_KEY definida en backend/.env
-import dotenv from 'dotenv';
-dotenv.config();
-
-const API_KEY = process.env.PAYMENT_GATEWAY_API_KEY;
-const SIMULATED_LATENCY_MS = Number(process.env.PAYMENT_GATEWAY_LATENCY_MS ?? 400);
+// SFTWRKEY-445: pasarela de pago real con Recurrente (https://docs.recurrente.com).
+// El cliente paga en la página de Recurrente: el número de tarjeta nunca llega a este servidor.
+// Aquí solo se crea el checkout con los productos y el total que calculó el backend, y después
+// se le pregunta a Recurrente si quedó pagado. La llave va en RECURRENTE_SECRET_KEY (Render):
+// sk_test_... para el sandbox y sk_live_... para cobrar de verdad.
+const API_URL = 'https://app.recurrente.com/api';
+// Recurrente acepta de 1 a 9 unidades por renglón
+const MAX_QTY_PER_LINE = 9;
 
 export class PaymentGatewayError extends Error {
-  constructor(message, { cause, code } = {}) {
+  constructor(message, { cause, code, status } = {}) {
     super(message);
     this.name = 'PaymentGatewayError';
     this.code = code ?? 'GATEWAY_ERROR';
+    if (status) this.status = status;
     if (cause) this.cause = cause;
   }
 }
 
-// tarjetas de prueba
-// para poder probar cada camino (fondos insuficientes, vencida, cvv, etc.) sin un banco real.
-const TEST_DECLINE_CARDS = {
-  '4000000000000002': 'FONDOS_INSUFICIENTES',
-  '4000000000009995': 'FONDOS_INSUFICIENTES',
-  '4000000000000069': 'TARJETA_VENCIDA',
-  '4000000000000127': 'CVV_INCORRECTO',
-  '4000000000000119': 'TARJETA_BLOQUEADA',
-};
+export const isGatewayConfigured = (env = process.env) => Boolean(env.RECURRENTE_SECRET_KEY);
 
-const DECLINE_MESSAGES = {
-  FONDOS_INSUFICIENTES: 'La tarjeta no tiene fondos suficientes para completar la compra.',
-  TARJETA_VENCIDA: 'La tarjeta fue rechazada por la pasarela: está vencida.',
-  CVV_INCORRECTO: 'El código de seguridad (CVV) no coincide con el registrado por el banco.',
-  TARJETA_BLOQUEADA: 'La tarjeta fue rechazada: el banco emisor la reporta bloqueada.',
-  NUMERO_INVALIDO: 'El número de tarjeta ingresado no es válido.',
-};
-
-// algoritmo de Luhn: validación de números de tarjeta antes de "enviarlos" a la pasarela
-function isValidLuhn(digits) {
-  let sum = 0;
-  let shouldDouble = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let digit = Number(digits[i]);
-    if (shouldDouble) {
-      digit *= 2;
-      if (digit > 9) digit -= 9;
+// Renglones para Recurrente: más de 9 unidades del mismo perfume se parten en varios renglones
+export function buildCheckoutItems(items) {
+  const lines = [];
+  for (const item of items) {
+    let left = item.quantity;
+    while (left > 0) {
+      const quantity = Math.min(left, MAX_QTY_PER_LINE);
+      lines.push({
+        name: item.name,
+        amount_in_cents: Math.round(Number(item.price) * 100),
+        currency: 'GTQ',
+        quantity,
+      });
+      left -= quantity;
     }
-    sum += digit;
-    shouldDouble = !shouldDouble;
   }
-  return sum % 10 === 0;
+  return lines;
 }
 
-function detectBrand(digits) {
-  if (/^4/.test(digits)) return 'VISA';
-  if (/^5[1-5]/.test(digits)) return 'MASTERCARD';
-  if (/^3[47]/.test(digits)) return 'AMEX';
-  return 'DESCONOCIDA';
+// Las pruebas de extremo a extremo apuntan a un Recurrente simulado (e2e/recurrente-simulado.mjs).
+// En producción se ignora: el dinero siempre va a la API real.
+const apiUrl = (env) => (env.NODE_ENV !== 'production' && env.RECURRENTE_API_URL) || API_URL;
+
+async function call(path, { method = 'GET', body, env = process.env, fetchImpl = fetch } = {}) {
+  if (!isGatewayConfigured(env)) {
+    throw new PaymentGatewayError('La pasarela de pago no está configurada (falta RECURRENTE_SECRET_KEY).', {
+      code: 'GATEWAY_NOT_CONFIGURED',
+    });
+  }
+
+  let response;
+  try {
+    response = await fetchImpl(`${apiUrl(env)}${path}`, {
+      method,
+      headers: { 'X-SECRET-KEY': env.RECURRENTE_SECRET_KEY, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch (err) {
+    throw new PaymentGatewayError('No se pudo contactar a Recurrente.', { cause: err });
+  }
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    // el mensaje de Recurrente no trae datos de tarjeta; se guarda para el log del servidor
+    throw new PaymentGatewayError(`Recurrente respondió ${response.status}: ${data?.message ?? 'sin detalle'}`, {
+      status: response.status,
+    });
+  }
+  return data;
 }
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Arma el payload que se envía a la pasarela: referencia de la orden,
- * monto total y el detalle del carrito (para conciliación en el dashboard de la pasarela).
- */
-export function buildGatewayPayload({ orderReference, amount, currency = 'GTQ', cartItems, card, billing }) {
-  const cardDigits = (card?.cardNumber || '').replace(/\D/g, '');
+// Normaliza el checkout de Recurrente a lo que usa la tienda. Solo se toman la marca y los
+// últimos 4 dígitos de la tarjeta; Recurrente nunca devuelve el número completo.
+export function toCheckoutResult(data) {
+  const card = data?.payment_method?.card ?? data?.payment_method ?? {};
+  const intent = data?.latest_intent ?? {};
   return {
-    orderReference,
-    amount: Number(amount.toFixed(2)),
-    currency,
-    items: cartItems.map((item) => ({
-      productId: item.product_id,
-      name: item.name,
-      quantity: item.quantity,
-      unitPrice: Number(item.price),
-    })),
-    card: {
-      number: cardDigits,
-      holder: card?.cardholderName,
-      expiryMonth: card?.expiryMonth,
-      expiryYear: card?.expiryYear,
-      cvv: card?.cvv,
-    },
-    billing: {
-      address: billing?.billingAddress,
-      city: billing?.city,
-      postalCode: billing?.postalCode,
-      country: billing?.country,
-    },
+    id: data?.id ?? null,
+    url: data?.checkout_url ?? null,
+    // unpaid | payment_in_progress | paid | expired
+    status: data?.status ?? 'unpaid',
+    paymentId: data?.payment?.id ?? null,
+    brand: card.network ? String(card.network).toUpperCase().slice(0, 20) : null,
+    last4: card.last4 ? String(card.last4).slice(-4) : null,
+    failureReason: intent.details?.failure_reason ?? intent.failure_reason ?? null,
   };
 }
 
-/**
- * Simula el cobro contra la pasarela y devuelve una respuesta con la misma forma
- * que tendría una pasarela real (aprobado/rechazado + referencia de transacción).
- */
-export async function chargeCard(payload) {
-  if (!API_KEY) {
-    throw new PaymentGatewayError(
-      'La pasarela de pago no está configurada (falta PAYMENT_GATEWAY_API_KEY).',
-      { code: 'GATEWAY_NOT_CONFIGURED' }
-    );
-  }
+// Las funciones van en un objeto para que las pruebas automáticas puedan reemplazarlas
+// por un proveedor simulado sin llamar a Recurrente.
+export const gateway = {
+  async createCheckout({ reference, items, successUrl, cancelUrl, expiresAt }, opts) {
+    const data = await call('/checkouts', {
+      ...opts,
+      method: 'POST',
+      body: {
+        items: buildCheckoutItems(items),
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        expires_at: expiresAt.toISOString(),
+        metadata: { referencia: reference },
+      },
+    });
+    const result = toCheckoutResult(data);
+    if (!result.id || !result.url) {
+      throw new PaymentGatewayError('Recurrente no devolvió el enlace de pago.');
+    }
+    return result;
+  },
 
-  // simula la latencia de red de una pasarela real
-  await wait(SIMULATED_LATENCY_MS);
-
-  const digits = payload.card.number;
-  const brand = detectBrand(digits);
-  const last4 = digits.slice(-4);
-
-  if (digits.length !== 16 || !isValidLuhn(digits)) {
-    return {
-      approved: false,
-      declineCode: 'NUMERO_INVALIDO',
-      declineMessage: DECLINE_MESSAGES.NUMERO_INVALIDO,
-      brand,
-      last4,
-      transactionId: null,
-      authCode: null,
-    };
-  }
-
-  if (TEST_DECLINE_CARDS[digits]) {
-    const declineCode = TEST_DECLINE_CARDS[digits];
-    return {
-      approved: false,
-      declineCode,
-      declineMessage: DECLINE_MESSAGES[declineCode],
-      brand,
-      last4,
-      transactionId: null,
-      authCode: null,
-    };
-  }
-
-  const transactionId = `gw_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  const authCode = Math.random().toString(36).slice(2, 8).toUpperCase();
-
-  return {
-    approved: true,
-    declineCode: null,
-    declineMessage: null,
-    brand,
-    last4,
-    transactionId,
-    authCode,
-  };
-}
+  async getCheckout(id, opts) {
+    return toCheckoutResult(await call(`/checkouts/${encodeURIComponent(id)}`, opts));
+  },
+};

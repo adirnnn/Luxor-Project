@@ -3,6 +3,8 @@
 // puertos propios para no usar por error un backend que ya esté corriendo con otra base
 export const BACKEND_URL = "http://localhost:3100";
 export const FRONTEND_URL = "http://localhost:4180";
+// SFTWRKEY-445: Recurrente simulado (e2e/recurrente-simulado.mjs)
+export const RECURRENTE_URL = "http://localhost:3200";
 
 // el administrador lo crea el seed con estas variables (las mismas de las pruebas de integración)
 export const ADMIN = {
@@ -17,13 +19,8 @@ export const PERFUME = {
   price: 250,
 };
 
-// tarjeta que aprueba la pasarela simulada (backend/services/paymentGateway.js)
-export const TARJETA = {
-  titular: "Cliente Prueba",
-  numero: "4242 4242 4242 4242",
-  mes: "12",
-  anio: String(new Date().getFullYear() + 2),
-  cvv: "123",
+// SFTWRKEY-445: la tarjeta se escribe en la página de Recurrente; la tienda solo pide la dirección
+export const DIRECCION = {
   direccion: "Zona 10, Ciudad de Guatemala",
   ciudad: "Guatemala",
   postal: "01010",

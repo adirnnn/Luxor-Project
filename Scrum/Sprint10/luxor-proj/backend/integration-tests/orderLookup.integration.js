@@ -3,7 +3,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  startServer, stopServer, api, apiUrl, registerClient, insertProduct, cleanup, pool, cardPayload, loginAdmin,
+  startServer, stopServer, api, apiUrl, registerClient, insertProduct, cleanup, pool, buyWithAccount, loginAdmin,
 } from './helpers.js';
 
 const created = { users: [], products: [] };
@@ -25,9 +25,8 @@ before(async () => {
   const perfume = await insertProduct(created.products, { price: 300, stock: 5 });
 
   // compra real del cliente por la API
-  await api('POST', `/cart/${cliente.id}`, { token: cliente.token, body: [{ product_id: perfume.id, quantity: 1 }] });
-  const compra = await api('POST', `/checkout/${cliente.id}`, { token: cliente.token, body: cardPayload() });
-  assert.equal(compra.status, 201);
+  const compra = await buyWithAccount(cliente, [{ product_id: perfume.id, quantity: 1 }]);
+  assert.equal(compra.body.status, 'pagado');
   pedidoCliente = compra.body.order.id;
 
   // el admin lo pasa a "en preparación" (queda en el historial)

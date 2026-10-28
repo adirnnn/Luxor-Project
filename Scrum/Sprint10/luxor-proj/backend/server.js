@@ -15,6 +15,7 @@ import cartRouter from './routes/cart.js';
 import reportsRouter from './routes/reports.js';
 import securityRouter from './routes/security.js';
 import checkoutRouter from './routes/checkout.js';
+import { sweepExpiredSessions } from './services/checkoutSessions.js';
 import chatbotRouter from './routes/chatbot.js';
 
 import ordersRouter from './routes/orders.js';
@@ -116,6 +117,10 @@ app.use((err, _req, res, _next) => {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+  // SFTWRKEY-445: cada 5 minutos se revisan los pagos abandonados para devolver su stock
+  setInterval(() => {
+    sweepExpiredSessions().catch((err) => console.error('Error revisando pagos vencidos:', err.message));
+  }, 5 * 60_000).unref();
 }
 
 export default app;

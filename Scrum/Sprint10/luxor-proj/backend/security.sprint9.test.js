@@ -5,7 +5,6 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 
 process.env.JWT_SECRET = 'test-secret';
-process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 process.env.GOOGLE_CLIENT_ID = 'cliente-de-prueba.apps.googleusercontent.com';
 
 const { OAuth2Client } = await import('google-auth-library');

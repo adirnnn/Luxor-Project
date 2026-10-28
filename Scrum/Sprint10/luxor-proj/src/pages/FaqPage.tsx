@@ -46,21 +46,21 @@ const GROUPS: Array<{ title: string; faqs: Faq[] }> = [
     faqs: [
       {
         question: "¿Qué formas de pago aceptan en el sitio?",
-        answer: "Tarjetas de crédito y débito Visa, Mastercard y American Express. Los precios están en quetzales (GTQ).",
+        answer: "Tarjetas de crédito y débito, en la página segura de Recurrente, nuestro procesador de pagos. Los precios están en quetzales (GTQ).",
       },
       {
         question: "¿Es seguro pagar con mi tarjeta?",
         answer: (
           <>
-            Sí. Todo viaja cifrado por HTTPS y nunca guardamos el número completo de tu tarjeta, su fecha de vencimiento ni
-            el CVV: solo la marca y los últimos 4 dígitos para identificar el pago. Más detalles en nuestra{" "}
+            Sí. Pagas en la página segura de Recurrente, así que los datos de tu tarjeta nunca pasan por nuestra tienda:
+            solo recibimos la marca y los últimos 4 dígitos para identificar el pago. Más detalles en nuestra{" "}
             <Link to="/privacidad" className={enlace}>política de privacidad</Link>.
           </>
         ),
       },
       {
         question: "Mi pago fue rechazado, ¿qué hago?",
-        answer: "El mensaje te indica el motivo (fondos insuficientes, tarjeta vencida o CVV incorrecto, por ejemplo). Revisa los datos o intenta con otra tarjeta. Por seguridad, muchos intentos seguidos pueden bloquear temporalmente nuevos pagos.",
+        answer: "La página de pago te indica el motivo (fondos insuficientes o tarjeta vencida, por ejemplo). Puedes intentar con otra tarjeta ahí mismo. Si te sales sin pagar, no se hace ningún cobro ni se crea el pedido, y tu carrito sigue guardado.",
       },
     ],
   },

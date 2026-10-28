@@ -11,7 +11,7 @@ const sections: LegalSection[] = [
         <li><strong className="text-primary-champagne">Cuenta:</strong> nombre, correo electrónico y contraseña. La contraseña se guarda cifrada (hash bcrypt); nadie, ni siquiera el equipo, puede leerla.</li>
         <li><strong className="text-primary-champagne">Inicio de sesión con Google:</strong> tu nombre, tu correo y el identificador de tu cuenta de Google. No recibimos tu contraseña de Google.</li>
         <li><strong className="text-primary-champagne">Compras:</strong> los productos, cantidades, montos y el estado de cada pedido. En compras como invitado, también el nombre, el correo y la dirección de envío.</li>
-        <li><strong className="text-primary-champagne">Pagos:</strong> solo la marca de la tarjeta y sus últimos 4 dígitos. Nunca guardamos el número completo, la fecha de vencimiento ni el CVV.</li>
+        <li><strong className="text-primary-champagne">Pagos:</strong> pagas en la página segura de Recurrente, así que los datos de tu tarjeta nunca pasan por nuestra tienda. Recurrente nos devuelve solo la marca de la tarjeta y sus últimos 4 dígitos, que guardamos para identificar el pago.</li>
         <li><strong className="text-primary-champagne">Seguridad:</strong> la dirección IP y el correo usados en intentos de inicio de sesión fallidos, para detectar ataques.</li>
         <li><strong className="text-primary-champagne">Visitas al sitio:</strong> usamos Vercel Web Analytics para contar cuántas personas visitan el sitio, de qué país y desde qué página llegan, qué perfumes se ven y cuántas compras se completan. No usa cookies, no te identifica ni guarda tu nombre, correo ni datos de tarjeta.</li>
         <li><strong className="text-primary-champagne">Asistente virtual:</strong> las preguntas que le haces al chatbot y sus respuestas, sin asociarlas a tu cuenta.</li>
@@ -36,7 +36,7 @@ const sections: LegalSection[] = [
         <p>No vendemos ni compartimos tus datos con terceros para publicidad. Solo intervienen los proveedores que hacen funcionar el sitio:</p>
         <ul className={lista}>
           <li>Vercel y Render, donde se aloja el sitio y la base de datos. Vercel también nos da las estadísticas anónimas de visitas.</li>
-          <li>El procesador de pagos, que recibe los datos de tu tarjeta directamente para autorizar el cobro.</li>
+          <li>Recurrente, nuestro procesador de pagos, que recibe los datos de tu tarjeta directamente en su página para autorizar el cobro, junto con los productos y el total de tu pedido.</li>
           <li>Google, únicamente si eliges iniciar sesión con tu cuenta de Google.</li>
           <li>El proveedor del modelo de lenguaje del asistente virtual, que recibe el texto de tus preguntas para generar la respuesta.</li>
         </ul>

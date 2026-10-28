@@ -11,15 +11,19 @@ import {
 } from './services/auth.js';
 import { notifyOrderStatus } from './services/orderEmails.js';
 import { rateLimit } from './services/rateLimit.js';
-import { createDeclineGuard } from './services/declineGuard.js';
 import {
   recordSecurityEvent,
   SECURITY_EVENT_TYPES,
 } from './services/securityEvents.js';
+import { PaymentGatewayError } from './services/paymentGateway.js';
 import {
-  buildGatewayPayload,
-  chargeCard,
-} from './services/paymentGateway.js';
+  ensureCheckoutTables,
+  reserveStock,
+  createSession,
+  openCheckout,
+  cancelSession,
+} from './services/checkoutSessions.js';
+import { sendCheckoutError } from './routes/checkout.js';
 
 const router = Router();
 const google = new OAuth2Client();
@@ -175,13 +179,6 @@ const limited = rateLimit({
   onBlock,
 });
 
-// SFTWRKEY-410: 3 pagos rechazados desde la misma IP bloquean el checkout de invitado 15 min
-const declineGuard = createDeclineGuard({
-  max: 3,
-  windowMs: 15 * 60_000,
-  onBlock,
-});
-
 function text(value, max, label, min = 1) {
   if (
     typeof value !== 'string' ||
@@ -244,44 +241,23 @@ export function validateGuest(body) {
     })
     .sort((a, b) => a.product_id.localeCompare(b.product_id));
 
-  const card = {};
+  // SFTWRKEY-445: ya no se reciben datos de tarjeta; solo la dirección de envío
+  const fields = {};
 
   for (const field of [
-    'cardholderName',
-    'cardNumber',
-    'expiryMonth',
-    'expiryYear',
-    'cvv',
     'billingAddress',
     'city',
     'postalCode',
     'country',
   ]) {
-    card[field] = text(body.card?.[field], 200, field);
-  }
-
-  const digits = card.cardNumber.replace(/ /g, '');
-  const month = Number(card.expiryMonth);
-  const year = Number(card.expiryYear);
-
-  if (
-    !/^\d{16}$/.test(digits) ||
-    !/^\d{3}$/.test(card.cvv) ||
-    !/^\d{1,2}$/.test(card.expiryMonth) ||
-    !/^\d{4}$/.test(card.expiryYear) ||
-    month < 1 ||
-    month > 12 ||
-    year > new Date().getFullYear() + 20 ||
-    Date.UTC(year, month, 1) <= Date.now()
-  ) {
-    throw fail(400, 'Tarjeta o vencimiento inválidos.');
+    fields[field] = text(body.address?.[field], 200, field);
   }
 
   const address = {
-    billingAddress: card.billingAddress,
-    city: card.city,
-    postalCode: card.postalCode,
-    country: card.country,
+    billingAddress: fields.billingAddress,
+    city: fields.city,
+    postalCode: fields.postalCode,
+    country: fields.country,
   };
 
   if (
@@ -295,18 +271,18 @@ export function validateGuest(body) {
     name,
     email,
     items,
-    card,
     address,
     expectedCents: body.expectedCents,
   };
 }
 
-// No modifica la autenticación del checkout de usuarios registrados.
+// SFTWRKEY-445: abre el pago del invitado en Recurrente. El pedido se crea al volver, cuando
+// Recurrente confirma el cobro (routes/checkout.js). Los rechazos de tarjeta pasan en la página
+// de Recurrente, así que aquí nunca llegan números de tarjeta.
 router.post(
   '/guest-checkout',
   sameOrigin,
   limited,
-  declineGuard.check,
   wrap(async (req, res) => {
     const key = req.get('Idempotency-Key') || '';
 
@@ -318,7 +294,6 @@ router.post(
       name,
       email,
       items,
-      card,
       address,
       expectedCents,
     } = validateGuest(req.body);
@@ -335,182 +310,60 @@ router.post(
       }),
     );
 
-    let newOrderId = null;
-    const result = await transaction(async db => {
-      // Serializa los reintentos de la misma compra.
-      await db.query(
-        'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
-        [keyHash],
-      );
+    try {
+      await ensureCheckoutTables();
 
-      const prior = await db.query(
-        `SELECT request_hash, response
-         FROM guest_receipts
-         WHERE key_hash=$1`,
-        [keyHash],
-      );
-
-      if (prior.rows.length) {
-        if (prior.rows[0].request_hash !== requestHash) {
-          throw fail(
-            409,
-            'Esta compra ya se procesó con otros datos.',
-          );
-        }
-
-        return prior.rows[0].response;
-      }
-
-      // Bloquea los productos durante la transacción.
-      const products = await db.query(
-        `SELECT id, name, price, stock
-         FROM products
-         WHERE id=ANY($1::varchar[])
-         ORDER BY id
-         FOR UPDATE`,
-        [items.map(item => item.product_id)],
-      );
-
-      let cents = 0;
-
-      const cartItems = items.map(item => {
-        const product = products.rows.find(
-          p => p.id === item.product_id,
-        );
-
-        if (!product || product.stock < item.quantity) {
-          throw fail(
-            409,
-            'Un producto ya no tiene stock. Actualiza el carrito.',
-          );
-        }
-
-        const priceCents = Math.round(
-          Number(product.price) * 100,
-        );
-
-        if (
-          !Number.isSafeInteger(priceCents) ||
-          priceCents < 0
-        ) {
-          throw fail(409, 'Precio no disponible.');
-        }
-
-        cents += priceCents * item.quantity;
-
-        return {
-          ...item,
-          name: product.name,
-          price: Number(product.price),
-        };
-      });
-
-      // El total verdadero siempre sale de la base de datos.
-      if (cents !== expectedCents) {
-        throw fail(
-          409,
-          'El precio cambió. Recarga la página antes de confirmar.',
-        );
-      }
-
-      if (cents > 99999999) {
-        throw fail(400, 'El total supera el límite por pedido.');
-      }
-
-      const payment = await chargeCard(
-        buildGatewayPayload({
-          orderReference: keyHash,
-          amount: cents / 100,
-          cartItems,
-          card,
-          billing: card,
-        }),
-      );
-
-      if (!payment.approved) {
-        declineGuard.recordDecline(req);
-        throw fail(
-          402,
-          payment.declineMessage || 'Pago rechazado.',
-        );
-      }
-
-      const order = (
-        await db.query(
-          `INSERT INTO orders(user_id,total,status)
-           VALUES(NULL,$1,'pagado')
-           RETURNING id,total,created_at`,
-          [cents / 100],
+      // Un reintento de la misma compra reutiliza el pago que ya está abierto.
+      const prior = (
+        await pool.query(
+          `SELECT id, status, checkout_url, guest->>'requestHash' AS request_hash
+           FROM checkout_sessions
+           WHERE guest->>'keyHash' = $1
+           ORDER BY created_at DESC
+           LIMIT 1`,
+          [keyHash],
         )
       ).rows[0];
 
-      // SFTWRKEY-417: primera fila del historial de estados
-      await db.query(
-        `INSERT INTO order_status_history(order_id,from_status,to_status)
-         VALUES($1,NULL,'pagado')`,
-        [order.id],
-      );
-
-      for (const item of cartItems) {
-        await db.query(
-          'UPDATE products SET stock=stock-$1 WHERE id=$2',
-          [item.quantity, item.product_id],
-        );
-
-        await db.query(
-          `INSERT INTO order_items
-           (order_id,product_id,quantity,unit_price)
-           VALUES($1,$2,$3,$4)`,
-          [
-            order.id,
-            item.product_id,
-            item.quantity,
-            item.price,
-          ],
-        );
+      if (prior?.status === 'pagado') {
+        return res.json({ success: true, status: 'pagado', reference: prior.id });
       }
 
-      newOrderId = order.id;
+      if (prior?.status === 'pendiente') {
+        if (prior.request_hash === requestHash && prior.checkout_url) {
+          return res.json({ success: true, checkoutUrl: prior.checkout_url, reference: prior.id });
+        }
 
-      const response = {
-        success: true,
-        order: {
-          ...order,
-          total: Number(order.total),
-        },
-        payment: {
-          brand: payment.brand,
-          last4: payment.last4,
-          transactionId: payment.transactionId,
-        },
-      };
+        // cambió el carrito o los datos: se cierra el pago anterior y se libera su stock
+        const closed = await cancelSession(prior.id);
+        if (closed?.status === 'pagado') {
+          return res.json({ success: true, status: 'pagado', reference: prior.id });
+        }
+      }
 
-      // No se guarda el número completo de tarjeta ni el CVV.
-      await db.query(
-        `INSERT INTO guest_receipts
-         (
-           key_hash,request_hash,order_id,
-           guest_name,guest_email,address,response
-         )
-         VALUES($1,$2,$3,$4,$5,$6,$7)`,
-        [
-          keyHash,
-          requestHash,
-          order.id,
-          name,
-          email,
-          address,
-          response,
-        ],
-      );
+      const session = await transaction(async db => {
+        const { lines, cents } = await reserveStock(db, items);
 
-      return response;
-    });
+        // El total verdadero siempre sale de la base de datos.
+        if (cents !== expectedCents) {
+          throw fail(409, 'El precio cambió. Recarga la página antes de confirmar.');
+        }
 
-    // SFTWRKEY-447: correo de confirmación solo si el pedido es nuevo (no en reintentos)
-    if (newOrderId) void notifyOrderStatus(pool, newOrderId, 'pagado');
+        return createSession(db, {
+          guest: { name, email, address, keyHash, requestHash },
+          lines,
+          cents,
+        });
+      });
 
-    res.status(201).json(result);
+      const checkoutUrl = await openCheckout(session);
+      res.status(201).json({ success: true, checkoutUrl, reference: session.id });
+    } catch (err) {
+      if (err instanceof PaymentGatewayError || (err.status && err.code)) {
+        return sendCheckoutError(res, err);
+      }
+      throw err;
+    }
   }),
 );
 

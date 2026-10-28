@@ -1,6 +1,6 @@
 // SFTWRKEY-456: pasos que se repiten en varios flujos.
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
-import { BACKEND_URL, PERFUME, TARJETA, correoUnico } from "./datos";
+import { BACKEND_URL, PERFUME, DIRECCION, correoUnico } from "./datos";
 
 // ── por la API (solo para preparar datos, el flujo que se prueba va por el navegador) ──
 
@@ -18,7 +18,7 @@ export async function crearCliente(request: APIRequestContext) {
   return { ...cliente, id: user.id as number, token: await tokenDe(request, cliente.email, cliente.password) };
 }
 
-// compra de 1 perfume con la tarjeta de prueba; devuelve el número de pedido
+// compra de 1 perfume pagada en el Recurrente simulado; devuelve el número de pedido
 export async function comprarPorApi(request: APIRequestContext, cliente: { id: number; token: string }) {
   const auth = { Authorization: `Bearer ${cliente.token}` };
   const carrito = await request.post(`${BACKEND_URL}/cart/${cliente.id}`, {
@@ -26,16 +26,20 @@ export async function comprarPorApi(request: APIRequestContext, cliente: { id: n
     data: [{ product_id: PERFUME.id, quantity: 1 }],
   });
   expect(carrito.ok(), "llenar el carrito").toBeTruthy();
-  const compra = await request.post(`${BACKEND_URL}/checkout/${cliente.id}`, {
+  const abierto = await request.post(`${BACKEND_URL}/checkout/${cliente.id}`, {
     headers: auth,
-    data: {
-      cardholderName: TARJETA.titular, cardNumber: TARJETA.numero.replace(/\s/g, ""),
-      expiryMonth: TARJETA.mes, expiryYear: TARJETA.anio, cvv: TARJETA.cvv,
-      billingAddress: TARJETA.direccion, city: TARJETA.ciudad, postalCode: TARJETA.postal, country: "GT",
-    },
+    data: { billingAddress: DIRECCION.direccion, city: DIRECCION.ciudad, postalCode: DIRECCION.postal, country: DIRECCION.pais },
   });
-  expect(compra.status(), "pagar").toBe(201);
-  return (await compra.json()).order.id as number;
+  expect(abierto.status(), "abrir el pago").toBe(201);
+  const { checkoutUrl, reference } = await abierto.json();
+
+  // el cliente paga en la página de Recurrente (simulado)
+  const pago = await request.post(`${checkoutUrl}/pagar`, { maxRedirects: 0 });
+  expect(pago.status(), "pagar en Recurrente").toBe(303);
+
+  const confirmado = await request.post(`${BACKEND_URL}/checkout/confirm`, { data: { reference } });
+  expect(confirmado.ok(), "confirmar el pago").toBeTruthy();
+  return (await confirmado.json()).order.id as number;
 }
 
 // ── en el navegador ──
@@ -63,14 +67,16 @@ export async function agregarPerfumeAlCarrito(page: Page) {
   await expect(page.getByText(PERFUME.name).first()).toBeVisible();
 }
 
-export async function llenarTarjeta(page: Page) {
-  await page.getByLabel("Nombre del titular").fill(TARJETA.titular);
-  await page.getByLabel("Número de tarjeta").fill(TARJETA.numero);
-  await page.getByLabel("Mes").selectOption(TARJETA.mes);
-  await page.getByLabel("Año").selectOption(TARJETA.anio);
-  await page.getByLabel("CVV").fill(TARJETA.cvv);
-  await page.getByLabel("Dirección de facturación").fill(TARJETA.direccion);
-  await page.getByLabel("Ciudad").fill(TARJETA.ciudad);
-  await page.getByLabel("Código postal").fill(TARJETA.postal);
-  await page.getByLabel("País").selectOption(TARJETA.pais);
+// SFTWRKEY-445: la tienda solo pide la dirección; la tarjeta va en la página de Recurrente
+export async function llenarDireccion(page: Page) {
+  await page.getByLabel("Dirección de envío").fill(DIRECCION.direccion);
+  await page.getByLabel("Ciudad").fill(DIRECCION.ciudad);
+  await page.getByLabel("Código postal").fill(DIRECCION.postal);
+  await page.getByLabel("País").selectOption(DIRECCION.pais);
+}
+
+// en la página de Recurrente (simulado): "Pagar", "Rechazar tarjeta" o "Salir sin pagar"
+export async function enRecurrente(page: Page, boton: "Pagar" | "Rechazar tarjeta" | "Salir sin pagar") {
+  await expect(page.getByRole("heading", { name: "Recurrente (simulado)" })).toBeVisible();
+  await page.getByRole("button", { name: boton, exact: true }).click();
 }

@@ -6,27 +6,67 @@ import { once } from 'node:events';
 import { randomUUID } from 'node:crypto';
 import pool from '../db.js';
 import app from '../server.js';
+import { gateway } from '../services/paymentGateway.js';
 
 export { pool };
 
 // Credenciales del administrador que crea seed.js 
 export const SEED_ADMIN = { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD };
 
-// Tarjetas de prueba de la pasarela simulada (services/paymentGateway.js).
-export const APPROVED_CARD = '4242424242424242';
-export const DECLINED_CARD = '4000000000000002';
+// SFTWRKEY-445: Recurrente simulado. Las pruebas nunca llaman a la API real: crear un checkout
+// devuelve un enlace falso y cada prueba decide si el cliente pagó, se rindió o se le venció.
+const checkouts = new Map();
+let nextCheckout = 0;
 
-export const cardPayload = (cardNumber = APPROVED_CARD) => ({
-  cardholderName: 'Cliente Prueba',
-  cardNumber,
-  expiryMonth: '12',
-  expiryYear: '2030',
-  cvv: '123',
+gateway.createCheckout = async (request) => {
+  const id = `ch_test_${++nextCheckout}`;
+  checkouts.set(id, { status: 'unpaid', request });
+  return { id, url: `https://recurrente.test/checkout-session/${id}`, status: 'unpaid' };
+};
+
+gateway.getCheckout = async (id) => {
+  const checkout = checkouts.get(id);
+  if (!checkout) throw new Error(`Checkout de prueba desconocido: ${id}`);
+  const paid = checkout.status === 'paid';
+  return {
+    id,
+    url: null,
+    status: checkout.status,
+    paymentId: paid ? `pa_${id}` : null,
+    brand: paid ? 'VISA' : null,
+    last4: paid ? '4242' : null,
+    failureReason: checkout.failureReason ?? null,
+  };
+};
+
+const gatewayIdOf = async (reference) =>
+  (await pool.query('SELECT gateway_checkout_id FROM checkout_sessions WHERE id = $1', [reference])).rows[0]
+    ?.gateway_checkout_id;
+
+export const fakeGateway = {
+  // lo que el backend le mandó a Recurrente al crear el checkout
+  request: async (reference) => checkouts.get(await gatewayIdOf(reference))?.request,
+  pay: async (reference) => {
+    checkouts.get(await gatewayIdOf(reference)).status = 'paid';
+  },
+  decline: async (reference, failureReason = 'Fondos insuficientes') => {
+    Object.assign(checkouts.get(await gatewayIdOf(reference)), { failureReason });
+  },
+  expire: async (reference) => {
+    checkouts.get(await gatewayIdOf(reference)).status = 'expired';
+  },
+  inProgress: async (reference) => {
+    checkouts.get(await gatewayIdOf(reference)).status = 'payment_in_progress';
+  },
+};
+
+// Dirección de envío que pide el formulario (ya no lleva datos de tarjeta)
+export const addressPayload = {
   billingAddress: 'Zona 10',
   city: 'Guatemala',
   postalCode: '01010',
-  country: 'GT',
-});
+  country: 'Guatemala',
+};
 
 const uniqueSuffix = () => randomUUID().slice(0, 8);
 
@@ -101,6 +141,16 @@ export async function insertProduct(createdProducts, overrides = {}) {
   );
   createdProducts?.push(product.id);
   return product;
+}
+
+// Compra completa con cuenta: llena el carrito, abre el pago, Recurrente lo aprueba y el cliente
+// vuelve a la tienda. Devuelve la respuesta de /checkout/confirm (o la del checkout si falló).
+export async function buyWithAccount(client, items, extraBody = {}) {
+  await api('POST', `/cart/${client.id}`, { token: client.token, body: items });
+  const checkout = await api('POST', `/checkout/${client.id}`, { token: client.token, body: extraBody });
+  if (checkout.status !== 201) return checkout;
+  await fakeGateway.pay(checkout.body.reference);
+  return api('POST', '/checkout/confirm', { body: { reference: checkout.body.reference } });
 }
 
 export async function productStock(id) {

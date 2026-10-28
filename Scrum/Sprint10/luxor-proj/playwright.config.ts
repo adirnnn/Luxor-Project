@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { BACKEND_URL, FRONTEND_URL, ADMIN } from "./e2e/datos";
+import { BACKEND_URL, FRONTEND_URL, RECURRENTE_URL, ADMIN } from "./e2e/datos";
 
 // SFTWRKEY-456: pruebas de extremo a extremo (un navegador real recorre el sitio).
 // Levanta el backend contra la base de pruebas (la misma de las pruebas de integración:
@@ -42,6 +42,13 @@ export default defineConfig({
   ],
   webServer: [
     {
+      command: "node e2e/recurrente-simulado.mjs",
+      url: `${RECURRENTE_URL}/health`,
+      reuseExistingServer: false,
+      timeout: 30_000,
+      env: { PORT: "3200" },
+    },
+    {
       command: "node server.js",
       cwd: "backend",
       url: `${BACKEND_URL}/products`,
@@ -53,8 +60,9 @@ export default defineConfig({
         PORT: "3100",
         FRONTEND_URL,
         JWT_SECRET: "e2e-secret",
-        PAYMENT_GATEWAY_API_KEY: "sandbox_e2e",
-        PAYMENT_GATEWAY_LATENCY_MS: "0",
+        // SFTWRKEY-445: los pagos van a un Recurrente simulado (e2e/recurrente-simulado.mjs)
+        RECURRENTE_SECRET_KEY: "sk_test_e2e",
+        RECURRENTE_API_URL: `${RECURRENTE_URL}/api`,
         ADMIN_EMAIL: ADMIN.email,
         ADMIN_PASSWORD: ADMIN.password,
         // vacía a propósito: en las pruebas nunca se mandan correos de verdad

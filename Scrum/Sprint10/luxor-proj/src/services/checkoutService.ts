@@ -1,49 +1,66 @@
 import type { PaymentFormState } from "../validation/usePaymentForm";
 import { API_URL, authHeaders } from "./apiClient";
 
+// SFTWRKEY-445: el pago se hace en la página de Recurrente. La tienda abre el pago, manda al
+// cliente a Recurrente y al volver confirma con el backend si el cobro quedó aprobado.
+
 export interface CheckoutError {
-  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "CARD_DECLINED" | "INVALID_PAYMENT_DATA" | "GATEWAY_ERROR" | "PAYMENT_ERROR" | "NETWORK_ERROR";
+  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "AMOUNT_TOO_LOW" | "GATEWAY_ERROR" | "GATEWAY_NOT_CONFIGURED" | "PAYMENT_ERROR" | "NETWORK_ERROR";
   message: string;
   items?: { product_id: string; name: string; disponible: number; solicitado: number }[];
-  declineCode?: string;
 }
 
-export interface CheckoutSuccess {
-  success: true;
-  order: { id: number; total: number; created_at: string };
-  payment: {
+export interface CheckoutStarted {
+  checkoutUrl: string;
+  reference: string;
+}
+
+export interface PaymentResult {
+  status: "pagado" | "pendiente" | "cancelado";
+  guest?: boolean;
+  failureReason?: string | null;
+  order?: {
     id: number;
-    status: string;
-    brand: string;
-    last4: string;
-    authCode: string;
+    total: number;
+    created_at: string;
+    items: { name: string; quantity: number; price: number }[];
   };
+  payment?: { brand: string | null; last4: string | null } | null;
 }
 
-export async function processCheckout(userId: number, card: PaymentFormState): Promise<CheckoutSuccess> {
+async function post<T>(path: string, body: unknown, headers: Record<string, string> = {}): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/checkout/${userId}`, {
+    res = await fetch(`${API_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify(card),
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify(body),
     });
   } catch {
     const err: CheckoutError = { code: "NETWORK_ERROR", message: "No hay conexión con el servidor. Revisa tu internet." };
     throw err;
   }
 
-  const data = await res.json();
-
-  if (!res.ok || !data.success) {
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
     const err: CheckoutError = {
       code: data.code || "PAYMENT_ERROR",
       message: data.message || "Ocurrió un error al procesar el pago.",
       items: data.items,
-      declineCode: data.declineCode,
     };
     throw err;
   }
-
-  return data;
+  return data as T;
 }
+
+// Abre el pago del carrito del usuario con sesión
+export const startCheckout = (userId: number, address: PaymentFormState) =>
+  post<CheckoutStarted>(`/checkout/${userId}`, address, authHeaders() as Record<string, string>);
+
+// Al volver de Recurrente: ¿quedó pagado?
+export const confirmPayment = (reference: string) =>
+  post<PaymentResult>("/checkout/confirm", { reference });
+
+// Cuando el cliente se sale de Recurrente sin pagar: libera el stock apartado
+export const cancelPayment = (reference: string) =>
+  post<PaymentResult>("/checkout/cancel", { reference });

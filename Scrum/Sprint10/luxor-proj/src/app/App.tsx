@@ -29,6 +29,9 @@ const ImportPerfumesPage = lazy(() => import("../pages/ImportPerfumesPage"));
 const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage"));
 const PaymentPage = lazy(() => import("../pages/Paymentpage"));
+// SFTWRKEY-445: vuelta desde la página de pago de Recurrente
+const PaymentResultPage = lazy(() => import("../pages/PaymentResultPage"));
+const PaymentCancelledPage = lazy(() => import("../pages/PaymentCancelledPage"));
 const GuestCheckoutPage = lazy(() =>
   import("../features/CommerceFeatures").then((m) => ({ default: m.GuestCheckoutPage }))
 );
@@ -70,6 +73,8 @@ function AnimatedRoutes() {
         <Route path="/restablecer-contrasena" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
         <Route path="/pago-invitado" element={<PageWrapper><GuestCheckoutPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
+        <Route path="/pago/resultado" element={<PageWrapper><PaymentResultPage /></PageWrapper>} />
+        <Route path="/pago/cancelado" element={<PageWrapper><PaymentCancelledPage /></PageWrapper>} />
 
         {/* SFTWRKEY-434: páginas legales */}
         <Route path="/privacidad" element={<PageWrapper><PrivacyPage /></PageWrapper>} />

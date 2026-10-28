@@ -36,7 +36,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-solo-para-docker-local}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       PERFUM_API_BASE_URL: ${PERFUM_API_BASE_URL:-https://perfumapidatabase.onrender.com}
-      PAYMENT_GATEWAY_API_KEY: ${PAYMENT_GATEWAY_API_KEY:-sandbox_dev_key}
+      RECURRENTE_SECRET_KEY: ${RECURRENTE_SECRET_KEY:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       LOW_STOCK_THRESHOLD: ${LOW_STOCK_THRESHOLD:-3}
       # SFTWRKEY-428: sin RESEND_API_KEY, el enlace de recuperar contraseña se muestra en pantalla (solo local).

@@ -41,10 +41,9 @@ const sections: LegalSection[] = [
     title: "Compras y pagos",
     content: (
       <ul className={lista}>
-        <li>Aceptamos tarjetas de crédito y débito. También puedes comprar como invitado, sin crear una cuenta.</li>
+        <li>Aceptamos tarjetas de crédito y débito. El pago se hace en la página segura de Recurrente, nuestro procesador de pagos. También puedes comprar como invitado, sin crear una cuenta.</li>
         <li>El total de cada pedido se calcula siempre en nuestros servidores con los precios vigentes; cualquier monto modificado desde el navegador se ignora.</li>
-        <li>El pedido queda confirmado cuando el pago es aprobado. Puedes seguir su estado (pagado, en preparación, enviado, entregado) desde <strong className="text-primary-champagne">Mi cuenta</strong>.</li>
-        <li>Por seguridad, varios pagos rechazados seguidos pueden bloquear temporalmente nuevos intentos.</li>
+        <li>Mientras pagas, apartamos tus productos por 30 minutos. El pedido queda confirmado cuando Recurrente aprueba el pago; si no se completa, no se hace ningún cobro ni se crea el pedido. Puedes seguir su estado (pagado, en preparación, enviado, entregado) desde <strong className="text-primary-champagne">Mi cuenta</strong>.</li>
       </ul>
     ),
   },

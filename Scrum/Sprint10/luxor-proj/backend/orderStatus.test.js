@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 
 process.env.JWT_SECRET = 'test-secret';
-process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 
 const { default: pool } = await import('./db.js');
 const { signToken } = await import('./services/auth.js');
@@ -106,68 +105,6 @@ test('orderStatus: transiciones no permitidas', () => {
 });
 
 // ── Pedido nuevo queda 'pagado' ──────────────────────────────────────────────
-
-test('checkout con sesión: el pedido se guarda como pagado y con su primera fila de historial', async (t) => {
-  const { log, restore } = fakeDb([
-    [/^CREATE TABLE/i, { rows: [] }],
-    [/FROM carts WHERE user_id/i, { rows: [{ id: 55 }] }],
-    [/FROM cart_items ci/i, { rows: [{ product_id: 'khamrah', quantity: 1, name: 'Khamrah', price: '390.00', stock: 5 }] }],
-    [/UPDATE products SET stock/i, { rows: [{ id: 'khamrah' }] }],
-    [Q.crearOrden, { rows: [{ id: 99, created_at: '2026-10-01' }] }],
-    [/INSERT INTO payments/i, { rows: [{ id: 1, status: 'aprobado' }] }],
-  ]);
-  t.after(restore);
-
-  const res = await fetch(`${baseUrl}/checkout/7`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${clienteToken}` },
-    body: JSON.stringify({
-      cardholderName: 'Ana Cliente', cardNumber: '4242 4242 4242 4242', expiryMonth: '12', expiryYear: '2030',
-      cvv: '123', billingAddress: 'Zona 10', city: 'Guatemala', postalCode: '01010', country: 'Guatemala',
-    }),
-  });
-  assert.equal(res.status, 201);
-
-  assert.match(first(log, Q.crearOrden).sql, /'pagado'/);
-  assert.deepEqual(first(log, Q.historial).params, [99]);
-  assert.match(first(log, Q.historial).sql, /NULL, 'pagado'/);
-
-  const i = log.findIndex((e) => Q.historial.test(e.sql));
-  assert.ok(i > log.findIndex((e) => Q.begin.test(e.sql)) && i < log.findIndex((e) => Q.commit.test(e.sql)),
-    'el historial se guarda dentro de la transacción');
-});
-
-test('checkout de invitado: el pedido se guarda como pagado y con su primera fila de historial', async (t) => {
-  const { log, restore } = fakeDb([
-    [/FROM guest_receipts/i, { rows: [] }],
-    [/FROM products WHERE id=ANY/i, { rows: [{ id: 'khamrah', name: 'Khamrah', price: '390.00', stock: 5 }] }],
-    [Q.crearOrden, { rows: [{ id: 120, total: '390.00', created_at: '2026-10-01' }] }],
-  ]);
-  t.after(restore);
-
-  const res = await fetch(`${baseUrl}/guest-checkout`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-      'Idempotency-Key': '11111111-2222-3333-4444-555555555555',
-      'X-Forwarded-For': '198.51.100.41',
-    },
-    body: JSON.stringify({
-      guest: { name: 'Invitado Prueba', email: 'invitado@test.com' },
-      items: [{ product_id: 'khamrah', quantity: 1 }],
-      card: {
-        cardholderName: 'Invitado Prueba', cardNumber: '4242 4242 4242 4242', expiryMonth: '12', expiryYear: '2030',
-        cvv: '123', billingAddress: 'Zona 10', city: 'Guatemala', postalCode: '01010', country: 'Guatemala',
-      },
-      expectedCents: 39000,
-    }),
-  });
-  assert.equal(res.status, 201);
-
-  assert.match(first(log, Q.crearOrden).sql, /'pagado'/);
-  assert.deepEqual(first(log, Q.historial).params, [120]);
-});
 
 // ── PATCH /admin/orders/:id/status ───────────────────────────────────────────
 

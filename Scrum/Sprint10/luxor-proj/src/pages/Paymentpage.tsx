@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Navigate, Link, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle } from "../components/ui/Typography";
@@ -7,13 +7,12 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { PaymentForm } from "../validation/PaymentForm";
 import type { PaymentFormState } from "../validation/usePaymentForm";
-import { processCheckout, type CheckoutError } from "../services/checkoutService";
+import { startCheckout, type CheckoutError } from "../services/checkoutService";
 import { PageMeta } from "../components/seo/PageMeta";
 import { formatPrice } from "../utils/formatPrice";
-import { trackPurchase } from "../utils/analytics";
 
 export default function PaymentPage() {
-    const { cart, totalPrice, clearCart } = useCart();
+    const { cart, totalPrice } = useCart();
     const { user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
@@ -42,55 +41,35 @@ export default function PaymentPage() {
     return <Navigate to="/cart" replace />;
 }
 
+    // SFTWRKEY-445: abre el pago en Recurrente y lleva al cliente a su página segura.
+    // El pedido se crea al volver (/pago/resultado), cuando Recurrente confirma el cobro.
     const handlePaymentSubmit = async (values: PaymentFormState) => {
-    if (sending.current) return;
+        if (sending.current) return;
 
-    sending.current = true;
-    setCheckoutError(null);
-    setIsProcessing(true);
+        sending.current = true;
+        setCheckoutError(null);
+        setIsProcessing(true);
 
-    try {
-        const result = await processCheckout(Number(user.id), values);
-
-        trackPurchase(
-            Number(result.order.total),
-            cart.reduce((total, item) => total + item.quantity, 0)
-        );
-
-        setCompleted(true);
-        clearCart();
-
-        navigate(`/compra-confirmada/${result.order.id}`, {
-            replace: true,
-        });
-    } catch (err) {
-        setCheckoutError(err as CheckoutError);
-    } finally {
-        sending.current = false;
-        setIsProcessing(false);
+        try {
+            const { checkoutUrl } = await startCheckout(Number(user.id), values);
+            setCompleted(true);
+            window.location.assign(checkoutUrl);
+        } catch (err) {
+            setCheckoutError(err as CheckoutError);
+            sending.current = false;
+            setIsProcessing(false);
         }
     };
 
-  // Evita volver al carrito durante la animación de salida.
+    // Mientras el navegador abre la página de Recurrente
     if (completed) {
         return (
         <MainLayout>
-            <PageMeta title="Compra registrada" noindex />
-
+            <PageMeta title="Pago" noindex />
             <Container>
-            <p
-                role="status"
-                className="text-primary-champagne"
-            >
-                Compra registrada. Abriendo tu pedido…
+            <p role="status" className="text-primary-champagne">
+                Te estamos llevando a la página segura de pago…
             </p>
-
-            <Link
-                className="text-primary-gold underline"
-                to="/mi-cuenta"
-            >
-                Ver mis compras
-            </Link>
             </Container>
         </MainLayout>
         );
@@ -120,7 +99,7 @@ export default function PaymentPage() {
             <div className="lg:col-span-2">
                 <div className="glass-card p-6 md:p-10 border-none">
                 <H3 className="text-primary-gold mb-8 text-lg lg:text-md font-black uppercase tracking-[0.2em]">
-                    Datos de pago
+                    Datos de envío
                 </H3>
 
                 {checkoutError && (
@@ -128,8 +107,8 @@ export default function PaymentPage() {
                     <p className="text-sm text-status-error font-bold mb-1">
                         {checkoutError.code === "INSUFFICIENT_STOCK"
                           ? "Sin stock suficiente"
-                          : checkoutError.code === "CARD_DECLINED"
-                          ? "Tarjeta rechazada"
+                          : checkoutError.code === "GATEWAY_NOT_CONFIGURED"
+                          ? "Pagos no disponibles"
                           : "No se pudo procesar tu compra"}
                     </p>
                     <p className="text-xs text-status-error/80">{checkoutError.message}</p>

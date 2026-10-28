@@ -35,8 +35,8 @@ Esta guía te explica, paso a paso, cómo comprar en la tienda. No necesitas sab
 1. Toca el carrito (arriba a la derecha) para ver tu selección.
 2. Toca **Comprar como invitado** (debajo del botón de pagar).
 3. Escribe tu nombre completo, tu correo y tu dirección de entrega.
-4. Escribe los datos de tu tarjeta y toca **Confirmar y pagar**.
-5. Verás tu número de pedido. **Guárdalo**: lo necesitas si quieres preguntar por tu compra por WhatsApp.
+4. Toca **Continuar al pago seguro**. Se abre la página de Recurrente, nuestro procesador de pagos: ahí escribes los datos de tu tarjeta y pagas.
+5. Al terminar regresas a la tienda y verás tu número de pedido. **Guárdalo**: lo necesitas si quieres preguntar por tu compra por WhatsApp.
 6. Te llegará un correo con el resumen de tu pedido al correo que escribiste.
 
 ![Carrito como invitado](img/05-carrito-invitado.png)
@@ -51,9 +51,9 @@ Con una cuenta puedes guardar tu carrito, ver tu historial y seguir tus pedidos.
 
 1. Toca **Entrar**, escribe tu correo y tu contraseña, y toca **Iniciar sesión**. (Las cuentas las crea el administrador de la tienda o puedes entrar con tu cuenta de Google. Si no tienes ninguna, compra como invitado, como en el punto 3.)
 2. Agrega tus perfumes al carrito y toca **Ir a pagar**.
-3. Llena el formulario de pago: nombre del titular, número de tarjeta, mes, año, CVV, dirección, ciudad, código postal y país.
-4. Toca **Confirmar y pagar**.
-5. Verás la confirmación con tu número de pedido y recibirás un correo con el resumen.
+3. Escribe tu dirección de envío: dirección, ciudad, código postal y país.
+4. Toca **Continuar al pago seguro**. En la página de Recurrente escribes los datos de tu tarjeta y pagas.
+5. Al regresar a la tienda verás la confirmación con tu número de pedido y recibirás un correo con el resumen.
 
 ![Inicio de sesión](img/07-login.png)
 
@@ -63,7 +63,7 @@ Con una cuenta puedes guardar tu carrito, ver tu historial y seguir tus pedidos.
 
 ![Confirmación de la compra](img/12-confirmacion.png)
 
-> Si el pago es rechazado, la página te dice el motivo (por ejemplo, fondos insuficientes). **No se crea el pedido ni se cobra nada.** Puedes intentar con otra tarjeta.
+> Si el pago es rechazado, la página de Recurrente te dice el motivo (por ejemplo, fondos insuficientes) y puedes intentar con otra tarjeta ahí mismo. Si te sales sin pagar, **no se crea el pedido ni se cobra nada** y tu carrito sigue guardado.
 
 ---
 
@@ -114,6 +114,6 @@ Los estados son:
 
 ## Preguntas rápidas
 
-- **¿Es seguro pagar?** Sí. El sitio usa HTTPS y nunca guardamos tu número completo de tarjeta ni tu CVV.
+- **¿Es seguro pagar?** Sí. Pagas en la página segura de Recurrente, así que los datos de tu tarjeta nunca pasan por nuestra tienda.
 - **¿Necesito cuenta?** No. Puedes comprar como invitado.
 - **¿Tienen alguna duda?** Escríbenos por WhatsApp o usa el asistente virtual (el botón dorado abajo a la derecha).

@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 
 process.env.JWT_SECRET = 'test-secret';
-process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 process.env.PERFUM_API_BASE_URL = 'https://fake-perfumapi.test';
 process.env.CHATBOT_INTERNAL_KEY = 'test-internal-key';
 

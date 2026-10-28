@@ -8,7 +8,7 @@ import { PageTitle } from "../../components/ui/Typography";
 import { PageMeta } from "../../components/seo/PageMeta";
 import { LEGAL_LINKS } from "./legalLinks";
 
-const ULTIMA_ACTUALIZACION = "24 de octubre de 2026";
+const ULTIMA_ACTUALIZACION = "27 de octubre de 2026";
 
 export type LegalSection = {
   title: string;

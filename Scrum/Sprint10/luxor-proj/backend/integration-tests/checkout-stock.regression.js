@@ -7,7 +7,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  startServer, stopServer, api, registerClient, insertProduct, productStock, cleanup, pool, cardPayload,
+  startServer, stopServer, registerClient, insertProduct, productStock, cleanup, pool, buyWithAccount,
 } from './helpers.js';
 
 const created = { users: [], products: [] };
@@ -22,10 +22,9 @@ after(async () => {
   await stopServer();
 });
 
-const comprar = async (productId, quantity, extraBody = {}) => {
-  await api('POST', `/cart/${client.id}`, { token: client.token, body: [{ product_id: productId, quantity }] });
-  return api('POST', `/checkout/${client.id}`, { token: client.token, body: { ...cardPayload(), ...extraBody } });
-};
+// SFTWRKEY-445: compra completa con Recurrente simulado (helpers.js)
+const comprar = (productId, quantity, extraBody = {}) =>
+  buyWithAccount(client, [{ product_id: productId, quantity }], extraBody);
 
 const ordenesDelCliente = async () =>
   (await pool.query('SELECT COUNT(*)::int AS n FROM orders WHERE user_id = $1', [client.id])).rows[0].n;
@@ -48,7 +47,7 @@ test('comprar exactamente el stock disponible sí se permite y deja el stock en 
 
   const res = await comprar(perfume.id, 3);
 
-  assert.equal(res.status, 201);
+  assert.equal(res.body.status, 'pagado');
   assert.equal(await productStock(perfume.id), 0);
 });
 
@@ -57,7 +56,7 @@ test('el total se calcula con el precio de la base, no con el monto que envía e
 
   const res = await comprar(perfume.id, 2, { total: 1, amount: 1, price: 1 });
 
-  assert.equal(res.status, 201);
+  assert.equal(res.body.status, 'pagado');
   assert.equal(res.body.order.total, 840);
   const { rows } = await pool.query('SELECT amount FROM payments WHERE order_id = $1', [res.body.order.id]);
   assert.equal(rows[0].amount, '840.00');

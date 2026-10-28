@@ -10,8 +10,8 @@ const defaults = {
   POSTGRES_PASSWORD: 'postgres',
   POSTGRES_DB: 'luxor_test',
   JWT_SECRET: 'integration-test-secret',
-  PAYMENT_GATEWAY_API_KEY: 'sandbox_integration_key',
-  PAYMENT_GATEWAY_LATENCY_MS: '0',
+  // SFTWRKEY-445: Recurrente se simula en helpers.js; la llave solo marca la pasarela como configurada
+  RECURRENTE_SECRET_KEY: 'sk_test_integracion',
   ADMIN_EMAIL: 'admin@luxor.com',
   ADMIN_PASSWORD: 'admin-pruebas-integracion',
   // SFTWRKEY-458: clave interna del chatbot (solo para pruebas)

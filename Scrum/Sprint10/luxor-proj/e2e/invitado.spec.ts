@@ -1,7 +1,7 @@
 // SFTWRKEY-456 · Flujo 3: compra de un invitado (sin cuenta).
 import { test, expect } from "@playwright/test";
 import { PERFUME, correoUnico } from "./datos";
-import { agregarPerfumeAlCarrito, llenarTarjeta } from "./ayudas";
+import { agregarPerfumeAlCarrito, enRecurrente, llenarDireccion } from "./ayudas";
 
 test("un visitante sin cuenta compra como invitado y recibe su número de pedido", async ({ page }) => {
   await agregarPerfumeAlCarrito(page);
@@ -14,11 +14,15 @@ test("un visitante sin cuenta compra como invitado y recibe su número de pedido
 
   await page.getByLabel("Nombre completo").fill("Invitado Pruebas");
   await page.getByLabel("Correo electrónico").fill(correoUnico("invitado"));
-  await llenarTarjeta(page);
-  await page.getByRole("button", { name: /confirmar y pagar/i }).click();
+  await llenarDireccion(page);
+  await page.getByRole("button", { name: /continuar al pago seguro/i }).click();
+  await enRecurrente(page, "Pagar");
 
-  await expect(page.getByRole("heading", { name: "Compra registrada" })).toBeVisible();
-  await expect(page.getByText(/Pedido #\d+/)).toBeVisible();
+  // de vuelta en la tienda, el comprobante con el número de pedido
+  await expect(page).toHaveURL(/\/pago\/resultado\?ref=/);
+  await expect(page.getByText("¡Gracias por tu compra!")).toBeVisible();
+  await expect(page.getByText(/^#\d+$/)).toBeVisible();
+  await expect(page.getByText(/VISA •••• 4242/)).toBeVisible();
 
   // el carrito quedó vacío
   await page.goto("/cart");

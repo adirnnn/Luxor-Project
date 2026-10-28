@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 
 process.env.JWT_SECRET = 'test-secret';
-process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 process.env.CHATBOT_INTERNAL_KEY = 'clave-interna-de-prueba';
 
 const { default: pool } = await import('./db.js');
