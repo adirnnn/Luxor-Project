@@ -8,6 +8,8 @@ import type { PaymentFormState } from '../validation/usePaymentForm';
 import { MainLayout } from '../components/layout/MainLayout';
 import { formatPrice } from "../utils/formatPrice";
 import { shippingFor, shippingLabel, useShippingOptions, type DeliveryMethod } from "../utils/shipping";
+import { useCoupon } from "./coupons/useCoupon";
+import { CouponField } from "./coupons/CouponField";
 
 const panel =
   'mx-auto max-w-3xl rounded-xl border border-yellow-700 bg-stone-950 p-6 text-white';
@@ -574,7 +576,10 @@ export function GuestCheckoutPage() {
       Math.round(item.price * 100) * item.quantity,
     0,
   );
-  const shipping = shippingFor(cents / 100, deliveryMethod, shippingOptions);
+  // SFTWRKEY-432: el cupón aplicado en el carrito (o aquí). Solo se manda el código: el backend
+  // calcula el descuento y revisa que este correo no lo haya usado antes.
+  const coupon = useCoupon(JSON.parse(itemsJson), cents / 100);
+  const shipping = shippingFor(cents / 100 - coupon.discount, deliveryMethod, shippingOptions);
 
   async function pay(address: PaymentFormState) {
     if (sending.current) return;
@@ -630,6 +635,8 @@ export function GuestCheckoutPage() {
             address,
 
             expectedCents: cents,
+
+            couponCode: coupon.coupon?.code ?? null,
           }),
         },
       );
@@ -694,13 +701,31 @@ export function GuestCheckoutPage() {
                     ))}
                   </ul>
 
+                  <div className="mt-4 max-w-sm">
+                    <CouponField
+                      coupon={coupon.coupon}
+                      belowMinimum={coupon.belowMinimum}
+                      error={coupon.error}
+                      checking={coupon.checking}
+                      disabled={busy}
+                      onApply={coupon.apply}
+                      onRemove={coupon.remove}
+                    />
+                  </div>
+
+                  {coupon.discount > 0 && coupon.coupon && (
+                    <p className="mt-4">
+                      Descuento ({coupon.coupon.code}): −{formatPrice(coupon.discount)}
+                    </p>
+                  )}
+
                   {/* SFTWRKEY-449: el envío depende de la forma de entrega; el servidor lo vuelve a calcular */}
                   <p className="mt-4">
                     {deliveryMethod === 'recoger' ? 'Recoger en tienda' : 'Envío'}: {shippingLabel(shipping)}
                   </p>
 
                   <p className="mb-4 font-bold">
-                    Total: {formatPrice(cents / 100 + shipping)}
+                    Total: {formatPrice(cents / 100 - coupon.discount + shipping)}
                   </p>
 
                   <fieldset

@@ -13,6 +13,7 @@ import pool from '../db.js';
 import { gateway } from './paymentGateway.js';
 import { notifyOrderStatus } from './orderEmails.js';
 import { shippingCents, deliveryView } from './shipping.js';
+import { findUsableCoupon, reserveCouponUse, releaseCouponUse, confirmCouponUse } from './coupons.js';
 
 // el checkout de Recurrente y el stock apartado vencen a los 30 minutos
 export const SESSION_MINUTES = 30;
@@ -60,6 +61,9 @@ export const ensureCheckoutTables = () => {
         -- SFTWRKEY-449: forma de entrega y envío elegidos al abrir el pago
         ALTER TABLE checkout_sessions ADD COLUMN IF NOT EXISTS delivery JSONB;
         ALTER TABLE checkout_sessions ADD COLUMN IF NOT EXISTS shipping_cost NUMERIC(10, 2) NOT NULL DEFAULT 0;
+        -- SFTWRKEY-432: descuento del cupón (ya restado del total) y su código
+        ALTER TABLE checkout_sessions ADD COLUMN IF NOT EXISTS discount NUMERIC(10, 2) NOT NULL DEFAULT 0;
+        ALTER TABLE checkout_sessions ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(30);
         CREATE INDEX IF NOT EXISTS checkout_sessions_pendientes ON checkout_sessions (status, expires_at);
         CREATE INDEX IF NOT EXISTS checkout_sessions_checkout ON checkout_sessions (gateway_checkout_id);
 
@@ -163,17 +167,68 @@ export async function reserveStock(db, items) {
 // Crea la sesión pendiente dentro de la transacción del llamador (después de reserveStock).
 // SFTWRKEY-449: el envío se calcula aquí con el subtotal de la base y la forma de entrega
 // (services/shipping.js); el total que se cobra ya lo incluye.
-export async function createSession(db, { userId = null, guest = null, lines, cents, delivery }) {
+// SFTWRKEY-432: si viene un código de cupón se valida aquí, con el cupón bloqueado, y su uso queda
+// apartado en la misma transacción. El descuento sale solo de la base; el envío se calcula sobre
+// los productos ya rebajados. Un cupón que no sirve corta la compra (no se cobra sin avisar).
+export async function createSession(db, { userId = null, guest = null, lines, cents, delivery, couponCode = null }) {
   const id = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_MINUTES * 60_000);
-  const shipping = shippingCents(cents, delivery.method);
-  const total = cents + shipping;
+
+  let coupon = null;
+  let discount = 0;
+  if (couponCode) {
+    ({ coupon, discountCents: discount } = await findUsableCoupon(db, {
+      code: couponCode,
+      subtotalCents: cents,
+      userId,
+      guestEmail: guest?.email ?? null,
+      lock: true,
+    }));
+  }
+
+  const productsCents = cents - discount;
+  const shipping = shippingCents(productsCents, delivery.method);
+  const total = productsCents + shipping;
   await db.query(
-    `INSERT INTO checkout_sessions (id, user_id, guest, items, total, delivery, shipping_cost, expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [id, userId, guest, JSON.stringify(lines), total / 100, delivery, shipping / 100, expiresAt]
+    `INSERT INTO checkout_sessions (id, user_id, guest, items, total, delivery, shipping_cost, expires_at, discount, coupon_code)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [id, userId, guest, JSON.stringify(lines), total / 100, delivery, shipping / 100, expiresAt, discount / 100, coupon?.code ?? null]
   );
-  return { id, lines, cents: total, subtotalCents: cents, shippingCents: shipping, expiresAt };
+  if (coupon) {
+    await reserveCouponUse(db, {
+      couponId: coupon.id,
+      sessionId: id,
+      userId,
+      guestEmail: guest?.email ?? null,
+      discountCents: discount,
+    });
+  }
+  return {
+    id,
+    lines,
+    cents: total,
+    subtotalCents: cents,
+    discountCents: discount,
+    couponCode: coupon?.code ?? null,
+    shippingCents: shipping,
+    expiresAt,
+  };
+}
+
+// Renglones para Recurrente. Con cupón va un solo renglón por el total exacto (Recurrente no acepta
+// precios negativos y repartir el descuento entre productos deja diferencias de centavos).
+export function checkoutItems(session) {
+  if (session.discountCents > 0) {
+    return [{
+      name: `Compra Perfumería Victoria · cupón ${session.couponCode}${session.shippingCents ? ' · envío incluido' : ''}`,
+      quantity: 1,
+      price: session.cents / 100,
+    }];
+  }
+  // el envío va como un renglón más para que el total en Recurrente sea el mismo que en la tienda
+  return session.shippingCents
+    ? [...session.lines, { name: 'Envío a domicilio', quantity: 1, price: session.shippingCents / 100 }]
+    : session.lines;
 }
 
 const frontendBase = () => (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
@@ -183,10 +238,7 @@ export async function openCheckout(session) {
   try {
     const checkout = await gateway.createCheckout({
       reference: session.id,
-      // el envío va como un renglón más para que el total en Recurrente sea el mismo que en la tienda
-      items: session.shippingCents
-        ? [...session.lines, { name: 'Envío a domicilio', quantity: 1, price: session.shippingCents / 100 }]
-        : session.lines,
+      items: checkoutItems(session),
       successUrl: `${frontendBase()}/pago/resultado?ref=${session.id}`,
       cancelUrl: `${frontendBase()}/pago/cancelado?ref=${session.id}`,
       expiresAt: session.expiresAt,
@@ -215,6 +267,8 @@ async function closeUnpaid(sessionId, failureReason = null) {
       await db.query('UPDATE products SET stock = stock + $1 WHERE id = $2', [line.quantity, line.product_id]);
     }
     await db.query(`UPDATE checkout_sessions SET status = 'cancelado' WHERE id = $1`, [sessionId]);
+    // SFTWRKEY-432: el uso del cupón apartado vuelve a quedar disponible
+    if (session.coupon_code) await releaseCouponUse(db, sessionId);
 
     if (session.gateway_checkout_id) {
       await db.query(
@@ -248,12 +302,22 @@ async function settlePaid(sessionId, checkout) {
     const delivery = session.delivery ?? null;
     const order = (
       await db.query(
-        `INSERT INTO orders (user_id, total, status, shipping_cost, delivery_method, delivery_address)
-         VALUES ($1, $2, 'pagado', $3, $4, $5)
+        `INSERT INTO orders (user_id, total, status, shipping_cost, delivery_method, delivery_address, discount, coupon_code)
+         VALUES ($1, $2, 'pagado', $3, $4, $5, $6, $7)
          RETURNING id, total, created_at`,
-        [session.user_id, session.total, session.shipping_cost ?? 0, delivery?.method ?? null, delivery?.address ?? delivery?.store ?? null]
+        [
+          session.user_id,
+          session.total,
+          session.shipping_cost ?? 0,
+          delivery?.method ?? null,
+          delivery?.address ?? delivery?.store ?? null,
+          // SFTWRKEY-432: el total ya viene rebajado; aquí queda cuánto y con qué cupón
+          session.discount ?? 0,
+          session.coupon_code ?? null,
+        ]
       )
     ).rows[0];
+    if (session.coupon_code) await confirmCouponUse(db, sessionId, order.id);
     await db.query(
       `INSERT INTO order_status_history (order_id, from_status, to_status) VALUES ($1, NULL, 'pagado')`,
       [order.id]
@@ -315,7 +379,7 @@ async function settlePaid(sessionId, checkout) {
 async function paidView(session, orderId) {
   const order = (
     await pool.query(
-      'SELECT id, total, created_at, shipping_cost, delivery_method, delivery_address FROM orders WHERE id = $1',
+      'SELECT id, total, created_at, shipping_cost, delivery_method, delivery_address, discount, coupon_code FROM orders WHERE id = $1',
       [orderId]
     )
   ).rows[0];
@@ -337,6 +401,9 @@ async function paidView(session, orderId) {
       items: session.items.map(({ name, quantity, price }) => ({ name, quantity, price })),
       shipping: Number(order.shipping_cost),
       delivery: deliveryView(order),
+      // SFTWRKEY-432
+      discount: Number(order.discount ?? 0),
+      coupon: order.coupon_code ?? null,
     },
     payment: payment ? { brand: payment.card_brand, last4: payment.card_last4 } : null,
   };

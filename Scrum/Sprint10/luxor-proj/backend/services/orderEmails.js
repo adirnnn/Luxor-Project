@@ -14,6 +14,7 @@ export async function notifyOrderStatus(db, orderId, status, deps = {}) {
 
     const orderResult = await db.query(
       `SELECT o.id, o.user_id, o.total, o.shipping_cost, o.delivery_method, o.delivery_address,
+              o.discount, o.coupon_code,
               COALESCE(u.email, g.guest_email) AS email,
               COALESCE(u.name, g.guest_name) AS name
        FROM orders o
@@ -49,6 +50,9 @@ export async function notifyOrderStatus(db, orderId, status, deps = {}) {
       // SFTWRKEY-449: el correo muestra el envío para que los renglones sumen el total
       shipping: Number(order.shipping_cost ?? 0),
       delivery: deliveryView(order),
+      // SFTWRKEY-432: lo que se descontó con el cupón
+      discount: Number(order.discount ?? 0),
+      couponCode: order.coupon_code ?? null,
       // los invitados no tienen cuenta: sin enlace, porque los llevaría al login
       accountUrl: order.user_id ? `${base}/mi-cuenta` : null,
     });

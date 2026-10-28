@@ -22,7 +22,7 @@ import { clientIp } from '../services/clientIp.js';
 const router = Router();
 
 const onBlock = (req) =>
-  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: clientIp(req), path: req.path });
+  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: req.ip, path: req.path });
 
 // Respuesta común para errores de la pasarela y del stock
 export function sendCheckoutError(res, err) {
@@ -101,6 +101,9 @@ router.post(
 
       // SFTWRKEY-449: envío a domicilio (con dirección) o recoger en uno de los locales
       const delivery = parseDelivery(req.body);
+      // SFTWRKEY-432: del cupón solo se toma el código. Un descuento o total que mande el
+      // navegador se ignora: createSession lo calcula con la base.
+      const couponCode = req.body?.couponCode || null;
 
       // un pago que el usuario dejó a medias libera su stock antes de abrir otro
       await cancelPendingForUser(userId);
@@ -110,7 +113,7 @@ router.post(
       try {
         await client.query('BEGIN');
         const { lines, cents } = await reserveStock(client, cart.rows);
-        session = await createSession(client, { userId, lines, cents, delivery });
+        session = await createSession(client, { userId, lines, cents, delivery, couponCode });
         await client.query('COMMIT');
       } catch (err) {
         await client.query('ROLLBACK').catch(() => {});

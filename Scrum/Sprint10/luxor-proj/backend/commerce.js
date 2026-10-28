@@ -171,7 +171,7 @@ function sameOrigin(req, res, next) {
 const onBlock = req =>
   recordSecurityEvent({
     type: SECURITY_EVENT_TYPES.RATE_LIMITED,
-    ip: clientIp(req),
+    ip: req.ip,
     path: req.path,
   });
 
@@ -254,12 +254,19 @@ export function validateGuest(body) {
     throw fail(400, 'Total inválido. Actualiza el carrito.');
   }
 
+  // SFTWRKEY-432: del cupón solo se toma el código; el descuento lo calcula createSession
+  const couponCode =
+    typeof body.couponCode === 'string' && body.couponCode.trim()
+      ? body.couponCode.trim().toUpperCase()
+      : null;
+
   return {
     name,
     email,
     items,
     delivery,
     expectedCents: body.expectedCents,
+    couponCode,
   };
 }
 
@@ -283,10 +290,12 @@ router.post(
       items,
       delivery,
       expectedCents,
+      couponCode,
     } = validateGuest(req.body);
 
     const keyHash = hash(key);
 
+    // si cambia el cupón cambia la compra: se cierra el pago anterior y se abre otro
     const requestHash = hash(
       JSON.stringify({
         name,
@@ -294,6 +303,7 @@ router.post(
         items,
         delivery,
         expectedCents,
+        couponCode,
       }),
     );
 
@@ -342,6 +352,7 @@ router.post(
           lines,
           cents,
           delivery,
+          couponCode,
         });
       });
 

@@ -27,6 +27,8 @@ const AdminCreateUserPage = lazy(() => import("../pages/AdminCreateUserPage"));
 const AdminOrdersPage = lazy(() => import("../pages/AdminOrdersPage"));
 // SFTWRKEY-431
 const AdminReviewsPage = lazy(() => import("../pages/AdminReviewsPage"));
+// SFTWRKEY-432
+const AdminCouponsPage = lazy(() => import("../pages/AdminCouponsPage"));
 const ImportPerfumesPage = lazy(() => import("../pages/ImportPerfumesPage"));
 const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage"));
@@ -95,6 +97,7 @@ function AnimatedRoutes() {
           <Route path="/admin/importar" element={<PageWrapper><ImportPerfumesPage /></PageWrapper>} />
           <Route path="/admin/pedidos" element={<PageWrapper><AdminOrdersPage /></PageWrapper>} />
           <Route path="/admin/resenas" element={<PageWrapper><AdminReviewsPage /></PageWrapper>} />
+          <Route path="/admin/cupones" element={<PageWrapper><AdminCouponsPage /></PageWrapper>} />
         </Route>
 
         <Route

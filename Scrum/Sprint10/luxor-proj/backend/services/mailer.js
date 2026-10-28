@@ -82,12 +82,15 @@ const deliveryText = (delivery) => {
   return null;
 };
 
-export function buildOrderEmail({ status, orderId, customerName, items = [], total, shipping = 0, delivery = null, accountUrl }) {
+export function buildOrderEmail({ status, orderId, customerName, items = [], total, shipping = 0, delivery = null, discount = 0, couponCode = null, accountUrl }) {
   const copy = ORDER_COPY[status];
   if (!copy) throw new Error(`Estado sin correo: ${status}`);
 
   const hello = customerName ? `Hola ${customerName},` : 'Hola,';
   const lines = items.map((i) => `- ${i.name} x${i.quantity}: ${money(Number(i.unit_price) * i.quantity)}`);
+  // SFTWRKEY-432: el descuento del cupón, para que los renglones sigan sumando el total
+  const descuentoLabel = couponCode ? `Descuento (${couponCode})` : 'Descuento';
+  if (discount > 0) lines.push(`- ${descuentoLabel}: -${money(discount)}`);
   const entrega = deliveryText(delivery);
   const envioLabel = delivery?.method === 'recoger' ? 'Recoger en tienda' : 'Envío';
   const envioMonto = shipping ? money(shipping) : 'Gratis';
@@ -107,6 +110,9 @@ export function buildOrderEmail({ status, orderId, customerName, items = [], tot
         `<td style="padding:6px 0;text-align:right">${money(Number(i.unit_price) * i.quantity)}</td></tr>`
     )
     .join('') +
+    (discount > 0
+      ? `<tr><td style="padding:6px 0">${escapeHtml(descuentoLabel)}</td><td style="padding:6px 0;text-align:right">-${money(discount)}</td></tr>`
+      : '') +
     (delivery
       ? `<tr><td style="padding:6px 0">${envioLabel}</td><td style="padding:6px 0;text-align:right">${envioMonto}</td></tr>`
       : '');

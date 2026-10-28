@@ -9,6 +9,7 @@ import { confirmPayment, type CheckoutError, type PaymentResult } from "../servi
 import { formatPrice } from "../utils/formatPrice";
 import { trackPurchase } from "../utils/analytics";
 import { describeDelivery, shippingLabel } from "../utils/shipping";
+import { storeCoupon } from "../features/coupons/coupon";
 
 // SFTWRKEY-445: Recurrente regresa aquí después del pago (/pago/resultado?ref=...).
 // El backend le pregunta a Recurrente si el cobro quedó aprobado; solo entonces existe el pedido.
@@ -43,6 +44,8 @@ export default function PaymentResultPage() {
         if (data.status === "pagado") {
           clearRef.current();
           sessionStorage.removeItem("luxor-guest-purchase");
+          // SFTWRKEY-432: el cupón ya se usó en esta compra
+          storeCoupon(null);
           // solo se cuenta una vez por pedido, aunque recargue la página
           const visto = `luxor-compra-${data.order?.id}`;
           if (data.order && !sessionStorage.getItem(visto)) {
@@ -104,6 +107,13 @@ export default function PaymentResultPage() {
                   </li>
                 ))}
               </ul>
+              {/* SFTWRKEY-432: descuento del cupón (el total ya viene rebajado) */}
+              {(result.order.discount ?? 0) > 0 && (
+                <p className="flex justify-between gap-4 text-sm">
+                  <span>Descuento{result.order.coupon ? ` (${result.order.coupon})` : ""}</span>
+                  <span>−{formatPrice(result.order.discount ?? 0)}</span>
+                </p>
+              )}
               {/* SFTWRKEY-449: envío y forma de entrega */}
               <p className="flex justify-between gap-4 text-sm">
                 <span>{result.order.delivery?.method === "recoger" ? "Recoger en tienda" : "Envío"}</span>

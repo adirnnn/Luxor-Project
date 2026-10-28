@@ -69,6 +69,21 @@ export const authenticate = (req, res, next) => {
   }
 };
 
+// SFTWRKEY-432: para rutas abiertas que cambian un poco si hay sesión (validar un cupón revisa si
+// el cliente ya lo usó). Con un token válido adjunta req.user; sin token o con uno vencido sigue sin él.
+export const optionalAuthenticate = (req, _res, next) => {
+  const token = tokenFromRequest(req);
+  if (token) {
+    try {
+      const payload = jwt.verify(token, getSecret());
+      req.user = { id: payload.id, role: payload.role };
+    } catch {
+      // sesión vencida: se atiende como invitado
+    }
+  }
+  next();
+};
+
 // El usuario autenticado debe coincidir con :paramName de la URL, o tener uno de los roles permitidos.
 export const authorizeSelfOrRoles = (paramName, ...allowedRoles) => (req, res, next) => {
   const targetId = String(req.params[paramName]);

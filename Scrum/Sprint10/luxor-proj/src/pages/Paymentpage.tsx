@@ -7,10 +7,12 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { PaymentForm } from "../validation/PaymentForm";
 import type { PaymentFormState } from "../validation/usePaymentForm";
-import { startCheckout, type CheckoutError } from "../services/checkoutService";
+import { isCouponError, startCheckout, type CheckoutError } from "../services/checkoutService";
 import { PageMeta } from "../components/seo/PageMeta";
 import { formatPrice } from "../utils/formatPrice";
 import { shippingFor, shippingLabel, useShippingOptions, type DeliveryMethod } from "../utils/shipping";
+import { useCoupon } from "../features/coupons/useCoupon";
+import { CouponField } from "../features/coupons/CouponField";
 
 export default function PaymentPage() {
     const { cart, totalPrice } = useCart();
@@ -25,7 +27,12 @@ export default function PaymentPage() {
     // SFTWRKEY-449: el resumen muestra el envío según la forma de entrega elegida
     const shippingOptions = useShippingOptions();
     const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("envio");
-    const shipping = shippingFor(totalPrice, deliveryMethod, shippingOptions);
+    // SFTWRKEY-432: el cupón que se aplicó en el carrito (o aquí). El envío va sobre los productos rebajados.
+    const coupon = useCoupon(
+        cart.map((item) => ({ product_id: item.product.id, quantity: item.quantity })),
+        totalPrice,
+    );
+    const shipping = shippingFor(totalPrice - coupon.discount, deliveryMethod, shippingOptions);
     const sending = useRef(false);
 
     if (!isAuthenticated || !user) {
@@ -56,7 +63,7 @@ export default function PaymentPage() {
         setIsProcessing(true);
 
         try {
-            const { checkoutUrl } = await startCheckout(Number(user.id), values);
+            const { checkoutUrl } = await startCheckout(Number(user.id), values, coupon.coupon?.code ?? null);
             setCompleted(true);
             window.location.assign(checkoutUrl);
         } catch (err) {
@@ -114,9 +121,20 @@ export default function PaymentPage() {
                           ? "Sin stock suficiente"
                           : checkoutError.code === "GATEWAY_NOT_CONFIGURED"
                           ? "Pagos no disponibles"
+                          : isCouponError(checkoutError)
+                          ? "Revisa tu cupón"
                           : "No se pudo procesar tu compra"}
                     </p>
                     <p className="text-xs text-status-error/80">{checkoutError.message}</p>
+                    {isCouponError(checkoutError) && coupon.coupon && (
+                        <button
+                            type="button"
+                            onClick={() => { coupon.remove(); setCheckoutError(null); }}
+                            className="mt-2 text-xs underline text-status-error hover:text-primary-champagne"
+                        >
+                            Quitar el cupón y pagar sin descuento
+                        </button>
+                    )}
                     {checkoutError.items && (
                         <ul className="mt-2 text-xs text-status-error/70 list-disc list-inside">
                         {checkoutError.items.map((i) => (
@@ -172,11 +190,29 @@ export default function PaymentPage() {
 
                 <div className="h-px bg-white/5 mb-6" />
 
+                <div className="mb-6">
+                    <CouponField
+                        coupon={coupon.coupon}
+                        belowMinimum={coupon.belowMinimum}
+                        error={coupon.error}
+                        checking={coupon.checking}
+                        disabled={isProcessing}
+                        onApply={coupon.apply}
+                        onRemove={coupon.remove}
+                    />
+                </div>
+
                 <div className="flex flex-col gap-3 mb-6 text-sm">
                     <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Subtotal</span>
                     <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
                     </div>
+                    {coupon.discount > 0 && coupon.coupon && (
+                    <div className="flex justify-between items-center">
+                        <span className="text-primary-champagne/40">Descuento ({coupon.coupon.code})</span>
+                        <span className="text-status-success font-bold">−{formatPrice(coupon.discount)}</span>
+                    </div>
+                    )}
                     <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">{deliveryMethod === "recoger" ? "Recoger en tienda" : "Envío"}</span>
                     <span className="text-primary-champagne/70 font-bold">{shippingLabel(shipping)}</span>
@@ -190,7 +226,7 @@ export default function PaymentPage() {
                     Total
                     </span>
                     <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    {formatPrice(totalPrice + shipping)}
+                    {formatPrice(totalPrice - coupon.discount + shipping)}
                     </span>
                 </div>
                 </div>

@@ -11,12 +11,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PageMeta } from "../components/seo/PageMeta";
 import { formatPrice } from "../utils/formatPrice";
 import { freeShippingHint, shippingFor, shippingLabel, useShippingOptions } from "../utils/shipping";
+import { useCoupon } from "../features/coupons/useCoupon";
+import { CouponField } from "../features/coupons/CouponField";
 
 export default function CartPage() {
   const { cart, totalPrice, setQuantity, removeFromCart } = useCart();
   // SFTWRKEY-449: el carrito muestra el envío a domicilio; al pagar se puede elegir recoger en tienda
   const shippingOptions = useShippingOptions();
-  const shipping = shippingFor(totalPrice, "envio", shippingOptions);
+  // SFTWRKEY-432: el cupón se aplica aquí y sigue al pagar; el envío se calcula con los productos ya rebajados
+  const coupon = useCoupon(
+    cart.map((item) => ({ product_id: item.product.id, quantity: item.quantity })),
+    totalPrice,
+  );
+  const shipping = shippingFor(totalPrice - coupon.discount, "envio", shippingOptions);
   const { user } = useAuth();
   const navigate = useNavigate();
   const outOfStockItems = cart.filter(
@@ -154,12 +161,28 @@ export default function CartPage() {
                   ))}
                 </div>
                 <div className="h-px bg-white/5 mb-6" />
+                <div className="mb-6">
+                  <CouponField
+                    coupon={coupon.coupon}
+                    belowMinimum={coupon.belowMinimum}
+                    error={coupon.error}
+                    checking={coupon.checking}
+                    onApply={coupon.apply}
+                    onRemove={coupon.remove}
+                  />
+                </div>
                 {/* SFTWRKEY-449: envío a domicilio (Q35, gratis desde Q500) o gratis al recoger en tienda */}
                 <div className="flex flex-col gap-2 mb-6 text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Subtotal</span>
                     <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
                   </div>
+                  {coupon.discount > 0 && coupon.coupon && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-primary-champagne/40">Descuento ({coupon.coupon.code})</span>
+                      <span className="text-status-success font-bold">−{formatPrice(coupon.discount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Envío a domicilio</span>
                     <span className="text-primary-champagne/70 font-bold">{shippingLabel(shipping)}</span>
@@ -174,7 +197,7 @@ export default function CartPage() {
                     Total
                   </span>
                   <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    {formatPrice(totalPrice + shipping)}
+                    {formatPrice(totalPrice - coupon.discount + shipping)}
                   </span>
                 </div>
                 {hasStockIssue && (

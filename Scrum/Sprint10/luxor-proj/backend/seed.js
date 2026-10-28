@@ -473,6 +473,44 @@ const seedUsers = async () => {
       ) r ON r.product_id = base.id
       WHERE p.id = base.id
     `);
+
+    // SFTWRKEY-432: cupones de descuento. Las reglas (vencimiento, límite de usos, compra mínima,
+    // un uso por cliente) están en services/coupons.js; el descuento siempre lo calcula el servidor.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS coupons (
+        id SERIAL PRIMARY KEY,
+        code VARCHAR(30) UNIQUE NOT NULL,
+        discount_type VARCHAR(10) NOT NULL CHECK (discount_type IN ('porcentaje', 'monto')),
+        value NUMERIC(10, 2) NOT NULL CHECK (value > 0),
+        min_purchase NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (min_purchase >= 0),
+        max_uses INTEGER CHECK (max_uses IS NULL OR max_uses > 0),
+        expires_at TIMESTAMPTZ NOT NULL,
+        active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CHECK (discount_type <> 'porcentaje' OR value <= 100)
+      )
+    `);
+    // Cada uso. Se aparta ('reservado') al abrir el pago, pasa a 'usado' cuando Recurrente confirma
+    // el cobro y a 'liberado' si el pago se cancela; los liberados ya no cuentan para el límite.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS coupon_uses (
+        id SERIAL PRIMARY KEY,
+        coupon_id INTEGER NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+        session_id UUID UNIQUE,
+        order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        guest_email VARCHAR(150),
+        discount NUMERIC(10, 2) NOT NULL,
+        status VARCHAR(10) NOT NULL DEFAULT 'reservado' CHECK (status IN ('reservado', 'usado', 'liberado')),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS coupon_uses_coupon_status_idx ON coupon_uses (coupon_id, status)`);
+    // el pedido guarda cuánto se descontó y con qué cupón (el total ya viene rebajado)
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount NUMERIC(10, 2) NOT NULL DEFAULT 0`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(30)`);
+    console.log('Tablas coupons y coupon_uses listas');
     console.log('Tabla reviews y promedio de calificaciones listos');
 
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA

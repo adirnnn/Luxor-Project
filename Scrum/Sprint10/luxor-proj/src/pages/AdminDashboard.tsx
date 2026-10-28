@@ -86,6 +86,11 @@ export default function AdminDashboard() {
                                     <Button variant="outline" className="transition-all">Reseñas</Button>
                                 </Link>
 
+                                {/* SFTWRKEY-432: cupones de descuento */}
+                                <Link to="/admin/cupones">
+                                    <Button variant="outline" className="transition-all">Cupones</Button>
+                                </Link>
+
                                 <Link to="/admin/importar">
                                     <Button variant="outline" className="transition-all">Importar CSV</Button>
                                 </Link>

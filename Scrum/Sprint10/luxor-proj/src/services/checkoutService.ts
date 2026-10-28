@@ -6,7 +6,9 @@ import type { Delivery } from "../utils/shipping";
 // cliente a Recurrente y al volver confirma con el backend si el cobro quedó aprobado.
 
 export interface CheckoutError {
-  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "AMOUNT_TOO_LOW" | "GATEWAY_ERROR" | "GATEWAY_NOT_CONFIGURED" | "PAYMENT_ERROR" | "NETWORK_ERROR";
+  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "AMOUNT_TOO_LOW" | "GATEWAY_ERROR" | "GATEWAY_NOT_CONFIGURED" | "PAYMENT_ERROR" | "NETWORK_ERROR"
+    // SFTWRKEY-432: el cupón no sirvió al abrir el pago (vencido, agotado, inventado, ya usado o sin la compra mínima)
+    | "COUPON_NOT_FOUND" | "COUPON_EXPIRED" | "COUPON_EXHAUSTED" | "COUPON_ALREADY_USED" | "COUPON_MIN_PURCHASE";
   message: string;
   items?: { product_id: string; name: string; disponible: number; solicitado: number }[];
 }
@@ -28,6 +30,9 @@ export interface PaymentResult {
     // SFTWRKEY-449
     shipping: number;
     delivery: Delivery | null;
+    // SFTWRKEY-432: lo que se descontó con el cupón (el total ya viene rebajado)
+    discount?: number;
+    coupon?: string | null;
   };
   payment?: { brand: string | null; last4: string | null } | null;
 }
@@ -57,9 +62,12 @@ async function post<T>(path: string, body: unknown, headers: Record<string, stri
   return data as T;
 }
 
-// Abre el pago del carrito del usuario con sesión (SFTWRKEY-451: la sesión va en la cookie)
-export const startCheckout = (userId: number, address: PaymentFormState) =>
-  post<CheckoutStarted>(`/checkout/${userId}`, address);
+// Abre el pago del carrito del usuario con sesión (SFTWRKEY-451: la sesión va en la cookie).
+// SFTWRKEY-432: del cupón solo se manda el código; el descuento lo calcula el backend.
+export const startCheckout = (userId: number, address: PaymentFormState, couponCode: string | null = null) =>
+  post<CheckoutStarted>(`/checkout/${userId}`, couponCode ? { ...address, couponCode } : address);
+
+export const isCouponError = (err: CheckoutError | null) => Boolean(err?.code?.startsWith("COUPON_"));
 
 // Al volver de Recurrente: ¿quedó pagado?
 export const confirmPayment = (reference: string) =>
