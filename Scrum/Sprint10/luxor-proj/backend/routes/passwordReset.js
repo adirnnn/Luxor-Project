@@ -3,7 +3,8 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import pool from '../db.js';
 import { rateLimit } from '../services/rateLimit.js';
-import { EMAIL_REGEX, MIN_PASSWORD_LENGTH, DEFAULT_SALT_ROUNDS } from '../services/authHandlers.js';
+import { EMAIL_REGEX, DEFAULT_SALT_ROUNDS } from '../services/authHandlers.js';
+import { validatePassword } from '../services/passwordPolicy.js';
 import { sendPasswordResetEmail, isMailConfigured } from '../services/mailer.js';
 
 // SFTWRKEY-428: recuperar contraseña.
@@ -97,11 +98,10 @@ router.post('/auth/reset-password', limiter(), async (req, res) => {
   if (!/^[a-f0-9]{64}$/.test(token)) {
     return res.status(400).json({ success: false, message: 'El enlace no es válido o ya venció.' });
   }
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return res.status(400).json({
-      success: false,
-      message: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
-    });
+  // SFTWRKEY-409: la contraseña nueva cumple la misma política que el registro
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return res.status(400).json({ success: false, message: passwordError });
   }
 
   let client;

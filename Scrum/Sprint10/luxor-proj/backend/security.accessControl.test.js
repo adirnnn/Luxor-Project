@@ -219,7 +219,7 @@ test('A01: POST /register siempre crea CLIENTE aunque el body pida otro rol', as
   t.after(restore);
 
   const res = await pedir('POST', '/register', {
-    body: { name: 'Eve', email: 'eve@test.com', password: 'clave123', role: 1 },
+    body: { name: 'Eve', email: 'eve@test.com', password: 'SecretaSegura123', role: 1 },
   });
   const payload = await res.json();
   assert.equal(res.status, 201);

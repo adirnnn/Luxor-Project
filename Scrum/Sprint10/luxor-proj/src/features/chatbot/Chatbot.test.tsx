@@ -94,4 +94,16 @@ describe("Chatbot", () => {
     await abrir();
     expect(screen.getByPlaceholderText(/escribe un mensaje/i)).toHaveAttribute("maxLength", "500");
   });
+
+  it("muestra las respuestas en Markdown sin interpretar HTML", async () => {
+    enviar.mockResolvedValue({
+      response: "Te recomiendo **Khamrah**:\n\n- Dulce\n- Cálida\n\n<img src=x onerror=alert(1)>",
+    });
+    const user = await abrir();
+    await user.click(screen.getByRole("button", { name: "Perfumes dulces" }));
+
+    expect(await screen.findByText("Khamrah")).toHaveProperty("tagName", "STRONG");
+    expect(screen.getByText("Dulce")).toHaveProperty("tagName", "LI");
+    expect(document.querySelector("section img")).toBeNull();
+  });
 });

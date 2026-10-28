@@ -7,6 +7,7 @@ import { PageTitle, Text } from "../components/ui/Typography";
 import { Button } from "../components/ui/Button";
 import clsx from "clsx";
 import { PageMeta } from "../components/seo/PageMeta";
+import { PASSWORD_HINT, validatePassword } from "../validation/passwordPolicy";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -39,7 +40,11 @@ export default function AdminCreateUserPage() {
     if (!formData.email.trim()) newErrors.email = "El correo es requerido.";
     else if (!emailRegex.test(formData.email)) newErrors.email = "Formato de correo inválido.";
     if (!formData.password) newErrors.password = "La contraseña es requerida.";
-    else if (formData.password.length < 6) newErrors.password = "Mínimo 6 caracteres.";
+    else {
+      // SFTWRKEY-409: política de contraseñas
+      const passwordError = validatePassword(formData.password);
+      if (passwordError) newErrors.password = passwordError;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -152,7 +157,7 @@ export default function AdminCreateUserPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={PASSWORD_HINT}
                   className={clsx(
                     "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-primary-black/40",
                     "placeholder:text-white/10 focus:ring-2 focus:ring-primary-gold transition-all duration-300",

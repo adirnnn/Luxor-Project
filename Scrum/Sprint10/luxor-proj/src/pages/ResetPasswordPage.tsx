@@ -3,8 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { PageMeta } from "../components/seo/PageMeta";
 import { AuthCard, authInputClass, authButtonClass } from "../components/auth/AuthCard";
 import { resetPassword } from "../services/passwordResetService";
-
-const MIN_PASSWORD_LENGTH = 6;
+import { validatePassword } from "../validation/passwordPolicy";
 
 // SFTWRKEY-428: crea la contraseña nueva con el token que llegó en el enlace del correo
 export default function ResetPasswordPage() {
@@ -19,8 +18,10 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+    // SFTWRKEY-409: política de contraseñas
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
     if (password !== confirm) {

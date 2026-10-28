@@ -7,6 +7,7 @@ Disallow: /reporte
 Disallow: /mi-cuenta
 Disallow: /cart
 Disallow: /pago
+Disallow: /compra-confirmada
 Disallow: /api/
 
 Sitemap: https://luxor-project-green.vercel.app/sitemap.xml

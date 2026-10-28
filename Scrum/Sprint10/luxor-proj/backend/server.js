@@ -19,6 +19,7 @@ import chatbotRouter from './routes/chatbot.js';
 
 import ordersRouter from './routes/orders.js';
 import passwordResetRouter from './routes/passwordReset.js';
+import { validatePassword } from './services/passwordPolicy.js';
 import wishlistRouter from './routes/wishlist.js';
 import relatedRouter from './routes/related.js';
 import productImagesRouter from './routes/productImages.js';

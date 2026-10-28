@@ -93,12 +93,12 @@ const loginRes = () => mockRes();
 // /login
 
 test('POST /login: credenciales correctas devuelven 200, token y usuario público', async () => {
-  const passwordHash = await bcrypt.hash('Secreta123', TEST_SALT_ROUNDS);
+  const passwordHash = await bcrypt.hash('SecretaSegura123', TEST_SALT_ROUNDS);
   const pool = mockPool({
     rows: [{ id: 42, name: 'Ana Cliente', email: 'ana@luxor.com', password_hash: passwordHash, role: 'CLIENTE' }],
   });
   const handler = createLoginHandler({ pool, bcrypt, signToken });
-  const req = { body: { email: 'ana@luxor.com', password: 'Secreta123' } };
+  const req = { body: { email: 'ana@luxor.com', password: 'SecretaSegura123' } };
   const res = loginRes();
 
   await handler(req, res);
@@ -117,7 +117,7 @@ test('POST /login: credenciales correctas devuelven 200, token y usuario públic
 });
 
 test('POST /login: contraseña incorrecta rechaza con 401 y no emite token', async () => {
-  const passwordHash = await bcrypt.hash('Secreta123', TEST_SALT_ROUNDS);
+  const passwordHash = await bcrypt.hash('SecretaSegura123', TEST_SALT_ROUNDS);
   const pool = mockPool({
     rows: [{ id: 42, name: 'Ana Cliente', email: 'ana@luxor.com', password_hash: passwordHash, role: 'CLIENTE' }],
   });
@@ -136,7 +136,7 @@ test('POST /login: usuario inexistente rechaza con 401 con el mismo mensaje gen�
   const handler = createLoginHandler({ pool, bcrypt, signToken });
   const res = loginRes();
 
-  await handler({ body: { email: 'nadie@luxor.com', password: 'Secreta123' } }, res);
+  await handler({ body: { email: 'nadie@luxor.com', password: 'SecretaSegura123' } }, res);
 
   assert.equal(res.statusCode, 401);
   assert.equal(res.body.success, false);
@@ -152,7 +152,7 @@ test('POST /register: correo con formato inválido rechaza con 400 y no toca la 
   const handler = createRegisterHandler({ pool, bcrypt, saltRounds: TEST_SALT_ROUNDS });
   const res = mockRes();
 
-  await handler({ body: { name: 'Bruno', email: 'bruno-arroba-luxor.com', password: 'Secreta123' } }, res);
+  await handler({ body: { name: 'Bruno', email: 'bruno-arroba-luxor.com', password: 'SecretaSegura123' } }, res);
 
   assert.equal(res.statusCode, 400);
   assert.equal(res.body.success, false);
@@ -169,7 +169,7 @@ test('POST /register: contraseña menor al mínimo rechaza con 400 y no toca la 
 
   assert.equal(res.statusCode, 400);
   assert.equal(res.body.success, false);
-  assert.match(res.body.message, /6 caracteres/);
+  assert.match(res.body.message, /12 caracteres/);
   assert.equal(pool.calls.length, 0, 'no debe ejecutarse ningún INSERT');
 });
 
@@ -179,7 +179,7 @@ test('POST /register: correo duplicado responde 409 (unique_violation 23505)', a
   const handler = createRegisterHandler({ pool, bcrypt, saltRounds: TEST_SALT_ROUNDS });
   const res = mockRes();
 
-  await handler({ body: { name: 'Bruno', email: 'ana@luxor.com', password: 'Secreta123' } }, res);
+  await handler({ body: { name: 'Bruno', email: 'ana@luxor.com', password: 'SecretaSegura123' } }, res);
 
   assert.equal(res.statusCode, 409);
   assert.equal(res.body.success, false);
@@ -191,7 +191,7 @@ test('POST /register: registro exitoso devuelve 201 y guarda la contraseña hash
   const handler = createRegisterHandler({ pool, bcrypt, saltRounds: TEST_SALT_ROUNDS });
   const res = mockRes();
 
-  await handler({ body: { name: 'Bruno', email: 'bruno@luxor.com', password: 'Secreta123' } }, res);
+  await handler({ body: { name: 'Bruno', email: 'bruno@luxor.com', password: 'SecretaSegura123' } }, res);
 
   assert.equal(res.statusCode, 201);
   assert.equal(res.body.success, true);
@@ -200,9 +200,9 @@ test('POST /register: registro exitoso devuelve 201 y guarda la contraseña hash
 
   // La contraseña que llega a la base es un hash bcrypt verificable, nunca texto plano.
   const [, , storedPassword] = pool.calls[0].params;
-  assert.notEqual(storedPassword, 'Secreta123');
+  assert.notEqual(storedPassword, 'SecretaSegura123');
   assert.match(storedPassword, /^\$2[aby]\$/);
-  assert.equal(await bcrypt.compare('Secreta123', storedPassword), true);
+  assert.equal(await bcrypt.compare('SecretaSegura123', storedPassword), true);
 });
 
 test('POST /register: el correo se guarda sin espacios y en minúsculas', async () => {
@@ -210,19 +210,19 @@ test('POST /register: el correo se guarda sin espacios y en minúsculas', async 
   const handler = createRegisterHandler({ pool, bcrypt, saltRounds: TEST_SALT_ROUNDS });
   const res = mockRes();
 
-  await handler({ body: { name: 'Ana', email: '  Ana@Mail.COM ', password: 'Secreta123' } }, res);
+  await handler({ body: { name: 'Ana', email: '  Ana@Mail.COM ', password: 'SecretaSegura123' } }, res);
 
   assert.equal(res.statusCode, 201);
   assert.equal(pool.calls[0].params[1], 'ana@mail.com');
 });
 
 test('POST /login: el correo no distingue mayúsculas', async () => {
-  const hash = await bcrypt.hash('Secreta123', TEST_SALT_ROUNDS);
+  const hash = await bcrypt.hash('SecretaSegura123', TEST_SALT_ROUNDS);
   const pool = mockPool({ rows: [{ id: 7, name: 'Ana', email: 'Ana@Mail.com', password_hash: hash, role: 'CLIENTE' }] });
   const handler = createLoginHandler({ pool, bcrypt, signToken: () => 'token' });
   const res = mockRes();
 
-  await handler({ body: { email: 'ANA@mail.com', password: 'Secreta123' } }, res);
+  await handler({ body: { email: 'ANA@mail.com', password: 'SecretaSegura123' } }, res);
 
   assert.equal(res.body.success, true);
   assert.match(pool.calls[0].sql, /LOWER\(u\.email\)/);

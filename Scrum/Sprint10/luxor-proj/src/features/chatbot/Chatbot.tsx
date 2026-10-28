@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { sendMessage, type ChatHistoryMessage } from "../../services/chatbotService";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // error: mensajes de fallo de conexión, que no se mandan como historial.
 interface Message { sender: "user" | "bot"; text: string; error?: boolean; }
@@ -9,6 +11,20 @@ const MAX_HISTORIAL = 8;
 const BIENVENIDA = "¡Hola! Soy el asistente de Perfumería Victoria, ¿en qué te puedo ayudar?";
 // SFTWRKEY-458: el chatbot también responde el estado de un pedido
 const SUGERENCIAS = ["Recomiéndame un perfume", "Perfumes dulces", "¿Cómo son los envíos?", "¿Dónde está mi pedido?"];
+
+// El modelo responde en Markdown (negritas, listas y tablas). ReactMarkdown no interpreta HTML
+// crudo, así que una respuesta manipulada no puede inyectar etiquetas; los enlaces abren aparte.
+// Los <br> que a veces mete el modelo en las tablas se pasan a "·" para que no salgan como texto.
+function BotText({ text }: { text: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{ a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}
+    >
+      {text.replace(/<br\s*\/?>/gi, " · ")}
+    </ReactMarkdown>
+  );
+}
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +63,7 @@ export function Chatbot() {
     </button>
     {isOpen && <section className="fixed bottom-24 right-5 z-[110] flex h-[min(32rem,calc(100dvh-8rem))] w-[min(22.5rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-3xl border border-primary-gold/20 bg-primary-black shadow-[0_24px_80px_rgba(0,0,0,0.55)]" aria-label="Asistente Victoria">
       <header className="flex items-center justify-between bg-primary-gold px-5 py-4 text-primary-black"><div><p className="font-heading text-lg uppercase tracking-wide">Asistente Victoria</p><p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-70">Asistente de fragancias</p></div><button onClick={() => setIsOpen(false)} className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-2xl leading-none transition hover:bg-primary-black/10" aria-label="Cerrar asistente">×</button></header>
-      <div ref={listaRef} className="flex-1 space-y-3 overflow-y-auto scroll-smooth bg-primary-black/95 p-4">{messages.length === 0 && <div className="space-y-3"><p className="rounded-2xl bg-white/[0.06] p-3 text-sm text-primary-champagne/70">{BIENVENIDA}</p><div className="flex flex-wrap gap-2">{SUGERENCIAS.map((sugerencia) => <button key={sugerencia} type="button" onClick={() => void handleSend(sugerencia)} className="min-h-11 rounded-full border border-primary-gold/30 px-3 text-xs font-bold text-primary-champagne transition hover:bg-primary-gold hover:text-primary-black">{sugerencia}</button>)}</div></div>}{messages.map((message, index) => <div key={`${message.sender}-${index}`} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}><p className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm ${message.sender === "user" ? "bg-primary-gold text-primary-black" : "bg-white/[0.08] text-primary-champagne"}`}>{message.text}</p></div>)}{loading && <p className="text-sm italic text-primary-champagne/50">Pensando...</p>}</div>
+      <div ref={listaRef} className="flex-1 space-y-3 overflow-y-auto scroll-smooth bg-primary-black/95 p-4">{messages.length === 0 && <div className="space-y-3"><p className="rounded-2xl bg-white/[0.06] p-3 text-sm text-primary-champagne/70">{BIENVENIDA}</p><div className="flex flex-wrap gap-2">{SUGERENCIAS.map((sugerencia) => <button key={sugerencia} type="button" onClick={() => void handleSend(sugerencia)} className="min-h-11 rounded-full border border-primary-gold/30 px-3 text-xs font-bold text-primary-champagne transition hover:bg-primary-gold hover:text-primary-black">{sugerencia}</button>)}</div></div>}{messages.map((message, index) => <div key={`${message.sender}-${index}`} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>{message.sender === "user" ? <p className="max-w-[82%] rounded-2xl bg-primary-gold px-4 py-3 text-sm text-primary-black">{message.text}</p> : <div className="chatbot-markdown min-w-0 max-w-[90%] rounded-2xl bg-white/[0.08] px-4 py-3 text-sm text-primary-champagne"><BotText text={message.text} /></div>}</div>)}{loading && <p className="text-sm italic text-primary-champagne/50">Pensando...</p>}</div>
       <form onSubmit={(event) => { event.preventDefault(); void handleSend(); }} className="flex gap-2 border-t border-white/10 p-3"><input value={input} maxLength={500} onChange={(event) => setInput(event.target.value)} placeholder="Escribe un mensaje..." className="min-w-0 flex-1 rounded-xl bg-white/[0.08] px-3 py-3 text-base text-primary-champagne outline-none placeholder:text-primary-champagne/35 focus:ring-1 focus:ring-primary-gold" /><button type="submit" disabled={loading || !input.trim()} className="min-h-11 rounded-xl bg-primary-gold px-4 text-sm font-bold text-primary-black transition hover:bg-primary-champagne disabled:cursor-not-allowed disabled:opacity-50">Enviar</button></form>
     </section>}
   </>;
