@@ -17,6 +17,9 @@ export interface OrderConfirmation {
         // SFTWRKEY-449: envío y forma de entrega
         shipping: number;
         delivery: Delivery | null;
+        // SFTWRKEY-432 y mayoristas: descuento ya restado del total
+        discount?: number;
+        discount_label?: string | null;
     };
     payment: {
         brand: string | null;

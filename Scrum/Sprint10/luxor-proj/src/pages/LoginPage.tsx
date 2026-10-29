@@ -12,9 +12,10 @@ import type { AuthUser } from "../validation/authService";
 
 import { GoogleAccess } from "../features/CommerceFeatures";
 import { PageMeta } from "../components/seo/PageMeta";
+import { SESSION_EXPIRED_MESSAGE } from "../components/auth/sessionMessages";
 
 export default function LoginPage() {
-    const { login, isAuthenticated } = useAuth();
+    const { login, isAuthenticated, sessionExpired } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -111,6 +112,12 @@ export default function LoginPage() {
                                 Inicia sesión para una experiencia curada.
                             </p>
                         </div>
+
+                        {sessionExpired && (
+                            <p role="alert" className="rounded-2xl border border-status-warning/40 bg-status-warning-bg px-5 py-4 text-sm text-primary-champagne">
+                                {SESSION_EXPIRED_MESSAGE}
+                            </p>
+                        )}
 
                         {/* Login normal */}
                         <LoginForm

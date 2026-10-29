@@ -8,7 +8,7 @@ import { Button } from "../components/ui/Button";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { PageMeta } from "../components/seo/PageMeta";
-import { ORDER_STATUSES, statusLabel, statusStyle } from "../constants/orderStatus";
+import { ORDER_STATUSES, statusAccent, statusLabel, statusStyle } from "../constants/orderStatus";
 import { fetchAdminOrder, fetchAdminOrders, updateOrderStatus } from "../services/orderService";
 import type { AdminOrder, AdminOrderDetail } from "../services/orderService";
 import { friendlyError } from "../services/apiClient";
@@ -146,7 +146,7 @@ export default function AdminOrdersPage() {
                                         <li key={order.id}>
                                             <button
                                                 onClick={() => setSelectedId(order.id)}
-                                                className="w-full glass-card border-white/5 p-5 flex flex-col gap-3 text-left active:bg-white/[0.03]"
+                                                className={`w-full glass-card border-white/5 border-l-4 ${statusAccent(order.status)} p-5 flex flex-col gap-3 text-left active:bg-white/[0.03]`}
                                             >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <span className="font-bold text-primary-champagne">Pedido #{order.id}</span>
@@ -188,7 +188,8 @@ export default function AdminOrdersPage() {
                                                         onClick={() => setSelectedId(order.id)}
                                                         className="border-t border-white/5 text-primary-champagne hover:bg-white/[0.03] cursor-pointer transition-colors"
                                                     >
-                                                        <td className="px-6 py-4 font-bold">#{order.id}</td>
+                                                        {/* el borde de color indica de un vistazo qué pedidos requieren acción */}
+                                                        <td className={`px-6 py-4 font-bold border-l-4 ${statusAccent(order.status)}`}>#{order.id}</td>
                                                         <td className="px-6 py-4">
                                                             <p className={order.is_guest ? "italic text-primary-champagne/70" : ""}>{order.customer_name}</p>
                                                             {order.customer_email && <p className="text-xs text-primary-champagne/40">{order.customer_email}</p>}
@@ -214,12 +215,15 @@ export default function AdminOrdersPage() {
 
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <p className="text-xs text-primary-champagne/50 uppercase tracking-widest">
-                                        Página {page} de {totalPages} · {total} {total === 1 ? "pedido" : "pedidos"}
+                                        {totalPages > 1 && `Página ${page} de ${totalPages} · `}{total} {total === 1 ? "pedido" : "pedidos"}
                                     </p>
+                                    {/* sin más páginas no se muestran Anterior y Siguiente (feedback del cliente) */}
+                                    {totalPages > 1 && (
                                     <div className="flex gap-3">
                                         <Button variant="outline" className="px-6 py-3 text-xs" disabled={page <= 1} onClick={() => setPage(page - 1)}>Anterior</Button>
                                         <Button variant="outline" className="px-6 py-3 text-xs" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Siguiente</Button>
                                     </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -359,6 +363,12 @@ function OrderDetailPanel({ orderId, onClose, onStatusChanged }: DetailProps) {
                                     </li>
                                 ))}
                             </ul>
+                            {(order.discount ?? 0) > 0 && (
+                              <div className="flex justify-between border-t border-white/10 pt-3 text-sm">
+                                <span className="text-primary-champagne/60">Descuento{order.discount_label ? ` (${order.discount_label})` : ""}</span>
+                                <span className="text-status-success">−{formatMoney(order.discount ?? 0)}</span>
+                              </div>
+                            )}
                             <div className="flex justify-between border-t border-white/10 pt-3 text-sm">
                                 <span className="text-primary-champagne/60">{order.delivery?.method === "recoger" ? "Recoger en tienda" : "Envío"}</span>
                                 <span className="text-primary-champagne/80">{shippingLabel(order.shipping ?? 0)}</span>

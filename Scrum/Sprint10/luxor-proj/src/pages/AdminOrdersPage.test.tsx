@@ -65,12 +65,15 @@ describe("AdminOrdersPage", () => {
     const fila = screen.getByText("#12").closest("tr")!;
     expect(within(fila).getByText("María García")).toBeInTheDocument();
     expect(within(fila).getByText("Q780.00")).toBeInTheDocument();
-    expect(within(fila).getByText("Pagado")).toHaveClass("text-status-info");
+    expect(within(fila).getByText("Pagado")).toHaveClass("text-status-attention");
 
     const invitado = screen.getByText("#11").closest("tr")!;
     expect(within(invitado).getByText("Invitado · Pedro")).toBeInTheDocument();
     expect(within(invitado).getByText("Enviado")).toBeInTheDocument();
-    expect(screen.getByText(/Página 1 de 1 · 2 pedidos/)).toBeInTheDocument();
+    // con una sola página no hay "Página 1 de 1" ni botones Anterior y Siguiente
+    expect(screen.getByText("2 pedidos")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Anterior" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Siguiente" })).not.toBeInTheDocument();
     // SFTWRKEY-435: titulo propio y noindex como las demas paginas de admin
     expect(document.title).toMatch(/^Pedidos \|/);
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");

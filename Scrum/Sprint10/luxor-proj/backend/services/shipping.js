@@ -5,11 +5,11 @@
 export const SHIPPING_FLAT_CENTS = 3500;
 export const FREE_SHIPPING_FROM_CENTS = 50000;
 
-// los mismos locales de la página de envíos y del chatbot
+// los mismos locales de la página de envíos y del chatbot (horarios confirmados por el cliente)
 export const PICKUP_STORES = [
-  { id: 'victoria', name: 'Joyería Victoria', address: 'Metro Centro, 19 calle 3-31, Zona 1' },
-  { id: 'glamour', name: 'Joyería Glamour', address: 'C.C. El Pueblito, Zona 1' },
-  { id: 'luxor', name: 'Joyería Luxor', address: 'C.C. San Isidro, Zona 16' },
+  { id: 'victoria', name: 'Joyería Victoria', address: 'Metro Centro, 19 calle 3-31, Zona 1', hours: 'Lunes a sábado de 9:00 a 17:00' },
+  { id: 'glamour', name: 'Joyería Glamour', address: 'C.C. El Pueblito, Zona 1', hours: 'Lunes a sábado de 8:00 a 17:00' },
+  { id: 'luxor', name: 'Joyería Luxor', address: 'C.C. San Isidro, Zona 16', hours: 'Lunes a sábado de 10:00 a 19:00' },
 ];
 
 export const DELIVERY_METHODS = ['envio', 'recoger'];

@@ -171,7 +171,7 @@ function sameOrigin(req, res, next) {
 const onBlock = req =>
   recordSecurityEvent({
     type: SECURITY_EVENT_TYPES.RATE_LIMITED,
-    ip: req.ip,
+    ip: clientIp(req),
     path: req.path,
   });
 

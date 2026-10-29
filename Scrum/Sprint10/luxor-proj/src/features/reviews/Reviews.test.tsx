@@ -75,9 +75,11 @@ describe("tarjeta del perfume", () => {
 describe("ficha del perfume", () => {
   it("muestra el promedio con un enlace a la lista de reseñas", () => {
     render(
-      <MemoryRouter>
+      <AuthProvider>
+<MemoryRouter>
         <ProductDetail id="khamrah" name="Lattafa Khamrah" price={650} image="/k.webp" description="Dulce" notes={NOTAS} rating_avg="4.67" rating_count={1} />
-      </MemoryRouter>,
+      </MemoryRouter>
+      </AuthProvider>,
     );
 
     expect(screen.getByRole("img", { name: "4.7 de 5 estrellas" })).toBeInTheDocument();
@@ -86,9 +88,11 @@ describe("ficha del perfume", () => {
 
   it("sin reseñas avisa que aún no tiene", () => {
     render(
-      <MemoryRouter>
+      <AuthProvider>
+<MemoryRouter>
         <ProductDetail id="khamrah" name="Lattafa Khamrah" price={650} image="/k.webp" description="Dulce" notes={NOTAS} />
-      </MemoryRouter>,
+      </MemoryRouter>
+      </AuthProvider>,
     );
 
     expect(screen.getByText("Aún sin reseñas")).toBeInTheDocument();

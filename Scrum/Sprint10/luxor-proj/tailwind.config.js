@@ -26,6 +26,12 @@ export default {
           "warning-bg": "#C79A3B26",
           info: "#5B7C99",
           "info-bg": "#5B7C9926",
+          // feedback del cliente (psicología del color en el panel): naranja = requiere acción ya,
+          // violeta = en camino. Se distinguen del dorado de la marca.
+          attention: "#D9822B",
+          "attention-bg": "#D9822B26",
+          transit: "#8A6FB0",
+          "transit-bg": "#8A6FB026",
         },
       },
       fontFamily: {

@@ -82,7 +82,7 @@ const GROUPS: Array<{ title: string; faqs: Faq[] }> = [
       },
       {
         question: "¿Puedo recoger mi pedido en tienda?",
-        answer: "Sí, puedes acercarte a cualquiera de nuestros locales: Joyería Victoria (Metro Centro, 19 calle 3-31, Zona 1), Joyería Glamour (C.C. El Pueblito, Zona 1) o Joyería Luxor (C.C. San Isidro, Zona 16).",
+        answer: "Sí, elige \"Recoger en tienda\" al pagar y pasa por tu pedido sin costo de envío a Joyería Victoria (Metro Centro, 19 calle 3-31, Zona 1; lunes a sábado de 9:00 a 17:00), Joyería Glamour (C.C. El Pueblito, Zona 1; lunes a sábado de 8:00 a 17:00) o Joyería Luxor (C.C. San Isidro, Zona 16; lunes a sábado de 10:00 a 19:00). Los mapas están en la página de envíos y devoluciones.",
       },
       {
         question: "¿Puedo cambiar o devolver un perfume?",

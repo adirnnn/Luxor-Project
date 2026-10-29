@@ -1,3 +1,6 @@
 .env
 .env.*
 !.env.example
+
+# archivos temporales de Office (Word los crea al abrir un documento)
+~$*

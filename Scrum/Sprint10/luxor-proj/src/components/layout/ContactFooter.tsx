@@ -17,9 +17,9 @@ export const ContactFooter = () => (
       <div className="flex flex-col gap-10">
         <h2 className="text-primary-gold font-heading text-sm tracking-[0.2em] uppercase font-bold">Locales</h2>
         <ul className="space-y-8 text-lg font-medium">
-          <li className="flex flex-col gap-2"><span className="text-primary-champagne flex items-center gap-2"><span className="text-primary-gold text-xs">◆</span> Joyería Victoria</span><span className="text-sm text-primary-champagne/40 ml-5">Metro Centro · 19 calle 3-31, Zona 1</span></li>
-          <li className="flex flex-col gap-2"><span className="text-primary-champagne flex items-center gap-2"><span className="text-primary-gold text-xs">◆</span> Joyería Glamour</span><span className="text-sm text-primary-champagne/40 ml-5">C.C. El Pueblito · Zona 1</span></li>
-          <li className="flex flex-col gap-2"><span className="text-primary-champagne flex items-center gap-2"><span className="text-primary-gold text-xs">◆</span> Joyería Luxor</span><span className="text-sm text-primary-champagne/40 ml-5">C.C. San Isidro · Zona 16</span></li>
+          <li className="flex flex-col gap-2"><span className="text-primary-champagne flex items-center gap-2"><span className="text-primary-gold text-xs">◆</span> Joyería Victoria</span><span className="text-sm text-primary-champagne/40 ml-5">Metro Centro · 19 calle 3-31, Zona 1</span><span className="text-xs text-primary-gold/70 ml-5">Lunes a sábado · 9:00 a 17:00</span></li>
+          <li className="flex flex-col gap-2"><span className="text-primary-champagne flex items-center gap-2"><span className="text-primary-gold text-xs">◆</span> Joyería Glamour</span><span className="text-sm text-primary-champagne/40 ml-5">C.C. El Pueblito · Zona 1</span><span className="text-xs text-primary-gold/70 ml-5">Lunes a sábado · 8:00 a 17:00</span></li>
+          <li className="flex flex-col gap-2"><span className="text-primary-champagne flex items-center gap-2"><span className="text-primary-gold text-xs">◆</span> Joyería Luxor</span><span className="text-sm text-primary-champagne/40 ml-5">C.C. San Isidro · Zona 16</span><span className="text-xs text-primary-gold/70 ml-5">Lunes a sábado · 10:00 a 19:00</span></li>
         </ul>
       </div>
 

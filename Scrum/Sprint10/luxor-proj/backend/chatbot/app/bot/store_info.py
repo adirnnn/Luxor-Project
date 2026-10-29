@@ -1,14 +1,15 @@
 # SFTWRKEY-393: información de la tienda que el bot puede usar para dudas generales.
 # Tomada del footer del sitio (src/components/layout/ContactFooter.tsx y SocialLinks.tsx).
-# Horarios y políticas de cambio están pendientes de confirmar con el cliente:
+# Los horarios los confirmó el cliente (7/10/2026). Las políticas de cambio siguen pendientes:
 # mientras no se confirmen, NO se agregan aquí (el bot debe decir que no tiene ese dato).
 STORE_INFO = """\
 Tienda: Perfumería Victoria, perfumes árabes auténticos seleccionados por El Joyero Árabe.
 
-Locales:
-- Joyería Victoria: Metro Centro, 19 calle 3-31, Zona 1.
-- Joyería Glamour: C.C. El Pueblito, Zona 1.
-- Joyería Luxor: C.C. San Isidro, Zona 16.
+Locales y horarios:
+- Joyería Victoria: Metro Centro, 19 calle 3-31, Zona 1. Lunes a sábado de 9:00 a 17:00.
+- Joyería Glamour: C.C. El Pueblito, Zona 1. Lunes a sábado de 8:00 a 17:00.
+- Joyería Luxor: C.C. San Isidro, Zona 16. Lunes a sábado de 10:00 a 19:00.
+Los domingos los locales están cerrados.
 
 Envíos: a todo el país por Q35, gratis desde Q500 en productos, con entrega garantizada en 24 a 48 horas, empaque de lujo y certificado de autenticidad. También se puede recoger gratis en cualquiera de los tres locales eligiendo "Recoger en tienda" al pagar.
 

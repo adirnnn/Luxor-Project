@@ -175,12 +175,15 @@ export default function AdminReviewsPage() {
 
                                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <p className="text-xs text-primary-champagne/50 uppercase tracking-widest">
-                                        Página {page} de {totalPages} · {total} {total === 1 ? "reseña" : "reseñas"}
+                                        {totalPages > 1 && `Página ${page} de ${totalPages} · `}{total} {total === 1 ? "reseña" : "reseñas"}
                                     </p>
+                                    {/* sin más páginas no se muestran Anterior y Siguiente (feedback del cliente) */}
+                                    {totalPages > 1 && (
                                     <div className="flex gap-3">
                                         <Button variant="outline" className="px-6 py-3 text-xs" disabled={page <= 1} onClick={() => setPage(page - 1)}>Anterior</Button>
                                         <Button variant="outline" className="px-6 py-3 text-xs" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Siguiente</Button>
                                     </div>
+                                    )}
                                 </div>
                             </div>
                         )}

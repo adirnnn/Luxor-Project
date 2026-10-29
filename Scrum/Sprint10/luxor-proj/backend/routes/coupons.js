@@ -10,6 +10,7 @@ import {
   findUsableCoupon,
   normalizeCode,
 } from '../services/coupons.js';
+import { clientIp } from '../services/clientIp.js';
 
 // SFTWRKEY-432: cupones de descuento. El cliente puede probar un código antes de pagar (solo es
 // una vista previa: el cobro lo vuelve a calcular createSession) y el admin los crea y desactiva.
@@ -17,7 +18,7 @@ const router = Router();
 
 // Los bloqueos quedan como evento de seguridad (alertas del admin), igual que el login
 const onBlock = (req) =>
-  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: req.ip, path: req.path });
+  recordSecurityEvent({ type: SECURITY_EVENT_TYPES.RATE_LIMITED, ip: clientIp(req), path: req.path });
 
 // 10 códigos por minuto por IP: suficiente para quien escribe su cupón, muy poco para adivinarlos
 export const VALIDATE_LIMIT = { windowMs: 60_000, max: 10 };

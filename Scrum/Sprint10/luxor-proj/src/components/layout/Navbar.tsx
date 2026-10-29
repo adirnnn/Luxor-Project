@@ -30,7 +30,7 @@ export const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    setOpen(false);
+    closeMenu();
     navigate("/");
   };
 
@@ -62,6 +62,13 @@ export const Navbar = () => {
       closeSearch();
       navigate(`/perfumes?q=${encodeURIComponent(query.trim())}`);
     }
+  };
+
+  // feedback del cliente: en celular la búsqueda no se queda guardada en el menú; al cerrarlo
+  // (o al ir a otra página desde él) se borra el texto y los resultados
+  const closeMenu = () => {
+    setOpen(false);
+    clearSearch();
   };
 
   useEffect(() => {
@@ -270,7 +277,7 @@ export const Navbar = () => {
 
             <div className="hidden md:flex items-center gap-4">
               {isAuthenticated && user ? (
-                <AccountMenu name={user.name} isAdmin={user.role === "ADMIN"} onLogout={handleLogout} />
+                <AccountMenu name={user.name} isAdmin={user.role === "ADMIN"} onLogout={handleLogout} user={user} />
               ) : (
                 <Link
                   to="/login"
@@ -283,7 +290,7 @@ export const Navbar = () => {
             <button
               type="button"
               className="md:hidden w-11 h-11 -mr-2 text-primary-champagne flex items-center justify-center"
-              onClick={() => setOpen(!open)}
+              onClick={() => (open ? closeMenu() : setOpen(true))}
               aria-label={open ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={open}
             >
@@ -317,7 +324,7 @@ export const Navbar = () => {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && query.trim()) {
-                      setOpen(false);
+                      closeMenu();
                       clearSearch();
                       navigate(`/perfumes?q=${encodeURIComponent(query.trim())}`);
                     }
@@ -334,7 +341,7 @@ export const Navbar = () => {
                     <button
                       key={product.id}
                       onClick={() => {
-                        setOpen(false);
+                        closeMenu();
                         handleResultClick(product.id);
                       }}
                       className="w-full flex items-center gap-3 py-2.5 px-2 hover:bg-white/[0.04] rounded-xl transition-all text-left"
@@ -355,7 +362,7 @@ export const Navbar = () => {
                 <Link
                   key={link.label}
                   to={link.href}
-                  onClick={() => setOpen(false)}
+                  onClick={() => closeMenu()}
                   className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
                     isActive(link.href)
                       ? "text-primary-champagne"
@@ -375,7 +382,7 @@ export const Navbar = () => {
                     <Link
                       key={link.to}
                       to={link.to}
-                      onClick={() => setOpen(false)}
+                      onClick={() => closeMenu()}
                       className={`min-h-11 px-6 flex items-center justify-center text-xs tracking-[0.2em] uppercase font-black transition-all ${
                         location.pathname === link.to ? "text-primary-champagne" : "text-primary-gold"
                       }`}
@@ -396,7 +403,7 @@ export const Navbar = () => {
               ) : (
                 <Link
                   to="/login"
-                  onClick={() => setOpen(false)}
+                  onClick={() => closeMenu()}
                   className="text-xs tracking-[0.2em] uppercase text-primary-black font-black bg-primary-gold px-12 py-4 rounded-button hover:bg-primary-champagne w-full text-center"
                 >
                   Entrar

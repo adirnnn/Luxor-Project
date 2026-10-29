@@ -3,7 +3,7 @@
 Tienda en línea de perfumes árabes y de diseñador: catálogo con búsqueda por notas olfativas, carrito, compra con o sin cuenta, seguimiento de pedidos, asistente virtual y panel de administración con reportes e importación de inventario.
 
 - **Sitio en producción:** https://luxor-project-green.vercel.app
-- **Código actual (Sprint 10):** [`Scrum/Sprint9/luxor-proj`](Scrum/Sprint10/luxor-proj). Su [README](Scrum/Sprint10/luxor-proj/README.md) explica cómo instalarlo, correr las pruebas y desplegarlo.
+- **Código actual (Sprint 10):** [`Scrum/Sprint10/luxor-proj`](Scrum/Sprint10/luxor-proj). Su [README](Scrum/Sprint10/luxor-proj/README.md) explica cómo instalarlo, correr las pruebas y desplegarlo.
 
 ## Organización del repositorio
 

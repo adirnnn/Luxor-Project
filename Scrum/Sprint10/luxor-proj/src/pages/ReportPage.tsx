@@ -180,27 +180,27 @@ export default function ReportPage() {
                             <div className="flex flex-col gap-8">
                                 {/* Tarjetas resumen */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                    <div className="glass-card p-10 flex flex-col gap-4 border-white/5">
+                                    <div className="glass-card p-5 md:p-10 flex flex-col gap-4 border-white/5">
                                         <Text className="text-xs tracking-[0.3em] uppercase text-primary-gold font-black italic">
                                             Usuarios registrados
                                         </Text>
-                                        <span className="text-6xl font-heading text-primary-champagne font-light">
+                                        <span className="text-5xl md:text-6xl font-heading text-primary-champagne font-light">
                                             {data.totalUsers}
                                         </span>
                                     </div>
 
-                                    <div className="glass-card p-10 flex flex-col gap-4 border-white/5">
+                                    <div className="glass-card p-5 md:p-10 flex flex-col gap-4 border-white/5">
                                         <Text className="text-xs tracking-[0.3em] uppercase text-primary-gold font-black italic">
                                             Productos en carritos
                                         </Text>
-                                        <span className="text-6xl font-heading text-primary-champagne font-light">
+                                        <span className="text-5xl md:text-6xl font-heading text-primary-champagne font-light">
                                             {data.totalItemsInCarts}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Top productos */}
-                                <div className="glass-card p-10 flex flex-col gap-8 border-white/5">
+                                <div className="glass-card p-5 md:p-10 flex flex-col gap-8 border-white/5">
                                     <H3 className="text-primary-gold tracking-[0.2em] italic">Top Movimientos</H3>
                                     {data.topProducts.length === 0 ? (
                                         <Text>No hay datos de productos aún.</Text>
@@ -209,17 +209,17 @@ export default function ReportPage() {
                                             {data.topProducts.map((item, index) => (
                                                 <div
                                                     key={item.product_id}
-                                                    className="flex items-center justify-between py-5 border-b border-white/5 last:border-0 group hover:bg-white/[0.02] px-4 transition-all rounded-xl"
+                                                    className="flex items-center justify-between gap-3 py-4 md:py-5 border-b border-white/5 last:border-0 group hover:bg-white/[0.02] px-2 md:px-4 transition-all rounded-xl"
                                                 >
-                                                    <div className="flex items-center gap-6">
+                                                    <div className="flex items-center gap-3 md:gap-6 min-w-0">
                                                         <span className="text-lg font-heading text-primary-gold/40 font-light w-8 italic">
                                                             0{index + 1}
                                                         </span>
-                                                        <Text className="capitalize text-xl text-primary-champagne font-medium">
+                                                        <Text className="capitalize text-base md:text-xl text-primary-champagne font-medium truncate">
                                                             {item.product_id.replace(/-/g, " ")}
                                                         </Text>
                                                     </div>
-                                                    <span className="text-lg font-heading text-primary-gold font-light tracking-tighter">
+                                                    <span className="text-lg font-heading text-primary-gold font-light tracking-tighter shrink-0">
                                                         {item.total_quantity} <span className="text-xs uppercase ml-1 opacity-40 italic">Uds.</span>
                                                     </span>
                                                 </div>
@@ -232,7 +232,7 @@ export default function ReportPage() {
 
                         {/* métricas generales y gráficas del negocio */}
                         {analyticsLoading && (
-                            <div className="glass-card p-10 border-white/5">
+                            <div className="glass-card p-5 md:p-10 border-white/5">
                                 <p className="text-sm text-primary-champagne/70 tracking-wide">Cargando métricas y gráficas...</p>
                             </div>
                         )}
@@ -252,18 +252,18 @@ export default function ReportPage() {
                             <div className="flex flex-col gap-8">
                                 {/*métricas generales */}
                                 {metrics && (
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                         {[
                                             { label: "Ingresos totales", value: formatCurrency(metrics.totalRevenue) },
                                             { label: "Órdenes completadas", value: metrics.totalOrders },
                                             { label: "Unidades vendidas", value: metrics.totalUnitsSold },
                                             { label: "Stock disponible", value: metrics.totalStock },
                                         ].map((metric) => (
-                                            <div key={metric.label} className="glass-card p-6 flex flex-col gap-3 border-white/5">
+                                            <div key={metric.label} className="glass-card p-5 md:p-6 flex flex-col gap-3 border-white/5 min-w-0">
                                                 <Text className="text-[10px] tracking-[0.25em] uppercase text-primary-gold font-black italic">
                                                     {metric.label}
                                                 </Text>
-                                                <span className="text-3xl font-heading text-primary-champagne font-light">
+                                                <span className="text-2xl md:text-3xl font-heading text-primary-champagne font-light break-words">
                                                     {metric.value}
                                                 </span>
                                             </div>
@@ -273,7 +273,7 @@ export default function ReportPage() {
 
                                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                                     {/*ventas por mes */}
-                                    <div className="glass-card p-10 flex flex-col gap-8 border-white/5">
+                                    <div className="glass-card p-5 md:p-10 flex flex-col gap-8 border-white/5">
                                         <H3 className="text-primary-gold tracking-[0.2em] italic">Ventas por mes</H3>
                                         <BarChart
                                             data={monthlySales.map((item) => ({
@@ -287,7 +287,7 @@ export default function ReportPage() {
                                     </div>
 
                                     {/*ventas por categoría */}
-                                    <div className="glass-card p-10 flex flex-col gap-8 border-white/5">
+                                    <div className="glass-card p-5 md:p-10 flex flex-col gap-8 border-white/5">
                                         <H3 className="text-primary-gold tracking-[0.2em] italic">Ventas por categoría</H3>
                                         <DonutChart
                                             data={categorySales.map((item) => ({ label: item.category, value: item.revenue }))}
@@ -297,7 +297,7 @@ export default function ReportPage() {
                                     </div>
 
                                     {/*productos más vendidos */}
-                                    <div className="glass-card p-10 flex flex-col gap-8 border-white/5">
+                                    <div className="glass-card p-5 md:p-10 flex flex-col gap-8 border-white/5">
                                         <H3 className="text-primary-gold tracking-[0.2em] italic">Productos más vendidos</H3>
                                         <BarChart
                                             orientation="horizontal"
@@ -312,7 +312,7 @@ export default function ReportPage() {
                                     </div>
 
                                     {/*inventario por categoría */}
-                                    <div className="glass-card p-10 flex flex-col gap-8 border-white/5">
+                                    <div className="glass-card p-5 md:p-10 flex flex-col gap-8 border-white/5">
                                         <H3 className="text-primary-gold tracking-[0.2em] italic">Inventario por categoría</H3>
                                         <BarChart
                                             orientation="horizontal"

@@ -304,7 +304,7 @@ test('recoger en tienda: sin costo de envío y el pedido guarda el local', async
   assert.deepEqual(orden.rows[0], {
     shipping_cost: '0.00',
     delivery_method: 'recoger',
-    delivery_address: { id: 'luxor', name: 'Joyería Luxor', address: 'C.C. San Isidro, Zona 16' },
+    delivery_address: { id: 'luxor', name: 'Joyería Luxor', hours: 'Lunes a sábado de 10:00 a 19:00', address: 'C.C. San Isidro, Zona 16' },
   });
 });
 

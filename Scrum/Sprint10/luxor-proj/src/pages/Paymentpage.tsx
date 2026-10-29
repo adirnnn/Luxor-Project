@@ -13,6 +13,7 @@ import { formatPrice } from "../utils/formatPrice";
 import { shippingFor, shippingLabel, useShippingOptions, type DeliveryMethod } from "../utils/shipping";
 import { useCoupon } from "../features/coupons/useCoupon";
 import { CouponField } from "../features/coupons/CouponField";
+import { wholesaleDiscount, wholesaleLabel } from "../utils/wholesale";
 
 export default function PaymentPage() {
     const { cart, totalPrice } = useCart();
@@ -32,7 +33,10 @@ export default function PaymentPage() {
         cart.map((item) => ({ product_id: item.product.id, quantity: item.quantity })),
         totalPrice,
     );
-    const shipping = shippingFor(totalPrice - coupon.discount, deliveryMethod, shippingOptions);
+    // feedback del cliente: el mayorista paga con su porcentaje (lo vuelve a calcular el servidor) y sin cupón
+    const wholesalePercent = user?.wholesalePercent;
+    const discount = wholesalePercent ? wholesaleDiscount(totalPrice, wholesalePercent) : coupon.discount;
+    const shipping = shippingFor(totalPrice - discount, deliveryMethod, shippingOptions);
     const sending = useRef(false);
 
     if (!isAuthenticated || !user) {
@@ -63,7 +67,7 @@ export default function PaymentPage() {
         setIsProcessing(true);
 
         try {
-            const { checkoutUrl } = await startCheckout(Number(user.id), values, coupon.coupon?.code ?? null);
+            const { checkoutUrl } = await startCheckout(Number(user.id), values, wholesalePercent ? null : coupon.coupon?.code ?? null);
             setCompleted(true);
             window.location.assign(checkoutUrl);
         } catch (err) {
@@ -190,6 +194,7 @@ export default function PaymentPage() {
 
                 <div className="h-px bg-white/5 mb-6" />
 
+                {!wholesalePercent && (
                 <div className="mb-6">
                     <CouponField
                         coupon={coupon.coupon}
@@ -201,13 +206,20 @@ export default function PaymentPage() {
                         onRemove={coupon.remove}
                     />
                 </div>
+                )}
 
                 <div className="flex flex-col gap-3 mb-6 text-sm">
                     <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Subtotal</span>
                     <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
                     </div>
-                    {coupon.discount > 0 && coupon.coupon && (
+                    {wholesalePercent && discount > 0 && (
+                    <div className="flex justify-between items-center">
+                        <span className="text-primary-champagne/40">{wholesaleLabel(wholesalePercent)}</span>
+                        <span className="text-status-success font-bold">−{formatPrice(discount)}</span>
+                    </div>
+                    )}
+                    {!wholesalePercent && coupon.discount > 0 && coupon.coupon && (
                     <div className="flex justify-between items-center">
                         <span className="text-primary-champagne/40">Descuento ({coupon.coupon.code})</span>
                         <span className="text-status-success font-bold">−{formatPrice(coupon.discount)}</span>
@@ -226,7 +238,7 @@ export default function PaymentPage() {
                     Total
                     </span>
                     <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    {formatPrice(totalPrice - coupon.discount + shipping)}
+                    {formatPrice(totalPrice - discount + shipping)}
                     </span>
                 </div>
                 </div>

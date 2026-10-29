@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
@@ -12,6 +12,8 @@ import { describeDelivery, shippingLabel, type Delivery } from "../utils/shippin
 import { validatePassword } from "../validation/passwordPolicy";
 import { fetchMyReviews, type MyReview } from "../services/reviewService";
 import { OrderItemReview } from "../features/reviews/OrderItemReview";
+import { UserAvatar } from "../components/account/UserAvatar";
+import { AVATAR_MAX_BYTES, AVATAR_TYPES, deleteAvatar, uploadAvatar } from "../services/avatarService";
 
 interface OrderItem {
   product_id: string;
@@ -38,6 +40,9 @@ interface Order {
   // SFTWRKEY-449: envío y forma de entrega (null en pedidos anteriores)
   shipping?: number;
   delivery?: Delivery | null;
+  // SFTWRKEY-432 y mayoristas: descuento ya restado del total (cupón o "Mayorista 10%")
+  discount?: number;
+  discount_label?: string | null;
 }
 
 interface UserInfo {
@@ -95,6 +100,49 @@ export default function UserPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  // feedback del cliente: foto de perfil
+  const [savingPhoto, setSavingPhoto] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+
+  const handlePhoto = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !user) return;
+    if (!AVATAR_TYPES.includes(file.type)) {
+      setPhotoMessage({ type: "error", text: "Sube una foto PNG, JPG o WebP." });
+      return;
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      setPhotoMessage({ type: "error", text: "La foto pesa más de 5 MB." });
+      return;
+    }
+    setSavingPhoto(true);
+    setPhotoMessage(null);
+    try {
+      const avatarVersion = await uploadAvatar(Number(user.id), file);
+      login({ ...user, avatarVersion });
+      setPhotoMessage({ type: "ok", text: "Foto actualizada." });
+    } catch (err) {
+      setPhotoMessage({ type: "error", text: (err as Error).message });
+    } finally {
+      setSavingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!user) return;
+    setSavingPhoto(true);
+    setPhotoMessage(null);
+    try {
+      await deleteAvatar(Number(user.id));
+      login({ ...user, avatarVersion: null });
+      setPhotoMessage({ type: "ok", text: "Quitamos tu foto." });
+    } catch (err) {
+      setPhotoMessage({ type: "error", text: (err as Error).message });
+    } finally {
+      setSavingPhoto(false);
+    }
+  };
   const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   // SFTWRKEY-322: Mostrar/ocultar contraseña, igual que en el login
   const [showPasswords, setShowPasswords] = useState(false);
@@ -252,11 +300,31 @@ export default function UserPage() {
             <div className="bg-primary-black text-white p-8 rounded-3xl shadow-xl flex flex-col gap-6">
               {/* Avatar */}
               <div className="flex flex-col items-center gap-3">
-                <div className="w-20 h-20 rounded-full bg-primary-gold flex items-center justify-center">
-                  <span className="text-3xl font-bold text-primary-black">
-                    {user.name?.charAt(0).toUpperCase() ?? "U"}
-                  </span>
+                {/* feedback del cliente: foto de perfil (solo la ve el dueño y el admin) */}
+                <UserAvatar user={user} className="w-20 h-20 text-3xl" />
+                <div className="flex flex-wrap items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em]">
+                  <label className={`cursor-pointer text-primary-gold hover:underline ${savingPhoto ? "opacity-50 cursor-wait" : ""}`}>
+                    {savingPhoto ? "Subiendo..." : user.avatarVersion ? "Cambiar foto" : "Subir foto"}
+                    <input
+                      type="file"
+                      accept={AVATAR_TYPES.join(",")}
+                      className="sr-only"
+                      disabled={savingPhoto}
+                      onChange={handlePhoto}
+                      aria-label="Subir foto de perfil"
+                    />
+                  </label>
+                  {user.avatarVersion && (
+                    <button type="button" onClick={handleRemovePhoto} disabled={savingPhoto} className="text-primary-champagne/50 hover:text-status-error">
+                      Quitar foto
+                    </button>
+                  )}
                 </div>
+                {photoMessage && (
+                  <p role={photoMessage.type === "error" ? "alert" : "status"} className={`text-xs ${photoMessage.type === "error" ? "text-status-error" : "text-status-success"}`}>
+                    {photoMessage.text}
+                  </p>
+                )}
                 <div className="text-center">
                   <p className="font-heading text-lg">{user.name}</p>
                   <span className="text-xs text-white/50 uppercase tracking-widest">
@@ -559,6 +627,12 @@ export default function UserPage() {
                                 </li>
                               ))}
                             </ul>
+                            {(order.discount ?? 0) > 0 && (
+                              <div className="flex justify-between border-t border-white/10 pt-3 text-sm">
+                                <span className="text-primary-champagne/60">Descuento{order.discount_label ? ` (${order.discount_label})` : ""}</span>
+                                <span className="text-status-success">−{formatPrice(order.discount ?? 0)}</span>
+                              </div>
+                            )}
                             {order.delivery && (
                               <div className="flex flex-col gap-1 border-t border-white/10 pt-3 text-sm">
                                 <div className="flex justify-between">

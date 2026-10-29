@@ -67,7 +67,7 @@ describe("Mi cuenta: pedidos", () => {
     abrir();
 
     await screen.findByText("Pedido #2");
-    expect(within(tarjeta(2)).getByText("Enviado")).toHaveClass("text-status-warning");
+    expect(within(tarjeta(2)).getByText("Enviado")).toHaveClass("text-status-transit");
     expect(within(tarjeta(1)).getByText("Cancelado")).toHaveClass("text-status-error");
   });
 

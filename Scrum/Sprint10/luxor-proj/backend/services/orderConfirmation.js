@@ -19,7 +19,7 @@ export function createOrderConfirmationHandler({ pool }) {
 
         try {
         const result = await pool.query(
-            `SELECT id, total, status, created_at, shipping_cost, delivery_method, delivery_address
+            `SELECT id, total, status, created_at, shipping_cost, delivery_method, delivery_address, discount, coupon_code
             FROM orders
             WHERE id = $1 AND user_id = $2`,
             [id, req.user.id]
@@ -66,6 +66,9 @@ export function createOrderConfirmationHandler({ pool }) {
             created_at: order.created_at,
             // SFTWRKEY-449: envío y forma de entrega
             shipping: Number(order.shipping_cost ?? 0),
+            // descuento del cupón o del precio de mayorista (ya restado del total)
+            discount: Number(order.discount ?? 0),
+            discount_label: order.coupon_code ?? null,
             delivery: deliveryView(order),
             items: itemsResult.rows.map((item) => ({
                 product_id: item.product_id,

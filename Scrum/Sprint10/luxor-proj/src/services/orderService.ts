@@ -17,6 +17,9 @@ export type AdminOrderDetail = Omit<AdminOrder, "items_count"> & {
     // SFTWRKEY-449: a dónde se entrega (o en qué local se recoge) y cuánto fue el envío
     shipping: number;
     delivery: Delivery | null;
+    // SFTWRKEY-432 y mayoristas: descuento ya restado del total
+    discount?: number;
+    discount_label?: string | null;
     items: {
         product_id: string;
         name: string;

@@ -13,6 +13,7 @@ import { formatPrice } from "../utils/formatPrice";
 import { freeShippingHint, shippingFor, shippingLabel, useShippingOptions } from "../utils/shipping";
 import { useCoupon } from "../features/coupons/useCoupon";
 import { CouponField } from "../features/coupons/CouponField";
+import { wholesaleDiscount, wholesaleLabel } from "../utils/wholesale";
 
 export default function CartPage() {
   const { cart, totalPrice, setQuantity, removeFromCart } = useCart();
@@ -23,8 +24,11 @@ export default function CartPage() {
     cart.map((item) => ({ product_id: item.product.id, quantity: item.quantity })),
     totalPrice,
   );
-  const shipping = shippingFor(totalPrice - coupon.discount, "envio", shippingOptions);
   const { user } = useAuth();
+  // feedback del cliente: el mayorista ve su precio y no usa cupones (no se combinan)
+  const wholesalePercent = user?.wholesalePercent;
+  const discount = wholesalePercent ? wholesaleDiscount(totalPrice, wholesalePercent) : coupon.discount;
+  const shipping = shippingFor(totalPrice - discount, "envio", shippingOptions);
   const navigate = useNavigate();
   const outOfStockItems = cart.filter(
     (item) => item.product.stock !== undefined && item.quantity > item.product.stock
@@ -161,6 +165,7 @@ export default function CartPage() {
                   ))}
                 </div>
                 <div className="h-px bg-white/5 mb-6" />
+                {!wholesalePercent && (
                 <div className="mb-6">
                   <CouponField
                     coupon={coupon.coupon}
@@ -171,13 +176,20 @@ export default function CartPage() {
                     onRemove={coupon.remove}
                   />
                 </div>
+                )}
                 {/* SFTWRKEY-449: envío a domicilio (Q35, gratis desde Q500) o gratis al recoger en tienda */}
                 <div className="flex flex-col gap-2 mb-6 text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-primary-champagne/40">Subtotal</span>
                     <span className="text-primary-champagne/70 font-bold">{formatPrice(totalPrice)}</span>
                   </div>
-                  {coupon.discount > 0 && coupon.coupon && (
+                  {wholesalePercent && discount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-primary-champagne/40">{wholesaleLabel(wholesalePercent)}</span>
+                      <span className="text-status-success font-bold">−{formatPrice(discount)}</span>
+                    </div>
+                  )}
+                  {!wholesalePercent && coupon.discount > 0 && coupon.coupon && (
                     <div className="flex justify-between items-center">
                       <span className="text-primary-champagne/40">Descuento ({coupon.coupon.code})</span>
                       <span className="text-status-success font-bold">−{formatPrice(coupon.discount)}</span>
@@ -197,7 +209,7 @@ export default function CartPage() {
                     Total
                   </span>
                   <span className="text-3xl md:text-4xl font-black text-primary-gold tracking-tighter">
-                    {formatPrice(totalPrice - coupon.discount + shipping)}
+                    {formatPrice(totalPrice - discount + shipping)}
                   </span>
                 </div>
                 {hasStockIssue && (

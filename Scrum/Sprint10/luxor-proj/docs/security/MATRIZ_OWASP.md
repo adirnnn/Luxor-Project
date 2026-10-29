@@ -24,17 +24,17 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | Categoría | Filas | Pasa | Falla | Pendiente |
 |---|---|---|---|---|
-| A01 Pérdida de control de acceso | 11 | 11 | 0 | 0 |
+| A01 Pérdida de control de acceso | 12 | 12 | 0 | 0 |
 | A02 Configuración de seguridad incorrecta | 12 | 12 | 0 | 0 |
 | A03 Cadena de suministro de software | 5 | 5 | 0 | 0 |
 | A04 Fallas criptográficas | 5 | 5 | 0 | 0 |
 | A05 Inyección | 8 | 8 | 0 | 0 |
-| A06 Diseño inseguro | 5 | 5 | 0 | 0 |
-| A07 Fallas de autenticación | 8 | 8 | 0 | 0 |
+| A06 Diseño inseguro | 6 | 6 | 0 | 0 |
+| A07 Fallas de autenticación | 9 | 9 | 0 | 0 |
 | A08 Integridad de software y datos | 5 | 5 | 0 | 0 |
 | A09 Registro y alertas | 3 | 3 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 3 | 0 | 0 |
-| **Total** | **65** | **65** | **0** | **0** |
+| **Total** | **68** | **68** | **0** | **0** |
 
 **Riesgos abiertos (Falla) por severidad:** 0 Críticas · 0 Altas · 0 Medias · 0 Bajas. SEC-33 (SFTWRKEY-409), SEC-35 (SFTWRKEY-451) y SEC-50 ya están verificadas. SEC-07 y SEC-31 (límite de intentos por IP detrás de Vercel y Cloudflare) están corregidas y falta verificarlas en producción después del deploy de SFTWRKEY-453.
 
@@ -107,6 +107,9 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-63 | A03 | Frontend (desarrollo) | `package-lock.json` (Vite, Vitest, PostCSS, zod, source-map-js) | Vulnerabilidades conocidas en las herramientas de desarrollo y build (3 altas y 4 moderadas en `npm audit`, 27/10/2026); no llegan al navegador (`npm audit --omit=dev` ya daba 0) | `npm audit fix` y Vitest 5.0.4: `npm audit` → 0 en frontend, 0 en backend y `pip-audit` sin vulnerabilidades en el chatbot; las pruebas, la cobertura y el build siguen pasando | Pasa | AUD | Baja | SFTWRKEY-453 | Verificado |
 | SEC-64 | A01 | Backend | `POST /reviews`, `GET /user/:id/reviews`, `GET/PATCH /admin/reviews` (`routes/reviews.js`) | Reseñas falsas o ajenas: calificar un perfume que no compró, usar el pedido de otro cliente, calificar varias veces o que un cliente modere reseñas | Solo con sesión (401); el perfume tiene que venir en un pedido propio y `entregado` (otro cliente o sin compra → 403 con el mismo mensaje); una reseña por perfume de cada pedido (`UNIQUE`, la segunda → 409); calificación entera de 1 a 5; moderar y listar solo ADMIN (CLIENTE → 403); ocultar recalcula el promedio en la misma transacción (`reviews.test.js`, 26 pruebas) | Pasa | PA | Media | SFTWRKEY-432 | Verificado |
 | SEC-65 | A05 | Frontend / Backend | `ProductReviews.tsx`, `OrderItemReview.tsx`, `GET /products/:id/reviews` | XSS en el comentario de una reseña o datos personales del autor a la vista de todos | El comentario se guarda tal cual y React lo muestra como texto (un comentario con HTML sale escapado: `reviews.test.js`, `Reviews.test.tsx`); hasta 500 caracteres en backend y frontend; la ficha pública solo muestra nombre e inicial del apellido, nunca el correo ni el id del cliente | Pasa | PA | Media | SFTWRKEY-432 | Verificado |
+| SEC-66 | A01 | Backend | `GET/PUT /admin/wholesale`, `GET /admin/customers`, `PATCH /admin/users/:id/role` (`routes/wholesale.js`), `services/checkoutSessions.js` | Rol Mayorista (feedback del cliente): un cliente se da a sí mismo el rol o el descuento, el admin convierte por error una cuenta ADMIN, o el navegador manda su propio descuento | Solo ADMIN usa las rutas (CLIENTE → 403); el porcentaje se limita de 1 a 50 (80 → 400); el cambio de rol solo va entre CLIENTE y MAYORISTA y nunca toca una cuenta ADMIN (→ 404, el admin sigue siendo ADMIN); el descuento lo calcula el servidor con el rol leído de la base y se ignoran `discount` y `total` del navegador; un mayorista no puede sumar un cupón (400 `COUPON_NOT_FOR_WHOLESALE`); al quitarle el rol su siguiente compra sale sin descuento (`wholesale.integration.js`) | Pasa | PA | Alta | Feedback del cliente | Verificado |
+| SEC-67 | A06 | Backend / Frontend | `POST/GET/DELETE /user/:userId/avatar` (`routes/avatars.js`), `UserPage.tsx` | Foto de perfil: subir un archivo que no es imagen (SVG con script, HTML), uno enorme, la foto de otro cliente o ver fotos ajenas | Prueba (`avatars.integration.js`): otro cliente recibe 403 al ver o subir la foto y sin sesión 401, el admin sí la ve; un archivo que dice `image/png` pero no es imagen → 400; la foto se guarda como WebP de 256×256, así nunca se sirve el archivo original; quitarla la borra (→ 404). Por código: límite de 5 MB (413) y 10 subidas por minuto; se guarda en la base (`user_avatars`) y se sirve con `Cache-Control: private` | Pasa | PA | Media | Feedback del cliente | Verificado |
+| SEC-68 | A07 | Frontend | `AuthContext.tsx`, `SessionExpiredNotice.tsx`, `LoginPage.tsx` | La sesión vence (8 horas) y el panel sigue mostrando datos viejos sin avisar: el admin cree que trabaja con la sesión abierta | La sesión se revisa con `/me` al abrir el sitio, cada 5 minutos y al volver a la pestaña; cualquier 401 de la API marca la sesión como vencida, borra los datos del usuario del navegador y muestra un aviso con enlace para volver a entrar (`sessionExpiry.test.tsx`) | Pasa | PA | Baja | Feedback del cliente | Verificado |
 
 ## Escaneo dinámico
 

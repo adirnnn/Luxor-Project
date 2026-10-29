@@ -50,7 +50,7 @@ function fakeDb(routes = []) {
 const HASH = await bcrypt.hash('clave-segura-123', 4);
 const usuarioEnBase = [/FROM users u JOIN rol r ON u.role = r.id_rol WHERE LOWER\(u.email\)/i,
   { rows: [{ id: 7, name: 'Ana', email: 'ana@luxor.com', password_hash: HASH, role: 'CLIENTE' }] }];
-const perfilEnBase = [/FROM users u JOIN rol r ON u.role = r.id_rol WHERE u.id = \$1/i,
+const perfilEnBase = [/FROM users u JOIN rol r ON u.role = r.id_rol (LEFT JOIN user_avatars a ON a.user_id = u.id )?WHERE u.id = \$1/i,
   (params) => ({ rows: params[0] === 7 ? [{ id: 7, name: 'Ana', email: 'ana@luxor.com', role: 'CLIENTE' }] : [] })];
 
 const pedir = (method, ruta, { cookie, token, origin, body } = {}) =>
@@ -123,7 +123,7 @@ test('con la cookie se entra a las rutas protegidas y /me responde quién es', a
 
   const yo = await pedir('GET', '/me', { cookie });
   assert.equal(yo.status, 200);
-  assert.deepEqual((await yo.json()).user, { id: 7, name: 'Ana', email: 'ana@luxor.com', role: 'CLIENTE' });
+  assert.deepEqual((await yo.json()).user, { id: 7, name: 'Ana', email: 'ana@luxor.com', role: 'CLIENTE', avatarVersion: null });
   assert.equal(yo.headers.get('cache-control'), 'no-store');
 
   assert.equal((await pedir('GET', '/user/7/orders', { cookie })).status, 200);

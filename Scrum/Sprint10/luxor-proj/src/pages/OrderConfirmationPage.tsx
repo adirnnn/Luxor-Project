@@ -232,6 +232,14 @@ const cancelled = confirmation?.order.status === "cancelado";
                 ))}
                 </ul>
 
+                {(confirmation.order.discount ?? 0) > 0 && (
+                <div className="flex items-center justify-between gap-4 border-t border-white/10 py-4 text-sm">
+                <span className="text-primary-champagne/70">
+                    Descuento{confirmation.order.discount_label ? ` (${confirmation.order.discount_label})` : ""}
+                </span>
+                <span className="font-bold text-status-success">−{formatPrice(confirmation.order.discount ?? 0)}</span>
+                </div>
+                )}
                 {/* SFTWRKEY-449: envío y a dónde se entrega */}
                 <div className="flex items-center justify-between gap-4 border-t border-white/10 py-4 text-sm">
                 <span className="text-primary-champagne/70">

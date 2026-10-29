@@ -9,6 +9,8 @@ import { QuantitySelector } from "../../components/ui/QuantitySelector";
 import { WishlistButton } from "../wishlist/WishlistButton";
 import { formatPrice } from "../../utils/formatPrice";
 import { RatingSummary } from "../reviews/StarRating";
+import { useAuth } from "../../context/AuthContext";
+import { wholesaleDiscount } from "../../utils/wholesale";
 
 export type ProductDetailProps = {
   id: string;
@@ -39,6 +41,7 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   rating_count,
 }) => {
   const { addToCart } = useCart();
+  const { user } = useAuth();
   // SFTWRKEY-391: cantidad a agregar de una vez (máximo: stock real, tope de 10).
   const [qty, setQty] = useState(1);
   const max = maxQuantityFor({ stock });
@@ -63,6 +66,12 @@ export const ProductDetail: FC<ProductDetailProps> = ({
             <div className="flex flex-col gap-2 md:gap-4">
               <H1 className="!text-[1.875rem] sm:!text-5xl md:!text-h1 leading-none tracking-tighter uppercase italic break-words md:break-normal">{name}</H1>
               <span className="text-2xl md:text-4xl font-black tracking-tight text-primary-gold">{formatPrice(price)}</span>
+              {/* feedback del cliente: el mayorista ve su precio (el cobro lo calcula el servidor) */}
+              {user?.wholesalePercent && (
+                <span className="text-sm md:text-lg font-bold text-status-success">
+                  Tu precio mayorista: {formatPrice(price - wholesaleDiscount(price, user.wholesalePercent))}
+                </span>
+              )}
               {/* SFTWRKEY-431: lleva a la lista de reseñas (ProductReviews, en ProductPage) */}
               <a href="#resenas" className="self-start rounded hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-gold">
                 <RatingSummary average={rating_avg} count={rating_count} size="lg" />

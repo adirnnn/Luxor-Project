@@ -15,6 +15,8 @@ import cartRouter from './routes/cart.js';
 import reportsRouter from './routes/reports.js';
 import securityRouter from './routes/security.js';
 import checkoutRouter from './routes/checkout.js';
+import wholesaleRouter from './routes/wholesale.js';
+import avatarsRouter from './routes/avatars.js';
 import { sweepExpiredSessions } from './services/checkoutSessions.js';
 import paymentWebhooksRouter from './routes/paymentWebhooks.js';
 import chatbotRouter from './routes/chatbot.js';
@@ -75,6 +77,10 @@ app.use(cartRouter);
 app.use(reportsRouter);
 app.use(securityRouter);
 app.use(checkoutRouter);
+// feedback del cliente: rol Mayorista y su porcentaje
+app.use(wholesaleRouter);
+// feedback del cliente: foto de perfil
+app.use(avatarsRouter);
 app.use(chatbotRouter);
 
 app.get("/", (req, res) => res.send("Backend Luxor funcionando"));

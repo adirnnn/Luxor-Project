@@ -8,7 +8,7 @@ import { formatPrice } from "./formatPrice";
 
 export type DeliveryMethod = "envio" | "recoger";
 
-export type PickupStore = { id: string; name: string; address: string };
+export type PickupStore = { id: string; name: string; address: string; hours?: string };
 
 export type ShippingAddress = { billingAddress: string; city: string; postalCode: string; country: string };
 
@@ -23,9 +23,9 @@ export const DEFAULT_SHIPPING: ShippingOptions = {
     flatCents: 3500,
     freeFromCents: 50000,
     stores: [
-        { id: "victoria", name: "Joyería Victoria", address: "Metro Centro, 19 calle 3-31, Zona 1" },
-        { id: "glamour", name: "Joyería Glamour", address: "C.C. El Pueblito, Zona 1" },
-        { id: "luxor", name: "Joyería Luxor", address: "C.C. San Isidro, Zona 16" },
+        { id: "victoria", name: "Joyería Victoria", address: "Metro Centro, 19 calle 3-31, Zona 1", hours: "Lunes a sábado de 9:00 a 17:00" },
+        { id: "glamour", name: "Joyería Glamour", address: "C.C. El Pueblito, Zona 1", hours: "Lunes a sábado de 8:00 a 17:00" },
+        { id: "luxor", name: "Joyería Luxor", address: "C.C. San Isidro, Zona 16", hours: "Lunes a sábado de 10:00 a 19:00" },
     ],
 };
 

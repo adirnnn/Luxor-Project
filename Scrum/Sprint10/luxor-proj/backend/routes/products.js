@@ -28,6 +28,43 @@ router.get("/products", async (req, res) => {
   }
 });
 
+// Feedback del cliente: la portada muestra los más vendidos en vez de todo el catálogo.
+// Orden: unidades vendidas en pedidos no cancelados, luego calificación y luego los más nuevos
+// (así la portada se ve bien aunque todavía haya pocas ventas). Primero los que tienen stock.
+// ?category=<id> filtra por categoría para las pestañas de la portada.
+export const BEST_SELLERS_LIMIT = 8;
+
+router.get("/products/best-sellers", async (req, res) => {
+  const category = req.query.category === undefined || req.query.category === '' ? null : Number(req.query.category);
+  if (category !== null && (!Number.isInteger(category) || category < 1)) {
+    return res.status(400).json({ message: "La categoría no es válida." });
+  }
+  try {
+    const result = await pool.query(
+      `SELECT p.*, c.nombre AS category_name, COALESCE(v.vendidos, 0)::int AS sold
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       LEFT JOIN (
+         SELECT oi.product_id, SUM(oi.quantity) AS vendidos
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         WHERE o.status <> 'cancelado'
+         GROUP BY oi.product_id
+       ) v ON v.product_id = p.id
+       WHERE ($1::int IS NULL OR p.category_id = $1)
+       ORDER BY (p.stock > 0) DESC, COALESCE(v.vendidos, 0) DESC, p.rating_avg DESC NULLS LAST, p.created_at DESC
+       LIMIT $2`,
+      [category, BEST_SELLERS_LIMIT]
+    );
+    res.set("Cache-Control", "public, max-age=300").json(
+      result.rows.map((p) => ({ ...p, notes: { salida: p.salida, corazon: p.corazon, fondo: p.fondo } }))
+    );
+  } catch (err) {
+    console.error("Error al obtener los más vendidos:", err.message);
+    res.status(500).json({ message: "Error al obtener productos" });
+  }
+});
+
 // SFTWRKEY-424: catálogo con paginación y filtros (q, brand, category, minPrice, maxPrice, sort, page, pageSize).
 // Se deja /products intacto porque otras pantallas (carrito, admin, buscador) esperan el arreglo completo.
 router.get("/products/catalog", async (req, res) => {

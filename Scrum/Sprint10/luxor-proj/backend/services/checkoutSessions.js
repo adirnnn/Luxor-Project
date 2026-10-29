@@ -13,6 +13,7 @@ import pool from '../db.js';
 import { gateway } from './paymentGateway.js';
 import { notifyOrderStatus } from './orderEmails.js';
 import { shippingCents, deliveryView } from './shipping.js';
+import { wholesalePercentFor, wholesaleDiscountCents, wholesaleLabel } from './wholesale.js';
 import { findUsableCoupon, reserveCouponUse, releaseCouponUse, confirmCouponUse } from './coupons.js';
 
 // el checkout de Recurrente y el stock apartado vencen a los 30 minutos
@@ -176,7 +177,14 @@ export async function createSession(db, { userId = null, guest = null, lines, ce
 
   let coupon = null;
   let discount = 0;
-  if (couponCode) {
+  // Feedback del cliente: el mayorista paga con su porcentaje; no se combina con cupones
+  const wholesalePercent = await wholesalePercentFor(db, userId);
+  if (wholesalePercent) {
+    if (couponCode) {
+      throw checkoutError(400, 'COUPON_NOT_FOR_WHOLESALE', 'Los cupones no se combinan con tu precio de mayorista.');
+    }
+    discount = wholesaleDiscountCents(cents, wholesalePercent);
+  } else if (couponCode) {
     ({ coupon, discountCents: discount } = await findUsableCoupon(db, {
       code: couponCode,
       subtotalCents: cents,
@@ -186,13 +194,15 @@ export async function createSession(db, { userId = null, guest = null, lines, ce
     }));
   }
 
+  // lo que se guarda en coupon_code: el código del cupón o "Mayorista 10%"
+  const discountLabel = wholesalePercent && discount > 0 ? wholesaleLabel(wholesalePercent) : coupon?.code ?? null;
   const productsCents = cents - discount;
   const shipping = shippingCents(productsCents, delivery.method);
   const total = productsCents + shipping;
   await db.query(
     `INSERT INTO checkout_sessions (id, user_id, guest, items, total, delivery, shipping_cost, expires_at, discount, coupon_code)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-    [id, userId, guest, JSON.stringify(lines), total / 100, delivery, shipping / 100, expiresAt, discount / 100, coupon?.code ?? null]
+    [id, userId, guest, JSON.stringify(lines), total / 100, delivery, shipping / 100, expiresAt, discount / 100, discountLabel]
   );
   if (coupon) {
     await reserveCouponUse(db, {
@@ -209,7 +219,8 @@ export async function createSession(db, { userId = null, guest = null, lines, ce
     cents: total,
     subtotalCents: cents,
     discountCents: discount,
-    couponCode: coupon?.code ?? null,
+    couponCode: discountLabel,
+    wholesale: Boolean(wholesalePercent),
     shippingCents: shipping,
     expiresAt,
   };
@@ -220,7 +231,7 @@ export async function createSession(db, { userId = null, guest = null, lines, ce
 export function checkoutItems(session) {
   if (session.discountCents > 0) {
     return [{
-      name: `Compra Perfumería Victoria · cupón ${session.couponCode}${session.shippingCents ? ' · envío incluido' : ''}`,
+      name: `Compra Perfumería Victoria · ${session.wholesale ? 'precio mayorista' : `cupón ${session.couponCode}`}${session.shippingCents ? ' · envío incluido' : ''}`,
       quantity: 1,
       price: session.cents / 100,
     }];

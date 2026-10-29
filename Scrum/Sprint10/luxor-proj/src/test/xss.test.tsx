@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import { ProductCard } from "../features/perfumes/ProductCard";
 import { ProductDetail } from "../features/perfumes/ProductDetail";
+import { AuthProvider } from "../context/AuthContext";
 import { Chatbot } from "../features/chatbot/Chatbot";
 
 vi.mock("../services/chatbotService", () => ({
@@ -39,7 +40,8 @@ describe("XSS almacenado", () => {
 
   it("ProductDetail muestra el nombre, la descripción y las notas con HTML como texto", () => {
     const { container } = render(
-      <MemoryRouter>
+      <AuthProvider>
+<MemoryRouter>
         <ProductDetail
           id="xss"
           name={SCRIPT}
@@ -48,7 +50,8 @@ describe("XSS almacenado", () => {
           description={IMG}
           notes={{ salida: SCRIPT, corazon: IMG, fondo: "normal" }}
         />
-      </MemoryRouter>,
+      </MemoryRouter>
+      </AuthProvider>,
     );
 
     expect(screen.getAllByText(SCRIPT).length).toBeGreaterThan(0);

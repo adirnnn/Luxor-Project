@@ -2,6 +2,8 @@
 // Los datos de envío vienen del footer y de store_info.py del chatbot. La política de cambios
 // todavía no está confirmada por la tienda, así que aquí no se inventan plazos.
 import { LegalPage, type LegalSection } from "../features/legal/LegalPage";
+import { StoreLocations } from "../components/stores/StoreMap";
+import { DEFAULT_SHIPPING } from "../utils/shipping";
 
 const lista = "list-disc space-y-2 pl-5 marker:text-primary-gold";
 
@@ -30,12 +32,9 @@ const sections: LegalSection[] = [
     title: "Recogida en tienda",
     content: (
       <>
-        <p>Si prefieres, elige "Recoger en tienda" al pagar (sin costo de envío) y pasa por tu pedido a cualquiera de nuestros locales:</p>
-        <ul className={lista}>
-          <li>Joyería Victoria: Metro Centro, 19 calle 3-31, Zona 1.</li>
-          <li>Joyería Glamour: C.C. El Pueblito, Zona 1.</li>
-          <li>Joyería Luxor: C.C. San Isidro, Zona 16.</li>
-        </ul>
+        <p className="mb-4">Si prefieres, elige "Recoger en tienda" al pagar (sin costo de envío) y pasa por tu pedido a cualquiera de nuestros locales, de lunes a sábado:</p>
+        {/* feedback del cliente: mapa y horario de cada local */}
+        <StoreLocations stores={DEFAULT_SHIPPING.stores} />
       </>
     ),
   },

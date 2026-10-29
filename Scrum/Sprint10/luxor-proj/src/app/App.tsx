@@ -8,6 +8,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import { ScrollToTop } from "./ScrollToTop";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
+import { SessionExpiredNotice } from "../components/auth/SessionExpiredNotice";
 import { SearchProvider } from "../context/SearchContext";
 import { WishlistProvider } from "../context/WishlistContext";
 import { ProtectedRoute } from "../components/routing/ProtectedRoute";
@@ -29,6 +30,8 @@ const AdminOrdersPage = lazy(() => import("../pages/AdminOrdersPage"));
 const AdminReviewsPage = lazy(() => import("../pages/AdminReviewsPage"));
 // SFTWRKEY-432
 const AdminCouponsPage = lazy(() => import("../pages/AdminCouponsPage"));
+// feedback del cliente: rol Mayorista
+const AdminWholesalePage = lazy(() => import("../pages/AdminWholesalePage"));
 const ImportPerfumesPage = lazy(() => import("../pages/ImportPerfumesPage"));
 const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage"));
@@ -98,6 +101,7 @@ function AnimatedRoutes() {
           <Route path="/admin/pedidos" element={<PageWrapper><AdminOrdersPage /></PageWrapper>} />
           <Route path="/admin/resenas" element={<PageWrapper><AdminReviewsPage /></PageWrapper>} />
           <Route path="/admin/cupones" element={<PageWrapper><AdminCouponsPage /></PageWrapper>} />
+          <Route path="/admin/mayoristas" element={<PageWrapper><AdminWholesalePage /></PageWrapper>} />
         </Route>
 
         <Route
@@ -131,6 +135,7 @@ export default function App() {
           <SearchProvider>
             <BrowserRouter>
               <ScrollToTop />
+              <SessionExpiredNotice />
               <AnimatedRoutes />
             </BrowserRouter>
           </SearchProvider>

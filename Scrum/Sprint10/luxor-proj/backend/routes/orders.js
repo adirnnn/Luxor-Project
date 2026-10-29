@@ -111,7 +111,7 @@ router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req,
   try {
     const orderResult = await pool.query(
       `SELECT o.id, o.created_at, o.total, o.status,
-              o.shipping_cost, o.delivery_method, o.delivery_address,
+              o.shipping_cost, o.delivery_method, o.delivery_address, o.discount, o.coupon_code,
               u.name AS user_name, u.email AS user_email,
               g.guest_name, g.guest_email, g.address
        FROM orders o
@@ -155,6 +155,9 @@ router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req,
         customer_email: o.user_email ?? o.guest_email ?? null,
         // SFTWRKEY-449: a dónde se entrega (o en qué local se recoge) y cuánto fue el envío
         shipping: Number(o.shipping_cost ?? 0),
+        // SFTWRKEY-432 y mayoristas: descuento ya restado del total y su etiqueta (cupón o "Mayorista 10%")
+        discount: Number(o.discount ?? 0),
+        discount_label: o.coupon_code ?? null,
         delivery: deliveryView({ ...o, guestAddress: o.address }),
         items: itemsResult.rows.map((item) => ({
           product_id: item.product_id,

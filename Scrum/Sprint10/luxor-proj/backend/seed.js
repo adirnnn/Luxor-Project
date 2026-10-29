@@ -53,8 +53,17 @@ const seedUsers = async () => {
 
     await pool.query(`
       INSERT INTO rol (nombre)
-      VALUES ('ADMIN'), ('VENDEDOR'), ('CLIENTE')
+      VALUES ('ADMIN'), ('VENDEDOR'), ('CLIENTE'), ('MAYORISTA')
       ON CONFLICT (nombre) DO NOTHING;
+    `);
+
+    // Feedback del cliente: ajustes de la tienda que cambia el admin (por ahora, el porcentaje
+    // de descuento de los mayoristas; services/wholesale.js usa 10 % si no hay ninguno guardado)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS store_settings (
+        key VARCHAR(50) PRIMARY KEY,
+        value TEXT NOT NULL
+      );
     `);
 
     console.log('Tabla rol lista');
@@ -371,6 +380,16 @@ const seedUsers = async () => {
        WHERE image ~ '^/assets/products/[^/]+\\.(png|jpe?g)$'`
     );
     console.log(`Imagenes pasadas a WebP: ${imagenes.rowCount}`);
+
+    // Feedback del cliente: foto de perfil (WebP de 256 px, una por usuario). Es privada: solo la ve
+    // su dueño o un admin (routes/avatars.js), por eso no va en product_images, que es pública.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_avatars (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        data BYTEA NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
     // SFTWRKEY-457: fotos que el admin sube desde el panel (ya convertidas a WebP)
     await pool.query(`

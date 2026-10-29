@@ -33,6 +33,14 @@ export async function fetchProducts(): Promise<Product[]> {
   return res.json();
 }
 
+// Feedback del cliente: la portada muestra los más vendidos (opcionalmente de una categoría)
+export async function fetchBestSellers(categoryId?: number): Promise<Product[]> {
+  const query = categoryId ? `?category=${categoryId}` : '';
+  const res = await fetch(`${API_URL}/products/best-sellers${query}`);
+  if (!res.ok) throw new Error('Error al obtener productos');
+  return res.json();
+}
+
 // SFTWRKEY-275: Traer categorías disponibles para el filtro de la UI
 export async function fetchCategories(): Promise<Category[]> {
   const res = await fetch(`${API_URL}/categories`);

@@ -12,12 +12,31 @@ import { PageMeta } from "../components/seo/PageMeta";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { formatPrice } from "../utils/formatPrice";
+import { fetchAdminOrders } from "../services/orderService";
+
+// Psicología del color (feedback del cliente): rojo = agotado, ámbar = queda poco, verde = bien.
+// 3 es el mismo umbral de stock bajo del backend (LOW_STOCK_THRESHOLD).
+const LOW_STOCK = 3;
+const stockStyle = (stock: number) =>
+    stock <= 0
+        ? { label: "Agotado", className: "bg-status-error-bg text-status-error border border-status-error/40" }
+        : stock <= LOW_STOCK
+            ? { label: `Quedan ${stock}`, className: "bg-status-warning-bg text-status-warning border border-status-warning/40" }
+            : { label: `Stock: ${stock}`, className: "bg-status-success-bg text-status-success border border-status-success/30" };
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    // pedidos pagados que todavía no se preparan: se resaltan en naranja en el botón Pedidos
+    const [porPreparar, setPorPreparar] = useState(0);
+
+    useEffect(() => {
+        fetchAdminOrders({ status: "pagado", limit: 1 })
+            .then((data) => setPorPreparar(data.total))
+            .catch(() => setPorPreparar(0));
+    }, []);
 
     const loadProducts = async () => {
         try {
@@ -77,13 +96,26 @@ export default function AdminDashboard() {
                                 </div>
 
                                 {/* SFTWRKEY-419: vista de pedidos */}
-                                <Link to="/admin/pedidos">
+                                <Link to="/admin/pedidos" className="relative">
                                     <Button variant="outline" className="transition-all">Pedidos</Button>
+                                    {porPreparar > 0 && (
+                                        <span
+                                            className="absolute -top-2 -right-2 min-w-6 h-6 px-1.5 rounded-full bg-status-attention text-primary-black text-[11px] font-black flex items-center justify-center"
+                                            aria-label={`${porPreparar} ${porPreparar === 1 ? "pedido por preparar" : "pedidos por preparar"}`}
+                                        >
+                                            {porPreparar}
+                                        </span>
+                                    )}
                                 </Link>
 
                                 {/* SFTWRKEY-431: moderación de reseñas */}
                                 <Link to="/admin/resenas">
                                     <Button variant="outline" className="transition-all">Reseñas</Button>
+                                </Link>
+
+                                {/* feedback del cliente: rol Mayorista y su porcentaje */}
+                                <Link to="/admin/mayoristas">
+                                    <Button variant="outline" className="transition-all">Mayoristas</Button>
                                 </Link>
 
                                 {/* SFTWRKEY-432: cupones de descuento */}
@@ -102,8 +134,6 @@ export default function AdminDashboard() {
                                 </Link>
                             </div>
                         </div>
-
-                        <SecurityAlerts />
 
                         {loading ? (
                             <LoadingSpinner message="Cargando inventario..." />
@@ -133,8 +163,8 @@ export default function AdminDashboard() {
                                                 <H3 className="text-xs md:text-2xl font-light text-primary-champagne uppercase tracking-tight truncate">{product.name}</H3>
                                                 <div className="flex items-center justify-between flex-wrap gap-1">
                                                     <span className="text-sm md:text-2xl font-light text-primary-gold">{formatPrice(product.price)}</span>
-                                                    <span className="px-2 md:px-4 py-0.5 md:py-1 bg-white/5 rounded-full text-[8px] md:text-[10px] font-bold text-primary-champagne/30 uppercase tracking-widest italic">
-                                                        Stock: {product.stock ?? 0}
+                                                    <span className={`px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${stockStyle(product.stock ?? 0).className}`}>
+                                                        {stockStyle(product.stock ?? 0).label}
                                                     </span>
                                                 </div>
                                             </div>
@@ -199,7 +229,9 @@ export default function AdminDashboard() {
 
                                             <div className="hidden md:flex flex-col items-end gap-1 shrink-0">
                                                 <span className="text-[10px] font-black text-primary-champagne/20 uppercase tracking-widest italic">Existencias</span>
-                                                <span className="text-lg font-light text-primary-champagne/60">{product.stock ?? 0}</span>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${stockStyle(product.stock ?? 0).className}`}>
+                                                    {stockStyle(product.stock ?? 0).label}
+                                                </span>
                                             </div>
                                             <div className="hidden md:block h-10 w-px bg-white/5" />
                                             <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -245,6 +277,9 @@ export default function AdminDashboard() {
                                 ))}
                             </div>
                         )}
+
+                        {/* feedback del cliente: las alertas de seguridad van al final, no es lo primero que se ve */}
+                        <SecurityAlerts />
                     </div>
                 </Container>
             </Section>

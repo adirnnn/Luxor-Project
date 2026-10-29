@@ -10,6 +10,10 @@ export interface AuthUser {
     email: string;
     name: string;
     role?: string;
+    // feedback del cliente: porcentaje de descuento si el usuario es MAYORISTA (lo manda /me)
+    wholesalePercent?: number;
+    // feedback del cliente: versión de la foto de perfil (null si no tiene); cambia con cada foto nueva
+    avatarVersion?: number | null;
 }
 
 export interface AuthResult {

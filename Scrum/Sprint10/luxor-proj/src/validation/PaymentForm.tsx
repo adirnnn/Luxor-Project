@@ -8,6 +8,7 @@ import {
     type PaymentFormState,
 } from "./usePaymentForm";
 import { DEFAULT_SHIPPING, type DeliveryMethod, type PickupStore } from "../utils/shipping";
+import { StoreMap } from "../components/stores/StoreMap";
 
 type FieldProps = {
     id: string;
@@ -299,6 +300,7 @@ export const PaymentForm = ({
             </p>
 
             {recoger ? (
+            <>
             <FormSelect
                 id="pay-store"
                 label="Local"
@@ -308,6 +310,11 @@ export const PaymentForm = ({
                 options={stores.map((store) => ({ value: store.id, label: `${store.name}: ${store.address}` }))}
                 onChange={(v) => handleChange("pickupStore", v)}
             />
+            {/* feedback del cliente: horario y mapa del local elegido */}
+            {stores.find((store) => store.id === values.pickupStore) && (
+                <StoreMap store={stores.find((store) => store.id === values.pickupStore)!} compact />
+            )}
+            </>
             ) : (
             <>
             <FormField

@@ -7,6 +7,7 @@ import { rateLimit } from '../services/rateLimit.js';
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from '../services/securityEvents.js';
 import { onRateLimitBlock } from '../services/securityAudit.js';
 import { clientIp } from '../services/clientIp.js';
+import { WHOLESALE_ROLE, getWholesalePercent } from '../services/wholesale.js';
 
 const router = Router();
 const SALT_ROUNDS = 12;
@@ -28,8 +29,10 @@ router.post("/logout", (_req, res) => {
 router.get("/me", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT u.id, u.name, u.email, r.nombre AS role
+      `SELECT u.id, u.name, u.email, r.nombre AS role,
+              EXTRACT(EPOCH FROM a.updated_at)::bigint AS "avatarVersion"
        FROM users u JOIN rol r ON u.role = r.id_rol
+       LEFT JOIN user_avatars a ON a.user_id = u.id
        WHERE u.id = $1`,
       [req.user.id]
     );
@@ -38,7 +41,12 @@ router.get("/me", authenticate, async (req, res) => {
       return res.status(401).json({ success: false, message: 'Sesión inválida o expirada.' });
     }
     res.set('Cache-Control', 'no-store');
-    res.json({ success: true, user: result.rows[0] });
+    const user = result.rows[0];
+    // feedback del cliente: con la versión el navegador pide la foto nueva cuando cambia
+    user.avatarVersion = user.avatarVersion == null ? null : Number(user.avatarVersion);
+    // feedback del cliente: el mayorista ve sus precios con su porcentaje en la tienda
+    if (user.role === WHOLESALE_ROLE) user.wholesalePercent = await getWholesalePercent(pool);
+    res.json({ success: true, user });
   } catch (err) {
     console.error('Error leyendo la sesión:', err.message);
     res.status(500).json({ success: false });

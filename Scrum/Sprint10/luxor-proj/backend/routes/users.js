@@ -30,7 +30,7 @@ router.get("/user/:userId", authenticate, authorizeSelfOrRoles("userId", "ADMIN"
 router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", "ADMIN"), async (req, res) => {
   try {
     const ordersResult = await pool.query(
-      `SELECT id, total, status, created_at, shipping_cost, delivery_method, delivery_address
+      `SELECT id, total, status, created_at, shipping_cost, delivery_method, delivery_address, discount, coupon_code
        FROM orders
        WHERE user_id = $1
        ORDER BY created_at DESC`,
@@ -63,9 +63,12 @@ router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", 
     }
 
     // SFTWRKEY-449: envío y forma de entrega de cada pedido
-    const orders = ordersResult.rows.map(({ shipping_cost, delivery_method, delivery_address, ...order }) => ({
+    const orders = ordersResult.rows.map(({ shipping_cost, delivery_method, delivery_address, discount, coupon_code, ...order }) => ({
       ...order,
       shipping: Number(shipping_cost ?? 0),
+      // descuento del cupón o del precio de mayorista (ya restado del total)
+      discount: Number(discount ?? 0),
+      discount_label: coupon_code ?? null,
       delivery: deliveryView({ delivery_method, delivery_address }),
       items: items
         .filter((item) => item.order_id === order.id)
