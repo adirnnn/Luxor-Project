@@ -1,5 +1,5 @@
 // SFTWRKEY-445: vuelta desde la página de pago de Recurrente
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "../context/AuthContext";
@@ -66,6 +66,17 @@ describe("PaymentResultPage", () => {
     expect(screen.getByText("Gratis")).toBeInTheDocument();
     expect(screen.getByText(/Recoger en Joyería Luxor, C\.C\. San Isidro/)).toBeInTheDocument();
     expect(confirmar).toHaveBeenCalledWith(REF);
+  });
+
+  it("el invitado puede descargar su comprobante en PDF o imprimirlo", async () => {
+    confirmar.mockResolvedValue(pagado(true));
+    const imprimir = vi.spyOn(window, "print").mockImplementation(() => {});
+    abrir(`/pago/resultado?ref=${REF}`);
+
+    expect(await screen.findByRole("button", { name: /Descargar PDF/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Imprimir/ }));
+    expect(imprimir).toHaveBeenCalled();
+    imprimir.mockRestore();
   });
 
   it("con cuenta pasa a la confirmación del pedido", async () => {

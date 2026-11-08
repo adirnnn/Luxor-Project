@@ -10,6 +10,8 @@ import { formatPrice } from "../utils/formatPrice";
 import { trackPurchase } from "../utils/analytics";
 import { describeDelivery, shippingLabel } from "../utils/shipping";
 import { storeCoupon } from "../features/coupons/coupon";
+import { ReceiptActions } from "../components/orders/ReceiptActions";
+import type { ReceiptData } from "../utils/receiptPdf";
 
 // SFTWRKEY-445: Recurrente regresa aquí después del pago (/pago/resultado?ref=...).
 // El backend le pregunta a Recurrente si el cobro quedó aprobado; solo entonces existe el pedido.
@@ -76,12 +78,33 @@ export default function PaymentResultPage() {
     return <Navigate to={`/compra-confirmada/${result.order.id}`} replace />;
   }
 
+  // comprobante del invitado en PDF, con lo mismo que se ve en pantalla
+  const receipt: ReceiptData | null =
+    result?.status === "pagado" && result.order
+      ? {
+          orderId: result.order.id,
+          createdAt: result.order.created_at,
+          items: result.order.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            subtotal: item.price * item.quantity,
+          })),
+          discount: result.order.discount,
+          discountLabel: result.order.coupon,
+          shipping: result.order.shipping ?? 0,
+          delivery: result.order.delivery,
+          total: result.order.total,
+          payment: result.payment,
+        }
+      : null;
+
   return (
     <MainLayout>
       <PageMeta title="Resultado del pago" noindex />
       <Container className="pb-24 md:pb-32 px-4 md:px-6">
         <PageTitle className="mb-8 md:mb-12">Pago</PageTitle>
-        <section className={card} aria-live="polite">
+        <section className={`${card} receipt-print`} aria-live="polite">
           {error ? (
             <>
               <p className="font-bold text-status-error mb-2">No pudimos revisar tu pago</p>
@@ -131,7 +154,8 @@ export default function PaymentResultPage() {
                   Pagado con {result.payment.brand ?? "tarjeta"} •••• {result.payment.last4}
                 </p>
               )}
-              <Link to="/perfumes" className="mt-8 inline-block text-primary-gold underline">
+              {receipt && <ReceiptActions receipt={receipt} className="mt-8" />}
+              <Link to="/perfumes" className="mt-6 inline-block text-primary-gold underline print:hidden">
                 Seguir comprando
               </Link>
             </>

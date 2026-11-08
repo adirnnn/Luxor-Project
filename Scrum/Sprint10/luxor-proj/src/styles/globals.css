@@ -159,3 +159,37 @@ html {
 }
 
 .chatbot-markdown th { background: rgba(212, 175, 55, 0.12); }
+
+/* Impresión del comprobante del pedido: hoja blanca, texto oscuro, sin menú ni chatbot */
+@media print {
+  @page { margin: 14mm; }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #1a1614 !important;
+  }
+
+  .floating-social { display: none !important; }
+
+  .receipt-print,
+  .receipt-print * {
+    color: #1a1614 !important;
+    background: transparent !important;
+    border-color: #d8cfc4 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .receipt-print {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .receipt-print .text-primary-gold { color: #9b673c !important; }
+  .receipt-print li,
+  .receipt-print dl > div { break-inside: avoid; }
+}

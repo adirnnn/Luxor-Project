@@ -18,10 +18,13 @@ export const MainLayout = ({ children, fullBleed = false }: Props) => {
   const esAdmin = RUTAS_SIN_CONTACTO.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
 
   return (
-  <div className="min-h-screen flex flex-col bg-primary-black">
-    <Navbar />
-    <main className={clsx("flex-1 pb-24 md:pb-16", !fullBleed && "pt-32 md:pt-40")}>{children}</main>
-    {!esAdmin && <div className="floating-social" aria-label="Canales de contacto">
+  <div className="min-h-screen flex flex-col bg-primary-black print:min-h-0 print:bg-white">
+    {/* al imprimir (comprobante del pedido) solo sale el contenido de la página */}
+    <div className="print:hidden">
+      <Navbar />
+    </div>
+    <main className={clsx("flex-1 pb-24 md:pb-16 print:p-0", !fullBleed && "pt-32 md:pt-40")}>{children}</main>
+    {!esAdmin && <div className="floating-social print:hidden" aria-label="Canales de contacto">
       {/* En mobile WhatsApp/Instagram viven en el menú de la navbar para que solo flote el chatbot. */}
       <div className="hidden md:flex md:flex-col md:gap-3">
         {SOCIAL_LINKS.map((link) => (

@@ -12,6 +12,8 @@ import { fetchOrderConfirmation, type OrderConfirmation } from "../services/orde
 import { friendlyError } from "../services/apiClient";
 import { formatPrice } from "../utils/formatPrice";
 import { describeDelivery, shippingLabel } from "../utils/shipping";
+import { ReceiptActions } from "../components/orders/ReceiptActions";
+import type { ReceiptData } from "../utils/receiptPdf";
 
 type Result = {
     key: string;
@@ -82,6 +84,28 @@ const error = !validId
 const confirmation = current?.data;
 const cancelled = confirmation?.order.status === "cancelado";
 
+// datos del comprobante en PDF, los mismos que se ven en pantalla
+const receipt: ReceiptData | null = confirmation
+    ? {
+        orderId: confirmation.order.id,
+        createdAt: confirmation.order.created_at,
+        status: statusLabel(confirmation.order.status),
+        customer: user.name,
+        items: confirmation.order.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            subtotal: item.subtotal,
+        })),
+        discount: confirmation.order.discount,
+        discountLabel: confirmation.order.discount_label,
+        shipping: confirmation.order.shipping ?? 0,
+        delivery: confirmation.order.delivery,
+        total: confirmation.order.total,
+        payment: confirmation.payment,
+    }
+    : null;
+
     return (
         <MainLayout>
         <PageMeta title="Confirmación de compra" noindex />
@@ -127,7 +151,7 @@ const cancelled = confirmation?.order.status === "cancelado";
                 <LoadingSpinner message="Consultando tu pedido…" />
             </div>
             ) : (
-            <section className="glass-card mx-auto max-w-3xl border-primary-gold/20 p-6 md:p-10">
+            <section className="receipt-print glass-card mx-auto max-w-3xl border-primary-gold/20 p-6 md:p-10">
                 <div className="mb-7 text-center">
                 <PageTitle className="mb-4">
                     {cancelled
@@ -269,7 +293,9 @@ const cancelled = confirmation?.order.status === "cancelado";
                 e historial desde Mis compras.
                 </p>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
+                {receipt && <ReceiptActions receipt={receipt} className="mb-3" />}
+
+                <div className="flex flex-col gap-3 sm:flex-row print:hidden">
                 <Link
                     className={`${linkStyle} bg-primary-gold text-primary-black hover:bg-primary-champagne`}
                     to="/mi-cuenta"
