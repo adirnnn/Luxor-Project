@@ -42,6 +42,7 @@ router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", 
     const ids = ordersResult.rows.map((order) => order.id);
     let items = [];
     let history = [];
+    let payments = [];
     if (ids.length > 0) {
       const itemsResult = await pool.query(
         `SELECT oi.order_id, oi.product_id, oi.quantity, oi.unit_price, p.name, p.image
@@ -60,6 +61,15 @@ router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", 
       );
       items = itemsResult.rows;
       history = historyResult.rows;
+      // SFTWRKEY-433: marca y últimos 4 dígitos del pago aprobado, para el comprobante en PDF
+      const paymentsResult = await pool.query(
+        `SELECT DISTINCT ON (order_id) order_id, card_brand, card_last4
+         FROM payments
+         WHERE order_id = ANY($1::int[]) AND status = 'aprobado'
+         ORDER BY order_id, created_at DESC, id DESC`,
+        [ids]
+      );
+      payments = paymentsResult.rows;
     }
 
     // SFTWRKEY-449: envío y forma de entrega de cada pedido
@@ -76,6 +86,9 @@ router.get("/user/:userId/orders", authenticate, authorizeSelfOrRoles("userId", 
       history: history
         .filter((h) => h.order_id === order.id)
         .map(({ order_id, ...h }) => h),
+      payment: (({ card_brand, card_last4 } = {}) => (card_last4 ? { brand: card_brand, last4: card_last4 } : null))(
+        payments.find((p) => p.order_id === order.id)
+      ),
     }));
 
     // sin cache: si el admin cambia el estado, el cliente lo ve al recargar

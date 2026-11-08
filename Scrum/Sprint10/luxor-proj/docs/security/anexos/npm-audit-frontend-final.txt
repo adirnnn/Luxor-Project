@@ -1,0 +1,8 @@
+# npm audit — frontend, cierre del Sprint 10 (08/11/2026)
+# minimatch 10.2.5 (GHSA-g3hv-75wg-m249, moderada, solo en typescript-eslint, herramienta de desarrollo)
+# se corrigió con overrides en package.json: minimatch ^11.0.1 para @typescript-eslint/typescript-estree
+
+found 0 vulnerabilities
+
+# npm audit --omit=dev (dependencias que llegan al navegador)
+found 0 vulnerabilities

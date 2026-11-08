@@ -47,6 +47,7 @@ const Q = {
   pedidos: /FROM orders WHERE user_id = \$1/i,
   items: /FROM order_items oi LEFT JOIN products p/i,
   historial: /FROM order_status_history WHERE order_id = ANY/i,
+  pagos: /FROM payments WHERE order_id = ANY/i,
 };
 
 const pedir = (userId, token) =>
@@ -69,6 +70,7 @@ const DOS_PEDIDOS = [
     { order_id: 2, from_status: 'pagado', to_status: 'en_preparacion', changed_at: '2026-10-03T10:00:00Z' },
     { order_id: 2, from_status: 'en_preparacion', to_status: 'enviado', changed_at: '2026-10-04T10:00:00Z' },
   ] }],
+  [Q.pagos, { rows: [{ order_id: 2, card_brand: 'VISA', card_last4: '4242' }] }],
 ];
 
 test('pedidos del cliente: cada pedido trae sus productos y su historial de estados', async (t) => {
@@ -88,6 +90,15 @@ test('pedidos del cliente: cada pedido trae sus productos y su historial de esta
   assert.equal('order_id' in orders[0].items[0], false, 'no se repite el order_id dentro de cada renglón');
 });
 
+test('pedidos del cliente: cada pedido trae la marca y los últimos 4 dígitos de su pago (SFTWRKEY-433)', async (t) => {
+  const { restore } = fakeDb(DOS_PEDIDOS);
+  t.after(restore);
+
+  const { orders } = await (await pedir(7, signToken({ id: 7, role: 'CLIENTE' }))).json();
+  assert.deepEqual(orders[0].payment, { brand: 'VISA', last4: '4242' });
+  assert.equal(orders[1].payment, null);
+});
+
 test('pedidos del cliente: un producto que ya no existe se muestra con su id', async (t) => {
   const { restore } = fakeDb(DOS_PEDIDOS);
   t.after(restore);
@@ -96,13 +107,14 @@ test('pedidos del cliente: un producto que ya no existe se muestra con su id', a
   assert.equal(orders[0].items[1].name, 'borrado');
 });
 
-test('pedidos del cliente: son 3 consultas sin importar cuántos pedidos haya (sin N+1)', async (t) => {
+test('pedidos del cliente: son 4 consultas sin importar cuántos pedidos haya (sin N+1)', async (t) => {
   const { log, restore } = fakeDb(DOS_PEDIDOS);
   t.after(restore);
 
   await pedir(7, signToken({ id: 7, role: 'CLIENTE' }));
-  assert.equal(log.length, 3);
+  assert.equal(log.length, 4);
   assert.deepEqual(log.find((e) => Q.items.test(e.sql)).params, [[2, 1]]);
+  assert.deepEqual(log.find((e) => Q.pagos.test(e.sql)).params, [[2, 1]]);
   assert.deepEqual(log.find((e) => Q.historial.test(e.sql)).params, [[2, 1]]);
   assert.deepEqual(log.find((e) => Q.pedidos.test(e.sql)).params, ['7']);
 });

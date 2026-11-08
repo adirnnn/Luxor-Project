@@ -61,8 +61,13 @@ export async function iniciarSesion(page: Page, email: string, password: string)
 }
 
 export async function cerrarSesion(page: Page) {
-  await page.getByRole("button", { name: /menú de la cuenta/i }).click();
-  await page.getByRole("button", { name: "Salir" }).click();
+  // si la página se vuelve a dibujar justo después de abrir el menú (por ejemplo al terminar de
+  // cargar), el menú queda cerrado: se vuelve a abrir hasta poder hacer clic en "Salir"
+  const salir = page.getByRole("button", { name: "Salir" });
+  await expect(async () => {
+    if (!(await salir.isVisible())) await page.getByRole("button", { name: /menú de la cuenta/i }).click();
+    await salir.click({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
   await expect(page.getByRole("link", { name: /entrar/i }).first()).toBeVisible();
 }
 

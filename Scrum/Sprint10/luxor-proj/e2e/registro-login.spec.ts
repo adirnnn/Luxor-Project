@@ -17,6 +17,9 @@ test("el admin registra un cliente y el cliente inicia sesión con su cuenta", a
   await page.getByRole("button", { name: "Crear Usuario" }).click();
   await expect(page.getByText("¡Usuario creado exitosamente!")).toBeVisible();
   await expect(page).toHaveURL(/\/admin$/);
+  // el panel se carga aparte (lazy): la URL cambia antes de que aparezca, y si se abre el menú
+  // en ese momento, el panel nuevo lo reemplaza cerrado y "Salir" nunca vuelve a salir
+  await expect(page.getByRole("heading", { name: "Panel Maestro" })).toBeVisible();
   await cerrarSesion(page);
 
   // 2. con una contraseña equivocada no entra

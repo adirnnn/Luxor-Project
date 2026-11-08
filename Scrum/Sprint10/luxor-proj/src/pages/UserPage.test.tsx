@@ -90,6 +90,9 @@ describe("Mi cuenta: pedidos", () => {
     const seguimiento = within(detalle).getAllByRole("listitem").slice(-3);
     expect(seguimiento.map((li) => li.querySelector("p")?.textContent)).toEqual(["Pagado", "En preparación", "Enviado"]);
     expect(seguimiento[2]).toHaveTextContent(/2026/);
+    // SFTWRKEY-433: el comprobante se descarga desde aquí; imprimir no, porque saldría toda la página
+    expect(within(detalle).getByRole("button", { name: /descargar pdf/i })).toBeInTheDocument();
+    expect(within(detalle).queryByRole("button", { name: /imprimir/i })).not.toBeInTheDocument();
   });
 
   it("se abre y se cierra con el teclado", async () => {

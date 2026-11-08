@@ -1,0 +1,4 @@
+# pip-audit — chatbot, cierre del Sprint 10 (08/11/2026)
+# pip-audit -r requirements.txt
+
+No known vulnerabilities found

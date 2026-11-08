@@ -6,6 +6,8 @@ import { downloadReceiptPdf, type ReceiptData } from "../../utils/receiptPdf";
 type Props = {
   receipt: ReceiptData;
   className?: string;
+  // en Mi cuenta se imprimiría toda la página, así que ahí solo va la descarga
+  printable?: boolean;
 };
 
 const buttonStyle =
@@ -15,7 +17,7 @@ const buttonStyle =
   "disabled:cursor-wait disabled:opacity-60";
 
 // Botones del comprobante: descargar en PDF o imprimir. No salen en la hoja impresa.
-export function ReceiptActions({ receipt, className }: Props) {
+export function ReceiptActions({ receipt, className, printable = true }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +46,7 @@ export function ReceiptActions({ receipt, className }: Props) {
           {downloading ? "Generando PDF…" : "Descargar PDF"}
         </button>
 
+        {printable && (
         <button
           type="button"
           onClick={() => window.print()}
@@ -52,6 +55,7 @@ export function ReceiptActions({ receipt, className }: Props) {
           <Printer size={16} aria-hidden="true" />
           Imprimir
         </button>
+        )}
       </div>
 
       {error && (

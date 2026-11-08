@@ -6,6 +6,7 @@ import { H2, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../services/apiClient";
 import { PageMeta } from "../components/seo/PageMeta";
+import { ReceiptActions } from "../components/orders/ReceiptActions";
 import { statusLabel, statusStyle } from "../constants/orderStatus";
 import { formatPrice } from "../utils/formatPrice";
 import { describeDelivery, shippingLabel, type Delivery } from "../utils/shipping";
@@ -43,6 +44,8 @@ interface Order {
   // SFTWRKEY-432 y mayoristas: descuento ya restado del total (cupón o "Mayorista 10%")
   discount?: number;
   discount_label?: string | null;
+  // SFTWRKEY-433: pago aprobado, para el comprobante en PDF
+  payment?: { brand: string | null; last4: string | null } | null;
 }
 
 interface UserInfo {
@@ -646,6 +649,28 @@ export default function UserPage() {
                               <span className="text-xs uppercase tracking-widest text-primary-champagne/60">Total</span>
                               <span className="font-bold text-primary-gold">{formatPrice(order.total)}</span>
                             </div>
+                            {/* SFTWRKEY-433: el mismo comprobante que en la confirmación de compra */}
+                            <ReceiptActions
+                              printable={false}
+                              receipt={{
+                                orderId: order.id,
+                                createdAt: order.created_at,
+                                status: statusLabel(order.status),
+                                customer: user?.name,
+                                items: order.items.map((item) => ({
+                                  name: item.name,
+                                  quantity: item.quantity,
+                                  unitPrice: Number(item.unit_price),
+                                  subtotal: Number(item.unit_price) * item.quantity,
+                                })),
+                                discount: order.discount,
+                                discountLabel: order.discount_label,
+                                shipping: order.shipping ?? 0,
+                                delivery: order.delivery,
+                                total: Number(order.total),
+                                payment: order.payment,
+                              }}
+                            />
                           </div>
 
                           {order.history.length > 0 && (
