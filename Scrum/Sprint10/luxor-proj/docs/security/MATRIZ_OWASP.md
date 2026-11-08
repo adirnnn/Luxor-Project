@@ -1,6 +1,6 @@
 # Matriz de riesgos OWASP Top 10 — Perfumería Victoria
 
-**Marco:** OWASP Top 10 (2025) · **Última actualización:** 28/10/2026
+**Marco:** OWASP Top 10 (2025) · **Última actualización:** 06/11/2026
 
 Documento vivo de los Sprints 8 y 9. Se actualiza cada vez que se termina una tarea de seguridad y al cierre se exporta a PDF como anexo del informe.
 
@@ -24,7 +24,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 
 | Categoría | Filas | Pasa | Falla | Pendiente |
 |---|---|---|---|---|
-| A01 Pérdida de control de acceso | 12 | 12 | 0 | 0 |
+| A01 Pérdida de control de acceso | 13 | 13 | 0 | 0 |
 | A02 Configuración de seguridad incorrecta | 12 | 12 | 0 | 0 |
 | A03 Cadena de suministro de software | 5 | 5 | 0 | 0 |
 | A04 Fallas criptográficas | 5 | 5 | 0 | 0 |
@@ -34,7 +34,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | A08 Integridad de software y datos | 5 | 5 | 0 | 0 |
 | A09 Registro y alertas | 3 | 3 | 0 | 0 |
 | A10 Condiciones excepcionales | 3 | 3 | 0 | 0 |
-| **Total** | **68** | **68** | **0** | **0** |
+| **Total** | **69** | **69** | **0** | **0** |
 
 **Riesgos abiertos (Falla) por severidad:** 0 Críticas · 0 Altas · 0 Medias · 0 Bajas. SEC-33 (SFTWRKEY-409), SEC-35 (SFTWRKEY-451) y SEC-50 ya están verificadas. SEC-07 y SEC-31 (límite de intentos por IP detrás de Vercel y Cloudflare) están corregidas y falta verificarlas en producción después del deploy de SFTWRKEY-453.
 
@@ -110,6 +110,7 @@ Los resultados marcados `RC` salen solo de la lectura del código. Cada uno se c
 | SEC-66 | A01 | Backend | `GET/PUT /admin/wholesale`, `GET /admin/customers`, `PATCH /admin/users/:id/role` (`routes/wholesale.js`), `services/checkoutSessions.js` | Rol Mayorista (feedback del cliente): un cliente se da a sí mismo el rol o el descuento, el admin convierte por error una cuenta ADMIN, o el navegador manda su propio descuento | Solo ADMIN usa las rutas (CLIENTE → 403); el porcentaje se limita de 1 a 50 (80 → 400); el cambio de rol solo va entre CLIENTE y MAYORISTA y nunca toca una cuenta ADMIN (→ 404, el admin sigue siendo ADMIN); el descuento lo calcula el servidor con el rol leído de la base y se ignoran `discount` y `total` del navegador; un mayorista no puede sumar un cupón (400 `COUPON_NOT_FOR_WHOLESALE`); al quitarle el rol su siguiente compra sale sin descuento (`wholesale.integration.js`) | Pasa | PA | Alta | Feedback del cliente | Verificado |
 | SEC-67 | A06 | Backend / Frontend | `POST/GET/DELETE /user/:userId/avatar` (`routes/avatars.js`), `UserPage.tsx` | Foto de perfil: subir un archivo que no es imagen (SVG con script, HTML), uno enorme, la foto de otro cliente o ver fotos ajenas | Prueba (`avatars.integration.js`): otro cliente recibe 403 al ver o subir la foto y sin sesión 401, el admin sí la ve; un archivo que dice `image/png` pero no es imagen → 400; la foto se guarda como WebP de 256×256, así nunca se sirve el archivo original; quitarla la borra (→ 404). Por código: límite de 5 MB (413) y 10 subidas por minuto; se guarda en la base (`user_avatars`) y se sirve con `Cache-Control: private` | Pasa | PA | Media | Feedback del cliente | Verificado |
 | SEC-68 | A07 | Frontend | `AuthContext.tsx`, `SessionExpiredNotice.tsx`, `LoginPage.tsx` | La sesión vence (8 horas) y el panel sigue mostrando datos viejos sin avisar: el admin cree que trabaja con la sesión abierta | La sesión se revisa con `/me` al abrir el sitio, cada 5 minutos y al volver a la pestaña; cualquier 401 de la API marca la sesión como vencida, borra los datos del usuario del navegador y muestra un aviso con enlace para volver a entrar (`sessionExpiry.test.tsx`) | Pasa | PA | Baja | Feedback del cliente | Verificado |
+| SEC-69 | A01 | Frontend / Backend | `src/utils/receiptPdf.ts`, `ReceiptActions.tsx`, `GET /orders/:id/confirmation` | Un cliente obtiene el comprobante de un pedido ajeno cambiando el número en la URL, con su nombre, dirección y últimos dígitos de tarjeta | El PDF se arma en el navegador solo con los datos que ya devolvió la confirmación, que filtra por el dueño de la sesión: otro usuario que cambia el número recibe 404 sin datos del pedido (`orderConfirmation.test.js`). El invitado lo descarga solo desde el resultado de su propio pago. Contenido del PDF probado en `receiptPdf.test.ts` | Pasa | PA | Alta | SFTWRKEY-433 | Verificado |
 
 ## Escaneo dinámico
 

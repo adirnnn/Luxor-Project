@@ -10,8 +10,9 @@
 #     (render los concatena), asi que van como "./Dockerfile" y ".".
 
 databases:
-  - name: luxor-db
-    databaseName: habibi_parfums
+  # 08/11/2026: la base gratuita luxor-db venció el 06/11; se reemplazó por luxor-db-2, que vence el 08/12/2026
+  - name: luxor-db-2
+    databaseName: luxor_db_2
     # sin "user:": render no acepta "postgres" (nombre reservado) y genera uno
     # solo. el backend lo toma via fromDatabase -> property: user, asi que
     # queda cableado igual.
@@ -35,23 +36,23 @@ services:
       # datos de conexion a la base, tomados del servicio de postgres de arriba.
       - key: POSTGRES_HOST
         fromDatabase:
-          name: luxor-db
+          name: luxor-db-2
           property: host
       - key: POSTGRES_PORT
         fromDatabase:
-          name: luxor-db
+          name: luxor-db-2
           property: port
       - key: POSTGRES_USER
         fromDatabase:
-          name: luxor-db
+          name: luxor-db-2
           property: user
       - key: POSTGRES_PASSWORD
         fromDatabase:
-          name: luxor-db
+          name: luxor-db-2
           property: password
       - key: POSTGRES_DB
         fromDatabase:
-          name: luxor-db
+          name: luxor-db-2
           property: database
       # secreto para firmar los jwt. render genera uno solo la primera vez.
       - key: JWT_SECRET
