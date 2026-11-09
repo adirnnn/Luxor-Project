@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { vi } from "vitest";
 import { AuthProvider } from "../../context/AuthContext";
 import { ProductDetail } from "./ProductDetail";
+import { ProductCard } from "./ProductCard";
 import RestockUnsubscribePage from "../../pages/RestockUnsubscribePage";
 import { subscribeRestockAlert, unsubscribeRestockAlerts } from "../../services/restockAlertService";
 
@@ -102,6 +103,28 @@ describe("Avísame cuando vuelva", () => {
 
     await user.click(screen.getByRole("button", { name: /Avísame cuando vuelva/ }));
     expect(screen.getByLabelText("Tu correo")).toHaveValue("ana@correo.com");
+  });
+});
+
+describe("tarjeta de un perfume agotado en el catálogo", () => {
+  const tarjeta = (stock?: number) =>
+    render(
+      <MemoryRouter>
+        <ProductCard id="khamrah" name="Lattafa Khamrah" price={650} image="/k.webp" stock={stock} />
+      </MemoryRouter>,
+    );
+
+  it("muestra la etiqueta Agotado y lleva a la ficha en vez de agregar al carrito", () => {
+    tarjeta(0);
+    expect(screen.getByText("Agotado")).toBeInTheDocument();
+    expect(screen.getByText("Avísame cuando vuelva").closest("a")).toHaveAttribute("href", "/producto/khamrah");
+    expect(screen.queryByRole("button", { name: "Agregar" })).not.toBeInTheDocument();
+  });
+
+  it("con stock sigue igual que antes", () => {
+    tarjeta(5);
+    expect(screen.queryByText("Agotado")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Agregar" })).toBeInTheDocument();
   });
 });
 

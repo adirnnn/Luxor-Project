@@ -42,8 +42,9 @@ export function parseCatalogParams(query = {}) {
 }
 
 export function buildCatalogQuery(params) {
-  // Solo se muestran perfumes con stock disponible.
-  const where = ['p.stock > 0'];
+  // SFTWRKEY-450: los agotados también salen, pero al final, para que se pueda pedir
+  // "Avísame cuando vuelva" desde su ficha. La búsqueda y los relacionados siguen sin mostrarlos.
+  const where = ['TRUE'];
   const values = [];
   const add = (value) => {
     values.push(value);
@@ -70,7 +71,7 @@ export function buildCatalogQuery(params) {
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
        WHERE ${whereSql}
-       ORDER BY ${SORTS[params.sort]}
+       ORDER BY (p.stock > 0) DESC, ${SORTS[params.sort]}
        LIMIT ${limit} OFFSET ${offset}`,
     listValues: values,
   };

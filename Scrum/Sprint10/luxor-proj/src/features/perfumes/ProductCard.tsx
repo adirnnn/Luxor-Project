@@ -35,6 +35,8 @@ export const ProductCard: FC<ProductCardProps> = ({
   ratingCount,
 }) => {
   const { addToCart } = useCart();
+  // SFTWRKEY-450: los agotados salen al final del catálogo; desde su ficha se pide el aviso
+  const agotado = typeof stock === "number" && stock <= 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,20 +67,35 @@ export const ProductCard: FC<ProductCardProps> = ({
               loading={priority ? "eager" : "lazy"}
               fetchPriority={priority ? "high" : "auto"}
               decoding="async"
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              className={clsx(
+                "w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110",
+                agotado && "opacity-60 grayscale-[40%]"
+              )}
             />
           </div>
-          
+
+          {agotado && (
+            <span className="absolute top-4 left-4 z-10 rounded-full border border-status-error/40 bg-status-error-bg px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-status-error">
+              Agotado
+            </span>
+          )}
+
           {/* SFTWRKEY-429: lista de deseos */}
           <WishlistButton productId={id} productName={name} />
 
-          {/* Quick Add Overlay */}
-          <button 
-            onClick={handleAddToCart}
-            className="absolute bottom-6 left-6 right-6 py-4 bg-primary-gold text-primary-black text-xs font-black uppercase tracking-[0.2em] opacity-0 translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 rounded-button shadow-2xl z-10 hover:bg-primary-champagne"
-          >
-            Agregar
-          </button>
+          {/* Quick Add Overlay. Agotado: no se agrega; el enlace lleva a la ficha para pedir el aviso */}
+          {agotado ? (
+            <span className="absolute bottom-6 left-6 right-6 py-4 text-center bg-primary-black/80 border border-primary-gold text-primary-gold text-xs font-black uppercase tracking-[0.2em] opacity-0 translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 rounded-button shadow-2xl z-10">
+              Avísame cuando vuelva
+            </span>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              className="absolute bottom-6 left-6 right-6 py-4 bg-primary-gold text-primary-black text-xs font-black uppercase tracking-[0.2em] opacity-0 translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 rounded-button shadow-2xl z-10 hover:bg-primary-champagne"
+            >
+              Agregar
+            </button>
+          )}
         </div>
 
         {/* Info */}
