@@ -52,6 +52,14 @@ function validate(values: RegisterFormState): RegisterFormErrors {
 }
 
 
+export type RegisteredUser = { id: number; name: string; email: string; role: string };
+
+// recibe también el correo y la contraseña para poder iniciar la sesión al terminar
+export type RegisterSuccess = (
+  user: RegisteredUser,
+  credentials: { email: string; password: string },
+) => void | Promise<void>;
+
 export function useRegisterForm() {
   const [values, setValues] = useState<RegisterFormState>({
     name: "",
@@ -72,7 +80,7 @@ export function useRegisterForm() {
   );
 
   const handleSubmit = useCallback(
-    async (onSuccess: (user: { id: number; name: string; email: string; role: string }) => void) => {
+    async (onSuccess: RegisterSuccess) => {
       const validationErrors = validate(values);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
@@ -97,9 +105,13 @@ export function useRegisterForm() {
 
         if (res.ok && data.success) {
           setIsSuccess(true);
-          onSuccess(data.user);
-        } else if (res.status === 500) {
-          setErrors({ credentials: "El correo ya está registrado o hubo un error en el servidor." });
+          await onSuccess(data.user, { email: values.email.trim(), password: values.password });
+        } else if (res.status === 409) {
+          setErrors({ email: "El correo ya está registrado." });
+        } else if (res.status === 429) {
+          setErrors({ credentials: "Hiciste demasiados intentos. Espera un rato y vuelve a intentarlo." });
+        } else if (res.status >= 500) {
+          setErrors({ credentials: "Hubo un problema en el servidor. Intenta más tarde." });
         } else {
           setErrors({ credentials: data.message || "No se pudo crear la cuenta." });
         }

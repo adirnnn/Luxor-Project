@@ -1,9 +1,10 @@
 import { useState } from "react";
 import clsx from "clsx";
-import { useRegisterForm } from "./useRegisterForm";
+import { useRegisterForm, type RegisterSuccess } from "./useRegisterForm";
+import { PASSWORD_HINT } from "./passwordPolicy";
 
 type Props = {
-  onSuccess: (user: { id: number; name: string; email: string; role: string }) => void;
+  onSuccess: RegisterSuccess;
 };
 
 const FormInput = ({
@@ -14,7 +15,7 @@ const FormInput = ({
   onChange: (v: string) => void;
 }) => (
   <div className="flex flex-col gap-1.5">
-    <label htmlFor={id} className="text-xs font-medium tracking-widest uppercase text-secondary-brown">
+    <label htmlFor={id} className="text-xs font-black tracking-[0.2em] uppercase text-primary-gold">
       {label}
     </label>
     <input
@@ -22,9 +23,9 @@ const FormInput = ({
       autoComplete={autoComplete} disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
       className={clsx(
-        "w-full px-4 py-3 rounded-xl border text-sm text-primary-black bg-white/70",
-        "placeholder:text-secondary-brown/40 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
-        error ? "border-red-400 bg-red-50/30" : "border-primary-beige hover:border-secondary-brown/40"
+        "w-full px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-secondary-charcoal/50",
+        "placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary-gold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium",
+        error ? "ring-2 ring-red-500 bg-red-500/10" : ""
       )}
     />
     {error && (
@@ -38,11 +39,11 @@ const FormInput = ({
   </div>
 );
 
-const PasswordInput = (props: Omit<Parameters<typeof FormInput>[0], "type">) => {
+const PasswordInput = (props: Omit<Parameters<typeof FormInput>[0], "type"> & { hint?: string }) => {
   const [show, setShow] = useState(false);
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={props.id} className="text-xs font-medium tracking-widest uppercase text-secondary-brown">
+      <label htmlFor={props.id} className="text-xs font-black tracking-[0.2em] uppercase text-primary-gold">
         {props.label}
       </label>
       <div className="relative">
@@ -51,14 +52,14 @@ const PasswordInput = (props: Omit<Parameters<typeof FormInput>[0], "type">) => 
           placeholder={props.placeholder} autoComplete={props.autoComplete}
           disabled={props.disabled} onChange={(e) => props.onChange(e.target.value)}
           className={clsx(
-            "w-full px-4 py-3 pr-12 rounded-xl border text-sm text-primary-black bg-white/70",
-            "placeholder:text-secondary-brown/40 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
-            props.error ? "border-red-400 bg-red-50/30" : "border-primary-beige hover:border-secondary-brown/40"
+            "w-full px-6 py-4 pr-12 rounded-2xl border-none text-base text-primary-champagne bg-secondary-charcoal/50",
+            "placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary-gold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium",
+            props.error ? "ring-2 ring-red-500 bg-red-500/10" : ""
           )}
         />
         <button type="button" onClick={() => setShow((s) => !s)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-brown/60 hover:text-secondary-brown transition-colors p-1"
-          tabIndex={-1} aria-label={show ? "Ocultar" : "Mostrar"}>
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-champagne/50 hover:text-primary-gold transition-colors p-1"
+          tabIndex={-1} aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}>
           {show ? (
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
@@ -71,6 +72,9 @@ const PasswordInput = (props: Omit<Parameters<typeof FormInput>[0], "type">) => 
           )}
         </button>
       </div>
+      {props.hint && !props.error && (
+        <p className="text-xs text-primary-champagne/50 mt-0.5">{props.hint}</p>
+      )}
       {props.error && (
         <p className="text-xs text-red-500 flex items-center gap-1 mt-0.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -112,7 +116,7 @@ export const RegisterForm = ({ onSuccess }: Props) => {
         disabled={isLoading || isSuccess} onChange={(v) => handleChange("email", v)} />
 
       <PasswordInput id="reg-password" label="Contraseña" value={values.password}
-        error={errors.password} placeholder="••••••••" autoComplete="new-password"
+        error={errors.password} hint={PASSWORD_HINT} placeholder="••••••••" autoComplete="new-password"
         disabled={isLoading || isSuccess} onChange={(v) => handleChange("password", v)} />
 
       <PasswordInput id="reg-confirm" label="Confirmar contraseña" value={values.confirmPassword}
@@ -124,7 +128,7 @@ export const RegisterForm = ({ onSuccess }: Props) => {
           "mt-2 w-full py-3.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200",
           isValid && !isLoading && !isSuccess
             ? "bg-primary-gold text-primary-black hover:opacity-90 active:scale-[0.98]"
-            : "bg-primary-beige text-secondary-brown cursor-not-allowed opacity-60"
+            : "bg-secondary-charcoal text-primary-champagne/40 cursor-not-allowed"
         )}>
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">

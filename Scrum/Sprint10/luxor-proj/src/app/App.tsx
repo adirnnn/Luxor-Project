@@ -20,6 +20,8 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 // celular no tiene que bajar y ejecutar el código del panel de admin para ver la portada.
 const CartPage = lazy(() => import("../pages/CartPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
+// registro de clientes desde la tienda
+const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const WishlistPage = lazy(() => import("../pages/WishlistPage"));
 const ReportPage = lazy(() => import("../pages/ReportPage"));
 const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
@@ -77,6 +79,7 @@ function AnimatedRoutes() {
         <Route path="/producto/:id" element={<PageWrapper><ProductPage /></PageWrapper>} />
         <Route path="/cart" element={<PageWrapper><CartPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
+        <Route path="/registro" element={<PageWrapper><RegisterPage /></PageWrapper>} />
         {/* SFTWRKEY-428: recuperar contraseña */}
         <Route path="/recuperar-contrasena" element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
         <Route path="/restablecer-contrasena" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />

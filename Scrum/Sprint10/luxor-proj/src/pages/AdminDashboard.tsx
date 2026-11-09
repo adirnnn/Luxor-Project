@@ -123,6 +123,11 @@ export default function AdminDashboard() {
                                     <Button variant="outline" className="transition-all">Cupones</Button>
                                 </Link>
 
+                                {/* crear la cuenta de un cliente (antes solo se llegaba escribiendo la dirección) */}
+                                <Link to="/admin/nuevo-usuario">
+                                    <Button variant="outline" className="transition-all">Nuevo cliente</Button>
+                                </Link>
+
                                 <Link to="/admin/importar">
                                     <Button variant="outline" className="transition-all">Importar CSV</Button>
                                 </Link>
