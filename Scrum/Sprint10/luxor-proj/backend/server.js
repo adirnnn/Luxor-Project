@@ -30,6 +30,7 @@ import productImagesRouter from './routes/productImages.js';
 import orderLookupRouter from './routes/orderLookup.js';
 import reviewsRouter from './routes/reviews.js';
 import couponsRouter from './routes/coupons.js';
+import restockAlertsRouter from './routes/restockAlerts.js';
 import commerceRouter from './commerce.js';
 import { csrfProtection } from './services/csrf.js';
 
@@ -108,6 +109,9 @@ app.use(reviewsRouter);
 
 // SFTWRKEY-432: cupones de descuento
 app.use(couponsRouter);
+
+// SFTWRKEY-450: "Avísame cuando vuelva" para perfumes agotados
+app.use(restockAlertsRouter);
 
 // Checkout de invitado, login con Google y alertas del admin. Va al final porque su
 // middleware prepara las tablas en cada petición que entra al router: así solo lo

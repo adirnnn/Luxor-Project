@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { authenticate, requireRoles } from '../services/auth.js';
 import { CSV_TEMPLATE, validateCsv, CsvValidationError } from '../csvImport.js';
+import { notifyRestock } from '../services/restockAlerts.js';
 
 const router = Router();
 
@@ -84,6 +85,9 @@ router.post("/imports/products", authenticate, requireRoles("ADMIN"), async (req
     } finally {
       client.release();
     }
+    // SFTWRKEY-450: hoy el CSV solo crea perfumes nuevos (los existentes se rechazan), así que no
+    // debería haber avisos pendientes; se revisa igual por si la importación llega a reponer stock.
+    void notifyRestock(validProducts.filter((product) => product.stock > 0).map((product) => product.id));
     const history = await saveImportHistory({ fileName: fileName.slice(0, 255), totalRows: parsed.totalRows, importedRows: validProducts.length, errors });
     res.status(201).json({ success: true, message: "Importación procesada.", summary: history });
   } catch (err) {

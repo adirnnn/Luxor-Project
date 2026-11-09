@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { authenticate, requireRoles } from '../services/auth.js';
 import { notifyOrderStatus } from '../services/orderEmails.js';
+import { notifyRestock } from '../services/restockAlerts.js';
 import { isValidStatus, canTransition, ORDER_TRANSITIONS } from '../services/orderStatus.js';
 import { createOrderConfirmationHandler } from '../services/orderConfirmation.js';
 
@@ -220,8 +221,9 @@ router.patch('/admin/orders/:id/status', authenticate, requireRoles('ADMIN'), as
     // SFTWRKEY-418: al cancelar, las unidades del pedido regresan al stock.
     // Se suma por producto porque un pedido puede traer el mismo perfume en dos renglones.
     // Como 'cancelado' es final, repetir la peticion da 400 y el stock no se devuelve dos veces.
+    let restocked = [];
     if (status === 'cancelado') {
-      await client.query(
+      const returned = await client.query(
         `UPDATE products p SET stock = p.stock + oi.quantity
          FROM (
            SELECT product_id, SUM(quantity) AS quantity
@@ -229,9 +231,11 @@ router.patch('/admin/orders/:id/status', authenticate, requireRoles('ADMIN'), as
            WHERE order_id = $1
            GROUP BY product_id
          ) oi
-         WHERE p.id = oi.product_id`,
+         WHERE p.id = oi.product_id
+         RETURNING p.id`,
         [id]
       );
+      restocked = (returned?.rows ?? []).map((row) => row.id);
     }
 
     await client.query(
@@ -244,6 +248,8 @@ router.patch('/admin/orders/:id/status', authenticate, requireRoles('ADMIN'), as
 
     // SFTWRKEY-448: un correo por cada cambio de estado; si falla, el cambio ya quedó guardado
     void notifyOrderStatus(pool, id, status);
+    // SFTWRKEY-450: las unidades devueltas pueden reponer un perfume agotado
+    if (restocked.length) void notifyRestock(restocked);
 
     const order = updated.rows[0];
     res.json({ success: true, order: { ...order, total: Number(order.total) } });

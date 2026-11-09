@@ -1,6 +1,7 @@
 // backend/seed.js
 import pool from './db.js';
 import bcrypt from 'bcryptjs';
+import { ensureRestockAlertsTable } from './services/restockAlerts.js';
 const isProduction = process.env.NODE_ENV === 'production';
 
 const seedAdmin = async () => {
@@ -530,6 +531,10 @@ const seedUsers = async () => {
     await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount NUMERIC(10, 2) NOT NULL DEFAULT 0`);
     await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(30)`);
     console.log('Tablas coupons y coupon_uses listas');
+
+    // SFTWRKEY-450: "Avísame cuando vuelva". Cada fila es un correo que pidió aviso para un perfume agotado.
+    await ensureRestockAlertsTable(pool);
+    console.log('Tabla restock_alerts lista');
     console.log('Tabla reviews y promedio de calificaciones listos');
 
     // SOLO USAR PARA REINICIAR EN CASO DE EMERGENCIA

@@ -6,6 +6,7 @@ import { authenticate, requireRoles } from '../services/auth.js';
 import { isSafeImage, IMAGE_ERROR_MESSAGE } from '../services/imageValidation.js';
 
 import { parseCatalogParams, buildCatalogQuery } from '../services/catalogQuery.js';
+import { notifyRestock } from '../services/restockAlerts.js';
 
 const router = Router();
 
@@ -247,6 +248,8 @@ router.put("/products/:id", authenticate, requireRoles("ADMIN"), async (req, res
     if (result.rowCount === 0) {
       return res.status(404).json({ success: false, message: "Producto no encontrado" });
     }
+    // SFTWRKEY-450: si el admin repuso un perfume agotado, se avisa a quien lo pidió
+    if (Number(stock) > 0) void notifyRestock([req.params.id]);
     res.json({ success: true, message: "Producto actualizado" });
   } catch (err) {
     console.error(err);

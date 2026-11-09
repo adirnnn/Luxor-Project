@@ -12,6 +12,7 @@ import crypto from 'node:crypto';
 import pool from '../db.js';
 import { gateway } from './paymentGateway.js';
 import { notifyOrderStatus } from './orderEmails.js';
+import { notifyRestock } from './restockAlerts.js';
 import { shippingCents, deliveryView } from './shipping.js';
 import { wholesalePercentFor, wholesaleDiscountCents, wholesaleLabel } from './wholesale.js';
 import { findUsableCoupon, reserveCouponUse, releaseCouponUse, confirmCouponUse } from './coupons.js';
@@ -270,13 +271,15 @@ const getSession = async (id) =>
 
 // Cancela una sesión que no se pagó: el stock regresa y el intento queda en payments sin pedido
 async function closeUnpaid(sessionId, failureReason = null) {
-  return withTransaction(async (db) => {
+  let restocked = [];
+  const status = await withTransaction(async (db) => {
     const session = (await db.query('SELECT * FROM checkout_sessions WHERE id = $1 FOR UPDATE', [sessionId])).rows[0];
     if (!session || session.status !== 'pendiente') return session?.status ?? null;
 
     for (const line of session.items) {
       await db.query('UPDATE products SET stock = stock + $1 WHERE id = $2', [line.quantity, line.product_id]);
     }
+    restocked = session.items.map((line) => line.product_id);
     await db.query(`UPDATE checkout_sessions SET status = 'cancelado' WHERE id = $1`, [sessionId]);
     // SFTWRKEY-432: el uso del cupón apartado vuelve a quedar disponible
     if (session.coupon_code) await releaseCouponUse(db, sessionId);
@@ -290,6 +293,9 @@ async function closeUnpaid(sessionId, failureReason = null) {
     }
     return 'cancelado';
   });
+  // SFTWRKEY-450: el stock apartado regresó y puede reponer un perfume agotado (después del COMMIT)
+  if (restocked.length) void notifyRestock(restocked);
+  return status;
 }
 
 // Crea el pedido de una sesión que Recurrente confirmó como pagada. Es idempotente: si el cliente

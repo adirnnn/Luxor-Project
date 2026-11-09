@@ -11,6 +11,7 @@ import { formatPrice } from "../../utils/formatPrice";
 import { RatingSummary } from "../reviews/StarRating";
 import { useAuth } from "../../context/AuthContext";
 import { wholesaleDiscount } from "../../utils/wholesale";
+import { RestockAlertForm } from "./RestockAlertForm";
 
 export type ProductDetailProps = {
   id: string;
@@ -106,6 +107,8 @@ export const ProductDetail: FC<ProductDetailProps> = ({
               >
                 {agotado ? "AGOTADO" : "AGREGAR AL CARRITO"}
               </Button>
+              {/* SFTWRKEY-450: "Avísame cuando vuelva" */}
+              {agotado && <RestockAlertForm key={id} productId={id} productName={name} />}
               {/* SFTWRKEY-429 */}
               <WishlistButton productId={id} productName={name} variant="full" className="w-full md:w-auto" />
             </div>

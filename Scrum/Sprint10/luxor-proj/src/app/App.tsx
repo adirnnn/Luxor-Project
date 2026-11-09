@@ -35,6 +35,8 @@ const AdminWholesalePage = lazy(() => import("../pages/AdminWholesalePage"));
 const ImportPerfumesPage = lazy(() => import("../pages/ImportPerfumesPage"));
 const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage"));
+// SFTWRKEY-450: cancelar los avisos de "Avísame cuando vuelva"
+const RestockUnsubscribePage = lazy(() => import("../pages/RestockUnsubscribePage"));
 const PaymentPage = lazy(() => import("../pages/Paymentpage"));
 // SFTWRKEY-445: vuelta desde la página de pago de Recurrente
 const PaymentResultPage = lazy(() => import("../pages/PaymentResultPage"));
@@ -78,6 +80,7 @@ function AnimatedRoutes() {
         {/* SFTWRKEY-428: recuperar contraseña */}
         <Route path="/recuperar-contrasena" element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
         <Route path="/restablecer-contrasena" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
+        <Route path="/avisos/cancelar" element={<PageWrapper><RestockUnsubscribePage /></PageWrapper>} />
         <Route path="/pago-invitado" element={<PageWrapper><GuestCheckoutPage /></PageWrapper>} />
         <Route path="/pago" element={<PageWrapper><PaymentPage /></PageWrapper>} />
         <Route path="/pago/resultado" element={<PageWrapper><PaymentResultPage /></PageWrapper>} />

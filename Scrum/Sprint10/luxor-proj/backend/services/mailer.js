@@ -135,6 +135,57 @@ export function buildOrderEmail({ status, orderId, customerName, items = [], tot
   return { subject: copy.subject(orderId), text, html };
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// SFTWRKEY-450: aviso de que un perfume agotado volvió a tener stock.
+// Lleva un enlace a la ficha y otro para no recibir más avisos.
+// ───────────────────────────────────────────────────────────────────────────
+
+export function buildRestockEmail({ productName, price, productUrl, unsubscribeUrl }) {
+  const subject = `¡Volvió ${productName}!`;
+  const precio = price !== null && price !== undefined ? money(price) : null;
+
+  const text =
+    `Hola,\n\n${productName} ya está disponible otra vez en Perfumería Victoria` +
+    (precio ? ` (${precio})` : '') +
+    `.\n\nVer el perfume: ${productUrl}\n\n` +
+    `Te escribimos porque pediste este aviso. Es el único correo que recibirás por este perfume.\n` +
+    `Si no quieres más avisos: ${unsubscribeUrl}\n\nPerfumería Victoria`;
+
+  const html =
+    `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0f0d0a;color:#f3e9d2;padding:28px">` +
+    `<h1 style="color:#d4af37;font-size:22px;margin:0 0 4px">Perfumería Victoria</h1>` +
+    `<h2 style="font-size:18px;margin:0 0 16px">¡${escapeHtml(productName)} volvió!</h2>` +
+    `<p>Hola,</p><p>El perfume que esperabas ya está disponible otra vez` +
+    (precio ? ` por <strong>${precio}</strong>` : '') +
+    `.</p>` +
+    `<p style="margin:24px 0"><a href="${escapeHtml(productUrl)}" style="background:#d4af37;color:#0f0d0a;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Ver el perfume</a></p>` +
+    `<p style="font-size:12px;color:#b9ad95">Te escribimos porque pediste este aviso. Es el único correo que recibirás por este perfume. ` +
+    `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#d4af37">No quiero recibir más avisos</a>.</p>` +
+    `</div>`;
+
+  return { subject, text, html };
+}
+
+export async function sendRestockEmail({ to, env = process.env, fetchImpl = fetch, ...product }) {
+  if (!isMailConfigured(env)) return { sent: false };
+  const { subject, text, html } = buildRestockEmail(product);
+
+  const response = await fetchImpl(RESEND_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: env.MAIL_FROM || 'Perfumería Victoria <onboarding@resend.dev>',
+      to: [to],
+      subject,
+      text,
+      html,
+    }),
+  });
+
+  if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
+  return { sent: true };
+}
+
 export async function sendOrderEmail({ to, env = process.env, fetchImpl = fetch, ...order }) {
   if (!isMailConfigured(env)) return { sent: false };
   const { subject, text, html } = buildOrderEmail(order);
