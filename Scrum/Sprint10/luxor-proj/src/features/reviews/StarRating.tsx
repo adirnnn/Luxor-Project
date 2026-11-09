@@ -62,11 +62,16 @@ export const RatingSummary: FC<RatingSummaryProps> = ({ average, count, size = "
     return <span className={clsx("text-xs italic text-primary-champagne/40", className)}>Aún sin reseñas</span>;
   }
 
+  // en una tarjeta angosta (móvil) la cantidad baja a la siguiente línea en vez de salirse
   return (
-    <span className={clsx("inline-flex items-center gap-2", className)}>
-      <Stars value={avg} size={size} />
-      <span className={clsx("font-bold text-primary-champagne", size === "lg" ? "text-base" : "text-xs")}>{formatRating(avg)}</span>
-      <span className={clsx("text-primary-champagne/50", size === "lg" ? "text-sm" : "text-xs")}>({reviewCountLabel(total)})</span>
+    <span className={clsx("inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1", className)}>
+      <span className="inline-flex items-center gap-2">
+        <Stars value={avg} size={size} />
+        <span className={clsx("font-bold text-primary-champagne", size === "lg" ? "text-base" : "text-xs")}>{formatRating(avg)}</span>
+      </span>
+      <span className={clsx("whitespace-nowrap text-primary-champagne/50", size === "lg" ? "text-sm" : "text-xs")}>
+        ({reviewCountLabel(total)})
+      </span>
     </span>
   );
 };

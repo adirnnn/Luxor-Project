@@ -74,8 +74,9 @@ export const ProductCard: FC<ProductCardProps> = ({
             />
           </div>
 
+          {/* en móvil la etiqueta va abajo para no chocar con el corazón de favoritos */}
           {agotado && (
-            <span className="absolute top-4 left-4 z-10 rounded-full border border-status-error/40 bg-status-error-bg px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-status-error">
+            <span className="absolute bottom-3 left-3 z-10 rounded-full border border-status-error/60 bg-primary-black/85 px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.08em] text-status-error md:bottom-auto md:top-4 md:left-4 md:px-3 md:tracking-[0.15em]">
               Agotado
             </span>
           )}
@@ -101,7 +102,8 @@ export const ProductCard: FC<ProductCardProps> = ({
         {/* Info */}
         <div className="flex flex-col gap-3 px-1 mt-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <H3 className="text-lg md:text-xl font-light tracking-tight leading-none text-primary-champagne truncate max-w-[70%]">{name}</H3>
+            {/* en móvil el nombre usa todo el ancho y hasta 2 líneas; desde sm va junto al precio en una */}
+            <H3 className="w-full text-lg md:text-xl font-light tracking-tight leading-tight text-primary-champagne line-clamp-2 break-words sm:w-auto sm:leading-none sm:line-clamp-none sm:truncate sm:max-w-[70%]">{name}</H3>
             <span className="text-xl md:text-2xl font-light text-primary-gold shrink-0">
               {formatPrice(price)}
             </span>
