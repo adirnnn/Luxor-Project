@@ -106,4 +106,33 @@ describe("Chatbot", () => {
     expect(screen.getByText("Dulce")).toHaveProperty("tagName", "LI");
     expect(document.querySelector("section img")).toBeNull();
   });
+
+  // en la burbuja angosta una tabla parte las palabras letra por letra: se muestra una tarjeta por fila
+  it("muestra las tablas del modelo como una lista por perfume", async () => {
+    enviar.mockResolvedValue({
+      response:
+        "### Perfumes dulces disponibles\n\n" +
+        "| Producto | Marca | Precio | Descripción breve |\n" +
+        "| --- | --- | --- | --- |\n" +
+        "| Xerjoff Erba Pura | Xerjoff | Q3,500.00 | Afrutada y luminosa |\n" +
+        "| Lattafa **Khamrah** | Lattafa | Q390.00 |  |\n\n" +
+        "¿Te ayudo con otro?",
+    });
+    const user = await abrir();
+    await user.click(screen.getByRole("button", { name: "Perfumes dulces" }));
+
+    expect(await screen.findByText("Xerjoff Erba Pura")).toHaveProperty("tagName", "STRONG");
+    expect(document.querySelector("section table")).toBeNull();
+    const datos = screen.getAllByRole("listitem").map((li) => li.textContent);
+    expect(datos).toEqual([
+      "Marca: Xerjoff",
+      "Precio: Q3,500.00",
+      "Descripción breve: Afrutada y luminosa",
+      "Marca: Lattafa",
+      "Precio: Q390.00",
+    ]);
+    // el formato dentro de la celda se conserva
+    expect(screen.getByText("Khamrah")).toHaveProperty("tagName", "STRONG");
+    expect(screen.getByText("¿Te ayudo con otro?")).toBeInTheDocument();
+  });
 });

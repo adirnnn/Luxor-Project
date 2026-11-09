@@ -25,6 +25,32 @@ REGLA_SEGURIDAD = (
     "puedes ayudar con perfumes y la tienda."
 )
 
+# Los precios de la base vienen sin moneda ("3500.00") y el modelo adivinaba euros: se le pasan ya
+# en quetzales, con el mismo formato del sitio. Las tablas no caben en el chat del celular (el
+# frontend igual las convierte en lista, ver tablesToLists.ts).
+REGLA_FORMATO = (
+    "Los precios son en quetzales: escríbelos exactamente como vienen (por ejemplo Q3,500.00), "
+    "nunca en euros ni en dólares. No uses tablas: si mencionas varios perfumes, usa una lista "
+    "corta con el nombre, el precio y una frase breve."
+)
+
+
+def formato_precio(valor) -> str | None:
+    """'3500.00' -> 'Q3,500.00' (igual que formatPrice del frontend)."""
+    try:
+        return f"Q{float(valor):,.2f}"
+    except (TypeError, ValueError):
+        return None
+
+
+def productos_para_prompt(productos: list[dict]) -> list[dict]:
+    """Copia de los productos con el precio ya escrito en quetzales."""
+    return [
+        {**producto, "price": formato_precio(producto.get("price"))}
+        for producto in productos
+    ]
+
+
 # Cuántos productos se describen como máximo en el prompt de conversación general.
 MAX_PRODUCTOS_EN_PROMPT = 60
 
@@ -315,12 +341,12 @@ class ChatService:
 
         # Convertir resultados a texto para el modelo
         contexto_productos = json.dumps(
-            products,
+            productos_para_prompt(products),
             ensure_ascii=False
         )
 
         contexto_recomendaciones = json.dumps(
-            recomendaciones,
+            productos_para_prompt(recomendaciones),
             ensure_ascii=False
         )
 
@@ -340,6 +366,7 @@ class ChatService:
                     "menciona brevemente algunas después de responder "
                     "la pregunta principal del usuario.\n\n"
                     + ("Empieza tu respuesta con un saludo breve.\n\n" if saludo_inicial else "")
+                    + REGLA_FORMATO + "\n\n"
                     # SFTWRKEY-379: defensa básica contra prompt injection.
                     + REGLA_SEGURIDAD
                 )
@@ -608,7 +635,7 @@ class ChatService:
                     producto.get("name"),
                     producto.get("brand"),
                     producto.get("category_name"),
-                    f"Q{producto['price']}" if producto.get("price") is not None else None,
+                    formato_precio(producto.get("price")),
                 ) if valor
             )
             for producto in catalogo[:MAX_PRODUCTOS_EN_PROMPT]
@@ -630,6 +657,7 @@ class ChatService:
                     "la tienda, responde con amabilidad que solo puedes ayudar con eso y "
                     "ofrece un ejemplo de pregunta. Nunca inventes productos, precios ni "
                     "disponibilidad.\n\n"
+                    + REGLA_FORMATO + "\n\n"
                     + REGLA_SEGURIDAD
                 )
             ),

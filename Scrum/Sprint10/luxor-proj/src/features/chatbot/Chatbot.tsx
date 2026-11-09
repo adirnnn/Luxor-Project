@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { sendMessage, type ChatHistoryMessage } from "../../services/chatbotService";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { remarkTablesToLists } from "./tablesToLists";
 
 // error: mensajes de fallo de conexión, que no se mandan como historial.
 interface Message { sender: "user" | "bot"; text: string; error?: boolean; }
@@ -15,10 +16,12 @@ const SUGERENCIAS = ["Recomiéndame un perfume", "Perfumes dulces", "¿Cómo son
 // El modelo responde en Markdown (negritas, listas y tablas). ReactMarkdown no interpreta HTML
 // crudo, así que una respuesta manipulada no puede inyectar etiquetas; los enlaces abren aparte.
 // Los <br> que a veces mete el modelo en las tablas se pasan a "·" para que no salgan como texto.
+// Las tablas no caben en la burbuja (en móvil las palabras se partían letra por letra): se muestran
+// como una tarjeta por fila (tablesToLists.ts).
 function BotText({ text }: { text: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkTablesToLists]}
       components={{ a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}
     >
       {text.replace(/<br\s*\/?>/gi, " · ")}
