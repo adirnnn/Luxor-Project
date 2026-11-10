@@ -17,7 +17,8 @@ export const createLoginHandler = ({ pool, bcrypt, signToken, setSessionCookie =
   try {
     // LOWER para que entren también las cuentas que se registraron con mayúsculas
     const result = await pool.query(
-      `SELECT u.id, u.name, u.email, u.password AS password_hash, r.nombre AS role
+      `SELECT u.id, u.name, u.email, u.password AS password_hash, r.nombre AS role,
+              to_jsonb(u) -> 'email_verified' AS email_verified
        FROM users u JOIN rol r ON u.role = r.id_rol
        WHERE LOWER(u.email) = $1`, [email]
     );
@@ -33,14 +34,15 @@ export const createLoginHandler = ({ pool, bcrypt, signToken, setSessionCookie =
     // SFTWRKEY-451: el token solo viaja en la cookie httpOnly; en la respuesta no va, así un
     // script en la página (XSS) nunca lo ve
     setSessionCookie(res, token);
-    return res.json({ success: true, user: publicUser });
+    return res.json({ success: true, user: { ...publicUser, emailVerified: user.email_verified !== false } });
   } catch (err) {
     return res.status(500).json({ success: false });
   }
 };
 
 // Register con validación de campos y email duplicado
-export const createRegisterHandler = ({ pool, bcrypt, saltRounds = DEFAULT_SALT_ROUNDS }) => async (req, res) => {
+// verification (opcional): { needs(req) → bool, start(user) → promesa } para el correo de confirmación
+export const createRegisterHandler = ({ pool, bcrypt, saltRounds = DEFAULT_SALT_ROUNDS, verification = null }) => async (req, res) => {
   const { name, password } = req.body;
   const email = normalizeEmail(req.body.email);
 
@@ -66,7 +68,20 @@ export const createRegisterHandler = ({ pool, bcrypt, saltRounds = DEFAULT_SALT_
       'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, 3) RETURNING id, name, email',
       [name, email, hash]
     );
-    return res.status(201).json({ success: true, user: { ...result.rows[0], role: 'CLIENTE' } });
+    const user = { ...result.rows[0], role: 'CLIENTE' };
+    let emailVerified = true;
+    let verificationSent = false;
+    if (verification?.needs(req)) {
+      emailVerified = false;
+      await pool.query('UPDATE users SET email_verified = FALSE WHERE id = $1', [user.id]);
+      try {
+        verificationSent = (await verification.start(user))?.sent === true;
+      } catch (err) {
+        // la cuenta queda creada igual: desde Mi cuenta se puede pedir otro enlace
+        console.error('No se pudo enviar el correo de verificación:', err.message);
+      }
+    }
+    return res.status(201).json({ success: true, user: { ...user, emailVerified }, verificationSent });
   } catch (err) {
     // Detectar email duplicado 
     if (err.code === '23505') {

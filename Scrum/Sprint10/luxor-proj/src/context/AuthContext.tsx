@@ -85,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         role: actual.role,
                         wholesalePercent: actual.wholesalePercent,
                         avatarVersion: actual.avatarVersion ?? null,
+                        emailVerified: actual.emailVerified !== false,
                     };
                     localStorage.setItem(SESSION_KEY, JSON.stringify(publico));
                     setUser(publico);

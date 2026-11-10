@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { catalogo, CATEGORIAS, SIN_FOTO } from './data/catalogo.js';
-import { INSERT_CATALOGO, UPDATE_FOTOS, seedCatalog } from './services/catalogSeed.js';
+import { INSERT_CATALOGO, UPDATE_FOTOS, DELETE_RETIRADOS, seedCatalog, removeRetired } from './services/catalogSeed.js';
+import { retirados } from './data/catalogoRetirados.js';
+import { inventario } from './data/catalogoInventario.js';
 import { isSafeImage } from './services/imageValidation.js';
 
 const PUBLIC = fileURLToPath(new URL('../public', import.meta.url));
@@ -18,7 +20,7 @@ test('cada perfume tiene un id válido y no se repite', () => {
 });
 
 test('incluye el inventario de la tienda y ningún nombre se repite', () => {
-  assert.ok(catalogo.length >= 550, `solo hay ${catalogo.length} perfumes`);
+  assert.ok(catalogo.length >= 500, `solo hay ${catalogo.length} perfumes`);
   const nombres = catalogo.map((p) => p.name.toLowerCase());
   assert.equal(new Set(nombres).size, nombres.length, 'hay nombres repetidos');
 });
@@ -82,4 +84,23 @@ test('las fotos del catálogo solo reemplazan la de relleno o una local, nunca u
   assert.match(UPDATE_FOTOS, /p\.image IS NOT NULL/);
   assert.match(UPDATE_FOTOS, /pr\.image IS NULL OR pr\.image = \$2 OR pr\.image LIKE '\/assets\/products\/%'/);
   assert.equal(resultado.fotos, 1);
+});
+
+test('el inventario solo publica perfumes con foto, y los retirados no vuelven a entrar', () => {
+  for (const p of inventario) assert.ok(p.image, `${p.id}: sin foto`);
+  const ids = new Set(catalogo.map((p) => p.id));
+  for (const id of retirados) assert.ok(!ids.has(id), `${id} está retirado pero sigue en el catálogo`);
+});
+
+test('los retirados se borran solo si siguen sin foto y no están en ningún pedido', async () => {
+  const consultas = [];
+  const db = { query: async (sql, params) => { consultas.push({ sql, params }); return { rowCount: 3 }; } };
+
+  const resultado = await removeRetired(db, ['a', 'b', 'c']);
+
+  assert.equal(resultado.borrados, 3);
+  assert.equal(consultas[0].sql, DELETE_RETIRADOS);
+  assert.deepEqual(consultas[0].params, [['a', 'b', 'c'], SIN_FOTO]);
+  assert.match(DELETE_RETIRADOS, /p\.image IS NULL OR p\.image = \$2/);
+  assert.match(DELETE_RETIRADOS, /NOT EXISTS \(SELECT 1 FROM order_items/);
 });

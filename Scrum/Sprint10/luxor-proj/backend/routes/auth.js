@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import pool from '../db.js';
-import { signToken, setSessionCookie, clearSessionCookie, authenticate } from '../services/auth.js';
+import { signToken, setSessionCookie, clearSessionCookie, authenticate, optionalAuthenticate } from '../services/auth.js';
+import { ensureVerificationTable, needsVerification, startVerification } from '../services/emailVerification.js';
 import { createLoginHandler, createRegisterHandler } from '../services/authHandlers.js';
 import { rateLimit } from '../services/rateLimit.js';
 import { recordSecurityEvent, SECURITY_EVENT_TYPES } from '../services/securityEvents.js';
@@ -30,6 +31,7 @@ router.get("/me", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT u.id, u.name, u.email, r.nombre AS role,
+              COALESCE((to_jsonb(u) ->> 'email_verified')::boolean, TRUE) AS "emailVerified",
               EXTRACT(EPOCH FROM a.updated_at)::bigint AS "avatarVersion"
        FROM users u JOIN rol r ON u.role = r.id_rol
        LEFT JOIN user_avatars a ON a.user_id = u.id
@@ -56,6 +58,21 @@ router.get("/me", authenticate, async (req, res) => {
 // SFTWRKEY-220 + SFTWRKEY-223: Register con validación de campos y email duplicado
 // SFTWRKEY-408: máximo 6 registros por hora por IP (evita cuentas masivas y averiguar
 // correos registrados con el 409); el bloqueo queda como evento de seguridad.
-router.post("/register", rateLimit({ windowMs: 60 * 60_000, max: 6, onBlock: onRateLimitBlock }), createRegisterHandler({ pool, bcrypt, saltRounds: SALT_ROUNDS }));
+// Las cuentas que se crean desde la tienda reciben un correo para confirmar la dirección; las que
+// crea un admin (con su sesión) quedan confirmadas (services/emailVerification.js).
+const verification = {
+  needs: (req) => needsVerification({ requester: req.user }),
+  start: (user) => startVerification({ pool, user }),
+};
+router.post(
+  "/register",
+  rateLimit({ windowMs: 60 * 60_000, max: 6, onBlock: onRateLimitBlock }),
+  optionalAuthenticate,
+  async (req, _res, next) => {
+    // la columna email_verified tiene que existir antes de crear la cuenta
+    try { if (needsVerification({ requester: req.user })) await ensureVerificationTable(pool); next(); } catch (err) { next(err); }
+  },
+  createRegisterHandler({ pool, bcrypt, saltRounds: SALT_ROUNDS, verification })
+);
 
 export default router;

@@ -2,7 +2,7 @@
 import pool from './db.js';
 import bcrypt from 'bcryptjs';
 import { ensureRestockAlertsTable } from './services/restockAlerts.js';
-import { seedCatalog } from './services/catalogSeed.js';
+import { seedCatalog, removeRetired } from './services/catalogSeed.js';
 const isProduction = process.env.NODE_ENV === 'production';
 
 const seedAdmin = async () => {
@@ -102,6 +102,10 @@ const seedUsers = async () => {
     } catch (e) {
       console.log('Nota: La FK users.role ya existe o no se pudo crear.');
     }
+
+    // verificación del correo: las cuentas que ya existen cuentan como verificadas (DEFAULT TRUE);
+    // solo el registro desde la tienda la pone en FALSE (services/emailVerification.js)
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT TRUE');
 
     console.log('Tabla users lista (con FK a rol)');
 
@@ -329,6 +333,9 @@ const seedUsers = async () => {
     // links de Cloudinary, solo donde todavía está la de relleno o una foto local del sitio.
     const catalogoBase = await seedCatalog(pool);
     console.log(`Catálogo: ${catalogoBase.insertados} perfumes nuevos de ${catalogoBase.total}, ${catalogoBase.fotos} fotos actualizadas`);
+    // perfumes que se quitaron del sitio por no tener foto (data/catalogoRetirados.js)
+    const retirados = await removeRetired(pool);
+    console.log(`Catálogo: ${retirados.borrados} perfumes sin foto retirados`);
 
     // SFTWRKEY-457: las fotos de public/assets/products ahora son .webp (los .png y .jpg se borraron),
     // asi que los productos que ya estaban en la base pasan a la ruta nueva

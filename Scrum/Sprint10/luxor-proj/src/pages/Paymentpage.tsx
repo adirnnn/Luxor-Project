@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { EmailVerificationNotice } from "../components/auth/EmailVerificationNotice";
 import { Navigate, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
 import { Container } from "../components/ui/Container";
@@ -17,7 +18,7 @@ import { wholesaleDiscount, wholesaleLabel } from "../utils/wholesale";
 
 export default function PaymentPage() {
     const { cart, totalPrice } = useCart();
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, refreshSession } = useAuth();
     const navigate = useNavigate();
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -72,6 +73,13 @@ export default function PaymentPage() {
             window.location.assign(checkoutUrl);
         } catch (err) {
             setCheckoutError(err as CheckoutError);
+            // la sesión guardada puede decir "confirmado" aunque no lo esté: se vuelve a preguntar
+            // para que aparezca el aviso con el botón de reenviar
+            if ((err as CheckoutError).code === "EMAIL_NOT_VERIFIED") {
+                refreshSession();
+                // el aviso está arriba del formulario y el botón de pagar abajo: se sube para que se vea
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
             sending.current = false;
             setIsProcessing(false);
         }
@@ -118,7 +126,10 @@ export default function PaymentPage() {
                     Datos de envío
                 </H3>
 
-                {checkoutError && (
+                {/* cuenta nueva sin confirmar: el backend no deja pagar hasta confirmar el correo */}
+                <EmailVerificationNotice className="mb-6" />
+
+                {checkoutError && checkoutError.code !== "EMAIL_NOT_VERIFIED" && (
                     <div className="mb-6 p-4 rounded-2xl bg-status-error-bg border border-status-error/30">
                     <p className="text-sm text-status-error font-bold mb-1">
                         {checkoutError.code === "INSUFFICIENT_STOCK"

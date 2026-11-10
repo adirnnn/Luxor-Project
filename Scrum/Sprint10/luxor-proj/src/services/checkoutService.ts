@@ -6,7 +6,7 @@ import type { Delivery } from "../utils/shipping";
 // cliente a Recurrente y al volver confirma con el backend si el cobro quedó aprobado.
 
 export interface CheckoutError {
-  code: "EMPTY_CART" | "INSUFFICIENT_STOCK" | "AMOUNT_TOO_LOW" | "GATEWAY_ERROR" | "GATEWAY_NOT_CONFIGURED" | "PAYMENT_ERROR" | "NETWORK_ERROR"
+  code: "EMPTY_CART" | "EMAIL_NOT_VERIFIED" | "INSUFFICIENT_STOCK" | "AMOUNT_TOO_LOW" | "GATEWAY_ERROR" | "GATEWAY_NOT_CONFIGURED" | "PAYMENT_ERROR" | "NETWORK_ERROR"
     // SFTWRKEY-432: el cupón no sirvió al abrir el pago (vencido, agotado, inventado, ya usado o sin la compra mínima)
     | "COUPON_NOT_FOUND" | "COUPON_EXPIRED" | "COUPON_EXHAUSTED" | "COUPON_ALREADY_USED" | "COUPON_MIN_PURCHASE";
   message: string;

@@ -30,6 +30,8 @@ Los clientes pueden crear su cuenta solos desde **Entrar → Crear cuenta**. Si 
 
 Las cuentas creadas así, o por el cliente, siempre son de cliente normal. Para que sea mayorista, ve al punto 6.
 
+Cuando el cliente crea su cuenta solo, le llega un correo para confirmarla y no puede pagar con su cuenta hasta hacerlo (sí puede comprar como invitado). Las cuentas que creas tú desde **Nuevo cliente** ya quedan confirmadas.
+
 ---
 
 ## 1. Panel: productos y fotos
@@ -177,4 +179,5 @@ En el **Panel**, abajo, está la sección **Alertas de seguridad**. Muestra inte
 | Un cliente no recibió su correo | Pídele que revise spam. Verifica su correo en el detalle del pedido. |
 | Un cliente dice que su pago fue rechazado | Es normal: el sistema no crea el pedido si la tarjeta es rechazada. Pídele que pruebe con otra tarjeta. |
 | Un cliente perdió su comprobante | Si tiene cuenta, lo descarga en **Mi cuenta** (**Descargar PDF** en el pedido). Si compró como invitado, envíale los datos del detalle del pedido. |
+| Un cliente no puede pagar y le sale "Confirma tu correo" | Su cuenta es nueva y no ha confirmado el correo. Que revise spam o toque **Reenviar correo** en **Mi cuenta**. Mientras tanto puede comprar como invitado. |
 | Un cupón "no funciona" | Revisa en **Cupones** si está vencido, agotado o desactivado, si la compra llega al mínimo y si el cliente ya lo usó antes. |

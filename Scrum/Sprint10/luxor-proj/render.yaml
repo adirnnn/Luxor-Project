@@ -57,8 +57,12 @@ services:
       - key: JWT_SECRET
         generateValue: true
       # url del frontend en vercel, para el cors del backend.
+      # dominio propio: la dirección de los enlaces de los correos. La de Vercel sigue funcionando
+      # (EXTRA_FRONTEND_URLS, separadas por coma) para quien entre por ahí.
       - key: FRONTEND_URL
-        value: https://luxor-project-green.vercel.app
+        value: https://perfumesvictoria.shop
+      - key: EXTRA_FRONTEND_URLS
+        value: https://www.perfumesvictoria.shop,https://luxor-project-green.vercel.app
       - key: PERFUM_API_BASE_URL
         value: https://perfumapidatabase.onrender.com
       # SFTWRKEY-445: llave secreta de Recurrente (pagos). Se carga a mano en el panel de render:
@@ -76,8 +80,13 @@ services:
       # panel de render; debe ser el mismo que VITE_GOOGLE_CLIENT_ID en vercel.
       - key: GOOGLE_CLIENT_ID
         sync: false
-      # SFTWRKEY-428: correo de recuperar contrasena (api de resend). se cargan a mano en
-      # el panel de render; sin RESEND_API_KEY el backend no envia correos.
+      # SFTWRKEY-428: correos (recuperar contrasena, pedidos, avisos y verificacion de la cuenta).
+      # se cargan a mano en el panel de render. con BREVO_API_KEY se usa brevo (plan gratis, manda a
+      # cualquier correo con el remitente verificado); si no, resend (sin dominio propio solo entrega
+      # al dueno de la cuenta). MAIL_FROM es el remitente: "Perfumeria Victoria <correo verificado>".
+      # sin ninguna llave el backend no envia correos (y las cuentas nuevas no piden verificacion).
+      - key: BREVO_API_KEY
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: MAIL_FROM
@@ -119,7 +128,7 @@ services:
         sync: false
       # origen del frontend en vercel, para el cors del chatbot.
       - key: CHATBOT_ALLOWED_ORIGINS
-        value: https://luxor-project-green.vercel.app
+        value: https://perfumesvictoria.shop,https://www.perfumesvictoria.shop,https://luxor-project-green.vercel.app
       # misma clave que el backend (ver CHATBOT_INTERNAL_KEY en luxor-backend).
       - key: CHATBOT_INTERNAL_KEY
         fromService:

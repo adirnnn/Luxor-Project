@@ -32,8 +32,9 @@ test('SEC-14: el preflight de otro sitio no recibe permiso de CORS; el del front
     headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type' },
   });
 
+  // con varias direcciones del sitio (dominio propio y Vercel) a un sitio ajeno no se le manda ninguna
   const ajeno = await preflight('https://sitio-malicioso.com');
-  assert.equal(ajeno.headers.get('access-control-allow-origin'), FRONTEND);
+  assert.equal(ajeno.headers.get('access-control-allow-origin'), null);
   assert.notEqual(ajeno.headers.get('access-control-allow-origin'), 'https://sitio-malicioso.com');
   assert.equal(ajeno.headers.get('access-control-allow-credentials'), null);
 

@@ -9,6 +9,7 @@ import { ScrollToTop } from "./ScrollToTop";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
 import { SessionExpiredNotice } from "../components/auth/SessionExpiredNotice";
+import { EmailVerificationToast } from "../components/auth/EmailVerificationNotice";
 import { SearchProvider } from "../context/SearchContext";
 import { WishlistProvider } from "../context/WishlistContext";
 import { ProtectedRoute } from "../components/routing/ProtectedRoute";
@@ -22,6 +23,8 @@ const CartPage = lazy(() => import("../pages/CartPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 // registro de clientes desde la tienda
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
+// enlace del correo de verificación de las cuentas nuevas
+const VerifyEmailPage = lazy(() => import("../pages/VerifyEmailPage"));
 const WishlistPage = lazy(() => import("../pages/WishlistPage"));
 const ReportPage = lazy(() => import("../pages/ReportPage"));
 const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
@@ -80,6 +83,7 @@ function AnimatedRoutes() {
         <Route path="/cart" element={<PageWrapper><CartPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
         <Route path="/registro" element={<PageWrapper><RegisterPage /></PageWrapper>} />
+        <Route path="/verificar-correo" element={<PageWrapper><VerifyEmailPage /></PageWrapper>} />
         {/* SFTWRKEY-428: recuperar contraseña */}
         <Route path="/recuperar-contrasena" element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
         <Route path="/restablecer-contrasena" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
@@ -142,6 +146,7 @@ export default function App() {
             <BrowserRouter>
               <ScrollToTop />
               <SessionExpiredNotice />
+              <EmailVerificationToast />
               <AnimatedRoutes />
             </BrowserRouter>
           </SearchProvider>

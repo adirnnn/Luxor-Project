@@ -81,7 +81,7 @@ test('el login guarda la sesión en una cookie httpOnly, SameSite=Lax, de 8 hora
   // el token solo va en la cookie: la respuesta (que sí puede leer JavaScript) no lo trae
   const body = await res.json();
   assert.equal(body.token, undefined);
-  assert.deepEqual(body.user, { id: 7, name: 'Ana', role: 'CLIENTE' });
+  assert.deepEqual(body.user, { id: 7, name: 'Ana', role: 'CLIENTE', emailVerified: true });
 
   const cookie = res.headers.get('set-cookie');
   assert.match(cookie, new RegExp(`^${SESSION_COOKIE}=`));

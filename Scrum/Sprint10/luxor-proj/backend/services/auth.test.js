@@ -108,7 +108,7 @@ test('POST /login: credenciales correctas devuelven 200, la cookie de sesión y 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.success, true);
   assert.equal(res.body.token, undefined, 'el token no viaja en la respuesta');
-  assert.deepEqual(res.body.user, { id: 42, name: 'Ana Cliente', role: 'CLIENTE' });
+  assert.deepEqual(res.body.user, { id: 42, name: 'Ana Cliente', role: 'CLIENTE', emailVerified: true });
   // El token de la cookie es válido y no filtra el hash ni el correo.
   const payload = jwt.verify(cookie, process.env.JWT_SECRET);
   assert.equal(payload.id, 42);
@@ -197,7 +197,7 @@ test('POST /register: registro exitoso devuelve 201 y guarda la contraseña hash
 
   assert.equal(res.statusCode, 201);
   assert.equal(res.body.success, true);
-  assert.deepEqual(res.body.user, { id: 77, name: 'Bruno', email: 'bruno@luxor.com', role: 'CLIENTE' });
+  assert.deepEqual(res.body.user, { id: 77, name: 'Bruno', email: 'bruno@luxor.com', role: 'CLIENTE', emailVerified: true });
   assert.equal(res.body.user.password, undefined, 'la respuesta no debe incluir la contraseña');
 
   // La contraseña que llega a la base es un hash bcrypt verificable, nunca texto plano.

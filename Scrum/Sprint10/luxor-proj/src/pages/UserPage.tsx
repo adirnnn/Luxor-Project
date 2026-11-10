@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
+import { EmailVerificationNotice } from "../components/auth/EmailVerificationNotice";
 import { Container } from "../components/ui/Container";
 import { H2, PageTitle, Text } from "../components/ui/Typography";
 import { useAuth } from "../context/AuthContext";
@@ -294,6 +295,7 @@ export default function UserPage() {
         <PageMeta title="Mi cuenta" noindex />
         <Container className="pb-12">
         <PageTitle className="mb-10">Mi Cuenta</PageTitle>
+        <EmailVerificationNotice className="mb-10" />
 
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

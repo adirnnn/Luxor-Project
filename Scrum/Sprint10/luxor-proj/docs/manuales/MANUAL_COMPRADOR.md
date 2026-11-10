@@ -76,6 +76,9 @@ Con una cuenta puedes guardar tu carrito, ver tu historial, seguir tus pedidos y
 1. Toca **Entrar** y, debajo del formulario, toca **Crear cuenta**.
 2. Escribe tu nombre completo, tu correo y una contraseña de al menos 12 caracteres. Repite la contraseña en **Confirmar contraseña**.
 3. Toca **Crear cuenta**. La tienda te deja con la sesión iniciada y te regresa a donde estabas.
+4. Te llega un correo **Confirma tu correo en Perfumería Victoria**. Toca **Confirmar mi correo** (el enlace vence en 24 horas).
+
+Mientras no confirmes tu correo puedes ver la tienda y llenar tu carrito, pero no pagar con tu cuenta. Si no te llegó, revisa spam o toca **Reenviar correo** en el aviso de la página o en **Mi cuenta**.
 
 Si el correo ya tiene una cuenta, la página te lo dice: entra con **Inicia sesión** o usa **¿Olvidaste tu contraseña?**
 
@@ -222,5 +225,6 @@ Si compras al por mayor, pide a la tienda que convierta tu cuenta en **Mayorista
 - **¿Es seguro pagar?** Sí. Pagas en la página segura de Recurrente, así que los datos de tu tarjeta nunca pasan por nuestra tienda.
 - **¿Necesito cuenta?** No. Puedes comprar como invitado. Si quieres una, créala en **Entrar → Crear cuenta** (ver el punto 4).
 - **Me salió "Tu sesión expiró".** Por seguridad, la sesión dura 8 horas. Toca **Inicia sesión** en el aviso y sigue donde estabas; tu carrito queda guardado.
+- **No me llegó el correo para confirmar mi cuenta.** Revisa la carpeta de spam. Si no está, entra a **Mi cuenta** y toca **Reenviar correo**: el enlace anterior deja de servir y te llega uno nuevo.
 - **¿Dónde está mi comprobante?** En la pantalla de confirmación de la compra y, si tienes cuenta, en **Mi cuenta** dentro de cada pedido (**Descargar PDF**).
 - **¿Tienen alguna duda?** Escríbenos por WhatsApp o usa el asistente virtual (el botón dorado abajo a la derecha).

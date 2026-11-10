@@ -1,6 +1,7 @@
 // Carga el catálogo base (data/catalogo.js) en la base. Está aparte de seed.js porque seed.js corre
 // apenas se importa: así las pruebas pueden revisar estas consultas sin tocar una base real.
 import { catalogo as CATALOGO, SIN_FOTO } from '../data/catalogo.js';
+import { retirados as RETIRADOS } from '../data/catalogoRetirados.js';
 
 const COLUMNAS = `
   id text, name text, brand text, price numeric, stock integer, category text, image text,
@@ -32,4 +33,20 @@ export async function seedCatalog(db, catalogo = CATALOGO) {
   const insertados = await db.query(INSERT_CATALOGO, [datos, SIN_FOTO]);
   const fotos = await db.query(UPDATE_FOTOS, [datos, SIN_FOTO]);
   return { total: catalogo.length, insertados: insertados.rowCount, fotos: fotos.rowCount };
+}
+
+// Perfumes que se quitaron del sitio por no tener foto (data/catalogoRetirados.js). Se borran solo si
+// siguen sin foto (si el admin les puso una, se quedan) y no están en ningún pedido (order_items no
+// borra en cascada: el historial de pedidos se conserva). Carrito, favoritos y avisos se borran solos.
+export const DELETE_RETIRADOS = `
+  DELETE FROM products p
+  WHERE p.id = ANY($1::text[])
+    AND (p.image IS NULL OR p.image = $2)
+    AND NOT EXISTS (SELECT 1 FROM order_items oi WHERE oi.product_id = p.id)
+  RETURNING p.id`;
+
+export async function removeRetired(db, retirados = RETIRADOS) {
+  if (retirados.length === 0) return { borrados: 0 };
+  const result = await db.query(DELETE_RETIRADOS, [retirados, SIN_FOTO]);
+  return { borrados: result.rowCount };
 }

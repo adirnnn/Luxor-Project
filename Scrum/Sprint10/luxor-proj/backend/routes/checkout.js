@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isEmailVerified } from '../services/emailVerification.js';
 import pool from '../db.js';
 import { authenticate, authorizeSelfOrRoles } from '../services/auth.js';
 import { rateLimit } from '../services/rateLimit.js';
@@ -88,6 +89,14 @@ router.post(
   async (req, res) => {
     const userId = Number(req.params.userId);
     try {
+      // el cliente que paga su propio carrito necesita su correo confirmado (el admin no)
+      if (String(req.user.id) === String(userId) && !(await isEmailVerified(pool, userId))) {
+        return res.status(403).json({
+          success: false,
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Confirma tu correo para pagar con tu cuenta. Revisa tu bandeja (y spam) o pide otro enlace.',
+        });
+      }
       await ensureCheckoutTables();
       const cart = await pool.query(
         `SELECT ci.product_id, ci.quantity

@@ -23,6 +23,7 @@ import chatbotRouter from './routes/chatbot.js';
 
 import ordersRouter from './routes/orders.js';
 import passwordResetRouter from './routes/passwordReset.js';
+import emailVerificationRouter from './routes/emailVerification.js';
 import { validatePassword } from './services/passwordPolicy.js';
 import wishlistRouter from './routes/wishlist.js';
 import relatedRouter from './routes/related.js';
@@ -32,7 +33,7 @@ import reviewsRouter from './routes/reviews.js';
 import couponsRouter from './routes/coupons.js';
 import restockAlertsRouter from './routes/restockAlerts.js';
 import commerceRouter from './commerce.js';
-import { csrfProtection } from './services/csrf.js';
+import { csrfProtection, allowedOrigins } from './services/csrf.js';
 
 dotenv.config();
 
@@ -60,7 +61,8 @@ app.use((_req, res, next) => {
   res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   next();
 });
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+// las mismas direcciones del sitio que acepta la protección CSRF (services/csrf.js)
+app.use(cors({ origin: allowedOrigins() }));
 // SFTWRKEY-451: las peticiones que cambian datos solo se aceptan desde nuestro frontend (CSRF)
 app.use(csrfProtection);
 // SFTWRKEY-446: el webhook de Recurrente va antes de express.json porque verifica la firma sobre el cuerpo exacto
@@ -91,6 +93,8 @@ app.use(ordersRouter);
 
 // SFTWRKEY-428: recuperar contraseña (antes del router de commerce, que prepara tablas en cada petición)
 app.use(passwordResetRouter);
+// verificación del correo de las cuentas nuevas
+app.use(emailVerificationRouter);
 
 // SFTWRKEY-429: lista de deseos
 app.use(wishlistRouter);

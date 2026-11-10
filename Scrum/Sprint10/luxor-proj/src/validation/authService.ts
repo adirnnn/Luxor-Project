@@ -14,6 +14,8 @@ export interface AuthUser {
     wholesalePercent?: number;
     // feedback del cliente: versión de la foto de perfil (null si no tiene); cambia con cada foto nueva
     avatarVersion?: number | null;
+    // false mientras no confirme el correo de una cuenta creada desde la tienda
+    emailVerified?: boolean;
 }
 
 export interface AuthResult {
@@ -45,6 +47,7 @@ export async function login(
                     name: data.user.name,
                     role: data.user.role,
                     email: credentials.email,
+                    emailVerified: data.user.emailVerified !== false,
                 },
             };
         }

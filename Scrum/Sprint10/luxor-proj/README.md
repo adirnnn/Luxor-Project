@@ -2,7 +2,7 @@
 
 Tienda en línea de perfumes árabes y de diseñador. Incluye catálogo con búsqueda por notas olfativas, carrito, compra con o sin cuenta, seguimiento de pedidos, asistente virtual, panel de administración con reportes y carga masiva de inventario.
 
-Sitio en producción: https://luxor-project-green.vercel.app
+Sitio en producción: https://perfumesvictoria.shop (también responde en https://luxor-project-green.vercel.app)
 
 ## Características
 
@@ -207,7 +207,7 @@ id,name,price,image,description,stock,salida,corazon,fondo
 
 | Componente | Proveedor | URL |
 | --- | --- | --- |
-| Frontend y funciones `api/` | Vercel (root directory `Scrum/Sprint10/luxor-proj`) | https://luxor-project-green.vercel.app |
+| Frontend y funciones `api/` | Vercel (root directory `Scrum/Sprint10/luxor-proj`) | https://perfumesvictoria.shop |
 | Backend (Express) | Render, servicio Docker `luxor-backend` | https://luxor-backend-9ov9.onrender.com |
 | Chatbot (FastAPI) | Render, servicio Docker `luxor-chatbot` | https://luxor-chatbot.onrender.com |
 | Base de datos | PostgreSQL en Render (`luxor-db`) | host interno |
@@ -216,7 +216,7 @@ id,name,price,image,description,stock,salida,corazon,fondo
 - **Render** usa el blueprint `render.yaml` de la raíz del repositorio (servicios, base de datos y variables). Render genera `JWT_SECRET` y `CHATBOT_INTERNAL_KEY`; `LLM_API_KEY` (Groq) se carga a mano en el panel y no viaja en el repositorio.
 - **Inicio de sesión con Google:** crear un id de cliente OAuth en Google Cloud (origen autorizado: el dominio del frontend) y cargarlo como `VITE_GOOGLE_CLIENT_ID` en Vercel y `GOOGLE_CLIENT_ID` en `luxor-backend` (Render). Sin esas variables el botón de Google no aparece y el resto del sitio funciona igual.
 - La base de datos del plan gratuito de Render vence a los 30 días; la actual vence el **6 de noviembre de 2026**. Al recrearla, el seed vuelve a crear las tablas y el catálogo inicial.
-- Si el sitio cambia de dominio, actualizar `FRONTEND_URL` y `CHATBOT_ALLOWED_ORIGINS` en `render.yaml`, y las URL absolutas de `index.html` (etiquetas `og:`) y `public/robots.txt`.
+- Si el sitio cambia de dominio, actualizar `FRONTEND_URL`, `EXTRA_FRONTEND_URLS` y `CHATBOT_ALLOWED_ORIGINS` en `render.yaml`, y las URL absolutas de `index.html` (etiquetas `og:`) y `public/robots.txt`.
 
 ## Equipo
 

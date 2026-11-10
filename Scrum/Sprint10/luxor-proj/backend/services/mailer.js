@@ -1,37 +1,70 @@
-// SFTWRKEY-428: envío de correos. No usa dependencias nuevas: si hay RESEND_API_KEY
-// manda el correo con la API HTTP de Resend; si no, no envía nada y el llamador
-// decide qué hacer (en desarrollo se registra el enlace en la consola).
+// SFTWRKEY-428: envío de correos. No usa dependencias nuevas: manda el correo por la API HTTP de
+// Brevo (si hay BREVO_API_KEY) o de Resend (si hay RESEND_API_KEY). Sin ninguna, no envía nada y el
+// llamador decide qué hacer (en desarrollo se registra el enlace en la consola).
+// Brevo va primero porque su plan gratis manda a cualquier correo con solo verificar el remitente;
+// Resend sin dominio propio solo entrega al dueño de la cuenta (responde 403 a los demás).
+// Render (plan gratis) bloquea SMTP, por eso los dos se usan por HTTP.
 
 const RESEND_URL = 'https://api.resend.com/emails';
+const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
+const REMITENTE = 'Perfumería Victoria <onboarding@resend.dev>';
 
-export const isMailConfigured = (env = process.env) => Boolean(env.RESEND_API_KEY);
+export const isMailConfigured = (env = process.env) => Boolean(env.BREVO_API_KEY || env.RESEND_API_KEY);
 
-export async function sendPasswordResetEmail({ to, link, env = process.env, fetchImpl = fetch }) {
-  if (!isMailConfigured(env)) return { sent: false };
+// "Perfumería Victoria <tienda@gmail.com>" → { name, email }
+export const parseFrom = (from) => {
+  const m = String(from).match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  return m ? { name: m[1].replace(/^"|"$/g, '') || undefined, email: m[2].trim() } : { email: String(from).trim() };
+};
+
+// un solo lugar que habla con el proveedor
+export async function deliverEmail({ to, subject, text, html, env = process.env, fetchImpl = fetch }) {
+  if (env.BREVO_API_KEY) {
+    const response = await fetchImpl(BREVO_URL, {
+      method: 'POST',
+      headers: { 'api-key': env.BREVO_API_KEY, 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        sender: parseFrom(env.MAIL_FROM || REMITENTE),
+        to: [{ email: to }],
+        subject,
+        textContent: text,
+        htmlContent: html,
+      }),
+    });
+    if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
+    return { sent: true };
+  }
 
   const response = await fetchImpl(RESEND_URL, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: env.MAIL_FROM || 'Habibi Parfums <onboarding@resend.dev>',
-      to: [to],
-      subject: 'Recupera tu contraseña',
-      text:
-        `Recibimos una solicitud para restablecer tu contraseña.\n\n` +
-        `Usa este enlace (vence en 30 minutos):\n${link}\n\n` +
-        `Si no fuiste tú, ignora este correo: tu contraseña no cambiará.`,
-      html:
-        `<p>Recibimos una solicitud para restablecer tu contraseña.</p>` +
-        `<p><a href="${link}">Restablecer contraseña</a> (el enlace vence en 30 minutos).</p>` +
-        `<p>Si no fuiste tú, ignora este correo: tu contraseña no cambiará.</p>`,
-    }),
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: env.MAIL_FROM || REMITENTE, to: [to], subject, text, html }),
   });
-
   if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
   return { sent: true };
+}
+
+export async function sendPasswordResetEmail({ to, link, env = process.env, fetchImpl = fetch }) {
+  if (!isMailConfigured(env)) return { sent: false };
+  return deliverEmail({
+    to,
+    env,
+    fetchImpl,
+    subject: 'Recupera tu contraseña',
+    text:
+      `Recibimos una solicitud para restablecer tu contraseña.
+
+` +
+      `Usa este enlace (vence en 30 minutos):
+${link}
+
+` +
+      `Si no fuiste tú, ignora este correo: tu contraseña no cambiará.`,
+    html:
+      `<p>Recibimos una solicitud para restablecer tu contraseña.</p>` +
+      `<p><a href="${link}">Restablecer contraseña</a> (el enlace vence en 30 minutos).</p>` +
+      `<p>Si no fuiste tú, ignora este correo: tu contraseña no cambiará.</p>`,
+  });
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -168,40 +201,47 @@ export function buildRestockEmail({ productName, price, productUrl, unsubscribeU
 
 export async function sendRestockEmail({ to, env = process.env, fetchImpl = fetch, ...product }) {
   if (!isMailConfigured(env)) return { sent: false };
-  const { subject, text, html } = buildRestockEmail(product);
-
-  const response = await fetchImpl(RESEND_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: env.MAIL_FROM || 'Perfumería Victoria <onboarding@resend.dev>',
-      to: [to],
-      subject,
-      text,
-      html,
-    }),
-  });
-
-  if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
-  return { sent: true };
+  return deliverEmail({ to, env, fetchImpl, ...buildRestockEmail(product) });
 }
 
 export async function sendOrderEmail({ to, env = process.env, fetchImpl = fetch, ...order }) {
   if (!isMailConfigured(env)) return { sent: false };
-  const { subject, text, html } = buildOrderEmail(order);
+  return deliverEmail({ to, env, fetchImpl, ...buildOrderEmail(order) });
+}
 
-  const response = await fetchImpl(RESEND_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: env.MAIL_FROM || 'Perfumería Victoria <onboarding@resend.dev>',
-      to: [to],
-      subject,
-      text,
-      html,
-    }),
-  });
+// ───────────────────────────────────────────────────────────────────────────
+// Verificación del correo al crear la cuenta desde la tienda.
+// ───────────────────────────────────────────────────────────────────────────
 
-  if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
-  return { sent: true };
+export function buildVerificationEmail({ name, link }) {
+  const hello = name ? `Hola ${name},` : 'Hola,';
+  const text =
+    `${hello}
+
+Gracias por crear tu cuenta en Perfumería Victoria.
+
+` +
+    `Confirma tu correo con este enlace (vence en 24 horas):
+${link}
+
+` +
+    `Mientras no lo confirmes puedes ver la tienda y llenar tu carrito, pero no pagar con tu cuenta.
+` +
+    `Si no creaste esta cuenta, ignora este correo.
+
+Perfumería Victoria`;
+  const html =
+    `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0f0d0a;color:#f3e9d2;padding:28px">` +
+    `<h1 style="color:#d4af37;font-size:22px;margin:0 0 4px">Perfumería Victoria</h1>` +
+    `<h2 style="font-size:18px;margin:0 0 16px">Confirma tu correo</h2>` +
+    `<p>${escapeHtml(hello)}</p><p>Gracias por crear tu cuenta. Confirma tu correo para poder comprar con ella.</p>` +
+    `<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#d4af37;color:#0f0d0a;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Confirmar mi correo</a></p>` +
+    `<p style="font-size:12px;color:#b9ad95">El enlace vence en 24 horas. Si no creaste esta cuenta, ignora este correo.</p>` +
+    `</div>`;
+  return { subject: 'Confirma tu correo en Perfumería Victoria', text, html };
+}
+
+export async function sendVerificationEmail({ to, name, link, env = process.env, fetchImpl = fetch }) {
+  if (!isMailConfigured(env)) return { sent: false };
+  return deliverEmail({ to, env, fetchImpl, ...buildVerificationEmail({ name, link }) });
 }
