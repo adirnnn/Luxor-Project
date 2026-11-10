@@ -1,16 +1,18 @@
 import json
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from app.bot.models import ChatMessage
 from app.bot.models import ChatRequest
 from app.bot.models import ChatResponse
 from app.bot.models import MessageRole
 from app.llm.base import LLMProvider
-from app.services.product_service import ProductService
-from difflib import get_close_matches
+from app.services.product_service import ProductService, ordenar_para_llm, resumen_para_llm
+from difflib import SequenceMatcher, get_close_matches
 from app.services.chat_log_service import ChatLogService
 from app.bot.intents import (
-    Intencion, detectar_intencion, extraer_datos_pedido, ocultar_correos, plantilla_para, separar_saludo,
+    Intencion, detectar_intencion, extraer_datos_pedido, normalizar, ocultar_correos, plantilla_para,
+    separar_saludo,
 )
 from app.bot.store_info import CONTACTO_SUGERIDO, STORE_INFO
 from app.services.order_service import DemasiadosIntentos, OrderService
@@ -53,6 +55,69 @@ def productos_para_prompt(productos: list[dict]) -> list[dict]:
 
 # Cuántos productos se describen como máximo en el prompt de conversación general.
 MAX_PRODUCTOS_EN_PROMPT = 60
+# Cuántos mensajes anteriores de la conversación se le pasan al modelo.
+MAX_MENSAJES_HISTORIAL = 8
+
+# Casi todos los nombres traen la marca ("Lattafa Khamrah") y los clientes escriben solo
+# "khamrah". Sin la marca, algunos nombres quedan en una palabra común ("Sexy", "Black", "One"):
+# esas solo cuentan si el cliente también escribe la marca, así "algo sexy para hombre" no se
+# confunde con un perfume.
+PALABRAS_GENERICAS = {
+    "one", "be", "sexy", "hot", "gold", "pink", "girl", "black", "noir", "bleu", "blue", "azul",
+    "king", "chic", "cloud", "amore", "energy", "aqua", "attar", "uomo", "homme", "femme", "woman",
+    "man", "men", "intense", "intenso", "oud", "rose", "musk", "fresh", "sweet", "night",
+    "midnight", "beautiful", "fierce", "freeze", "steel", "reaction", "obsession", "seduction",
+    "gardenia", "dazzle", "believe", "scarlet", "curve", "opera", "phantom", "guilty",
+}
+SIMILITUD_MINIMA = 0.85
+
+
+def _sin_marca(nombre: str, marca: str) -> str:
+    if marca and nombre.startswith(marca + " "):
+        return nombre[len(marca) + 1:]
+    return nombre
+
+
+def _aparece(frase: str, mensaje: str) -> bool:
+    return bool(frase) and re.search(rf"(?<!\w){re.escape(frase)}(?!\w)", mensaje) is not None
+
+
+def buscar_nombre_en_mensaje(mensaje: str, nombres: list[str], marcas: dict[str, str]) -> str:
+    """El perfume del catálogo que menciona el cliente, o "NONE". Acepta el nombre sin la marca
+    y pequeños errores de escritura ("khamra"). Si varios coinciden, gana el más largo
+    ("Yara Moi" antes que "Yara")."""
+    texto = normalizar(mensaje)
+    palabras = texto.split()
+    mejor, mejor_puntaje = "NONE", 0.0
+
+    for nombre in nombres:
+        completo = normalizar(nombre)
+        marca = normalizar(marcas.get(nombre, ""))
+        corto = _sin_marca(completo, marca)
+        generico = " " not in corto and (corto in PALABRAS_GENERICAS or len(corto) < 3)
+        if generico and not _aparece(marca, texto):
+            continue
+
+        if _aparece(completo, texto) or _aparece(corto, texto):
+            puntaje = 100 + len(completo if _aparece(completo, texto) else corto)
+        elif len(corto) >= 5 and not generico:
+            # errores de escritura: se compara con cada grupo de palabras del mismo largo
+            largo = len(corto.split())
+            puntaje = max(
+                (SequenceMatcher(None, corto, " ".join(palabras[i:i + largo])).ratio()
+                 for i in range(len(palabras) - largo + 1)),
+                default=0.0,
+            )
+            if puntaje < SIMILITUD_MINIMA:
+                continue
+            puntaje += len(corto) / 1000
+        else:
+            continue
+
+        if puntaje > mejor_puntaje:
+            mejor, mejor_puntaje = nombre, puntaje
+
+    return mejor
 
 # SFTWRKEY-458: respuestas de la consulta de pedidos. Son fijas (sin LLM): así no se puede
 # usar el chat para sacar datos con prompt injection y responden al instante.
@@ -113,45 +178,12 @@ class ChatService:
     async def extraer_nombre_perfume(
         self,
         message: str,
-        nombre_producto: list[str]
+        nombre_producto: list[str],
+        marcas: dict[str, str] | None = None
     ) -> str:
-
-        mensaje_normalizado = message.casefold()
-
-        for nombre in nombre_producto:
-            if nombre.casefold() in mensaje_normalizado:
-                return nombre
-
-        catalog = "\n".join(nombre_producto)
-
-        mensajes = [
-            ChatMessage(
-                role=MessageRole.SYSTEM,
-                content=(
-                    "Tu única tarea es identificar qué perfume del catálogo "
-                    "está mencionando el usuario.\n\n"
-
-                    "CATÁLOGO:\n"
-                    f"{catalog}\n\n"
-
-                    "REGLAS:\n"
-                    "- Responde exclusivamente con uno de los nombres del catálogo.\n"
-                    "- Copia el nombre exactamente como aparece en el catálogo.\n"
-                    "- No corrijas, traduzcas ni modifiques el nombre.\n"
-                    "- No respondas la pregunta del usuario.\n"
-                    "- No agregues explicaciones.\n"
-                    "- Si ningún perfume del catálogo es mencionado, responde exactamente NONE."
-                )
-            ),
-            ChatMessage(
-                role=MessageRole.USER,
-                content=message
-            )
-        ]
-
-        response = await self.provider.chat(mensajes)
-
-        return response.strip()
+        # Se busca aquí, sin el LLM: antes se le mandaban los 500+ nombres del catálogo en cada
+        # mensaje (unos 4,000 tokens) y se gastaba el límite por minuto de Groq.
+        return buscar_nombre_en_mensaje(message, nombre_producto, marcas or {})
 
 
     async def generar_respuesta(
@@ -203,7 +235,8 @@ class ChatService:
         # Identificar perfume por nombre
         nombre_producto = await self.extraer_nombre_perfume(
             request.message,
-            nombre_productos
+            nombre_productos,
+            {product["name"]: product.get("brand") or "" for product in products_catalog}
         )
 
         if nombre_producto != "NONE":
@@ -270,6 +303,15 @@ class ChatService:
             products = await self.product_service.buscar_por_nota(
                 nota
             )
+
+        # Solo los mejores resultados llegan al modelo (ver ordenar_para_llm). Un perfume agotado
+        # solo se manda si lo preguntaron por su nombre, para que el bot diga que está agotado.
+        products = ordenar_para_llm(
+            products,
+            incluir_agotados=nombre_producto != "NONE"
+        )
+        # el perfume que nombraron va primero (de él salen las recomendaciones)
+        products.sort(key=lambda p: p.get("name") != nombre_producto)
 
         # Manejo de consultas que no tienen que ver con los productos
         if (
@@ -341,12 +383,12 @@ class ChatService:
 
         # Convertir resultados a texto para el modelo
         contexto_productos = json.dumps(
-            productos_para_prompt(products),
+            productos_para_prompt([resumen_para_llm(p) for p in products]),
             ensure_ascii=False
         )
 
         contexto_recomendaciones = json.dumps(
-            productos_para_prompt(recomendaciones),
+            productos_para_prompt([resumen_para_llm(p) for p in recomendaciones]),
             ensure_ascii=False
         )
 
@@ -357,7 +399,9 @@ class ChatService:
                     "Eres el asistente virtual de Perfumería Victoria. "
                     "Responde utilizando únicamente la información "
                     "del catálogo proporcionado. "
-                    "No inventes productos ni disponibilidad.\n\n"
+                    "No inventes productos ni disponibilidad. "
+                    "Si un perfume dice \"disponible\": \"agotado\", aclara que "
+                    "está agotado y no lo ofrezcas como disponible.\n\n"
                     f"PRODUCTOS ENCONTRADOS:\n"
                     f"{contexto_productos}\n\n"
                     f"RECOMENDACIONES RELACIONADAS:\n"
@@ -605,8 +649,9 @@ class ChatService:
         return fecha.astimezone(ZONA_GUATEMALA).strftime("%d/%m/%Y")
 
     def _historial(self, request: ChatRequest) -> list[ChatMessage]:
-        # El historial ya viene validado (solo user y assistant, ver ChatRequest).
-        return list(request.history)
+        # El historial ya viene validado (solo user y assistant, ver ChatRequest). Solo los
+        # últimos mensajes: un chat largo no puede hacer crecer el prompt hasta el límite de Groq.
+        return list(request.history)[-MAX_MENSAJES_HISTORIAL:]
 
     async def responder_info_tienda(self, request: ChatRequest) -> str:
         mensajes = [
@@ -638,7 +683,8 @@ class ChatService:
                     formato_precio(producto.get("price")),
                 ) if valor
             )
-            for producto in catalogo[:MAX_PRODUCTOS_EN_PROMPT]
+            # sin agotados y con variedad: antes siempre eran los primeros 60 del catálogo
+            for producto in ordenar_para_llm(catalogo, limite=MAX_PRODUCTOS_EN_PROMPT)
         ]
         catalogo_compacto = "\n".join(f"- {linea}" for linea in lineas) or "(catálogo no disponible)"
 

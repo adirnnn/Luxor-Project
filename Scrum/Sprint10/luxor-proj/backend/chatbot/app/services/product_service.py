@@ -1,5 +1,77 @@
 import httpx
 import os
+import random
+import time
+
+# Con más de 500 perfumes, una categoría como "Masculino" (casi 200) no cabe en lo que Groq acepta
+# por minuto y respondía con error. El bot sigue buscando en todo el catálogo, pero al modelo solo
+# le pasa los mejores resultados y solo con los datos que necesita para redactar la respuesta.
+MAX_PERFUMES_PARA_LLM = 8
+LARGO_DESCRIPCION = 200
+# el catálogo se guarda un minuto: antes se descargaba 6 veces en cada mensaje
+CACHE_SEGUNDOS = 60
+
+
+def hay_stock(producto: dict) -> bool:
+    stock = producto.get("stock")
+    if stock is None:
+        return True
+    try:
+        return int(stock) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def ordenar_para_llm(
+    productos: list[dict],
+    limite: int = MAX_PERFUMES_PARA_LLM,
+    incluir_agotados: bool = False,
+    azar: random.Random | None = None,
+) -> list[dict]:
+    """Los perfumes que se le pasan al modelo: sin agotados (salvo que pregunten por uno por su
+    nombre), primero los de mejores reseñas y, entre los que empatan, en orden al azar para que
+    "otras opciones" no traiga siempre los mismos."""
+    candidatos = [p for p in productos if incluir_agotados or hay_stock(p)]
+    (azar or random).shuffle(candidatos)
+
+    def puntaje(producto: dict):
+        try:
+            promedio = float(producto.get("rating_avg") or 0)
+        except (TypeError, ValueError):
+            promedio = 0.0
+        return (hay_stock(producto), promedio, producto.get("rating_count") or 0)
+
+    # sort es estable: lo que empata se queda en el orden al azar
+    candidatos.sort(key=puntaje, reverse=True)
+    return candidatos[:limite]
+
+
+def recortar(texto: str, largo: int = LARGO_DESCRIPCION) -> str:
+    texto = " ".join(str(texto).split())
+    if len(texto) <= largo:
+        return texto
+    return texto[:largo].rsplit(" ", 1)[0] + "…"
+
+
+def resumen_para_llm(producto: dict) -> dict:
+    """Solo lo que el modelo necesita para recomendar (sin foto, ids, fechas ni datos internos)."""
+    notas = producto.get("notes") or {}
+    texto_notas = "; ".join(
+        f"{etiqueta}: {notas[clave]}"
+        for clave, etiqueta in (("salida", "salida"), ("corazon", "corazón"), ("fondo", "fondo"))
+        if notas.get(clave)
+    )
+    resumen = {
+        "name": producto.get("name"),
+        "brand": producto.get("brand"),
+        "category": producto.get("category_name"),
+        "price": producto.get("price"),
+        "notes": texto_notas or None,
+        "description": recortar(producto["description"]) if producto.get("description") else None,
+        "disponible": "sí" if hay_stock(producto) else "agotado",
+    }
+    return {clave: valor for clave, valor in resumen.items() if valor is not None}
+
 
 class ProductService:
 
@@ -8,8 +80,13 @@ class ProductService:
             "NODE_API_URL",
             "http://127.0.0.1:3000"
         )
+        self._catalogo: list[dict] | None = None
+        self._catalogo_hora = 0.0
 
     async def get_products(self) -> list[dict]:
+        ahora = time.monotonic()
+        if self._catalogo is not None and ahora - self._catalogo_hora < CACHE_SEGUNDOS:
+            return self._catalogo
 
         async with httpx.AsyncClient() as client:
 
@@ -19,7 +96,9 @@ class ProductService:
 
             response.raise_for_status()
 
-            return response.json()
+            self._catalogo = response.json()
+            self._catalogo_hora = ahora
+            return self._catalogo
 
     async def buscar_productos(
         self,
@@ -139,8 +218,8 @@ class ProductService:
 
         for candidato in productos:
 
-            # No recomendar el mismo perfume
-            if candidato["id"] == producto["id"]:
+            # No recomendar el mismo perfume ni uno agotado
+            if candidato["id"] == producto["id"] or not hay_stock(candidato):
                 continue
 
             puntaje = 0

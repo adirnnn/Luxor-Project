@@ -15,6 +15,7 @@ import { WishlistProvider } from "../context/WishlistContext";
 import { ProtectedRoute } from "../components/routing/ProtectedRoute";
 import { AdminRoute } from "../components/routing/AdminRoute";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { ErrorBoundary } from "../components/ui/ErrorBoundary";
 
 // SFTWRKEY-457: la portada, el catálogo y el detalle (por donde entran los clientes) van en el
 // archivo principal. El resto de páginas se descarga solo cuando alguien entra a ellas, así el
@@ -139,19 +140,22 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <SearchProvider>
-            <BrowserRouter>
-              <ScrollToTop />
-              <SessionExpiredNotice />
-              <EmailVerificationToast />
-              <AnimatedRoutes />
-            </BrowserRouter>
-          </SearchProvider>
-        </WishlistProvider>
-      </CartProvider>
-    </AuthProvider>
+    // si algo da error al dibujarse, se ve un aviso para recargar en vez de la página en negro
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <SearchProvider>
+              <BrowserRouter>
+                <ScrollToTop />
+                <SessionExpiredNotice />
+                <EmailVerificationToast />
+                <AnimatedRoutes />
+              </BrowserRouter>
+            </SearchProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

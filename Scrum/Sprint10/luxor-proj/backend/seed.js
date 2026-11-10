@@ -332,7 +332,7 @@ const seedUsers = async () => {
     // perfumes que faltan (los que ya existen no se tocan) y pone las fotos del catálogo, por ejemplo
     // links de Cloudinary, solo donde todavía está la de relleno o una foto local del sitio.
     const catalogoBase = await seedCatalog(pool);
-    console.log(`Catálogo: ${catalogoBase.insertados} perfumes nuevos de ${catalogoBase.total}, ${catalogoBase.fotos} fotos actualizadas`);
+    console.log(`Catálogo: ${catalogoBase.insertados} perfumes nuevos de ${catalogoBase.total}, ${catalogoBase.fotos} fotos actualizadas, ${catalogoBase.notas} perfumes con notas nuevas`);
     // perfumes que se quitaron del sitio por no tener foto (data/catalogoRetirados.js)
     const retirados = await removeRetired(pool);
     console.log(`Catálogo: ${retirados.borrados} perfumes sin foto retirados`);

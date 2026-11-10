@@ -88,7 +88,18 @@ useEffect(() => {
     // SFTWRKEY-422: el acceso de admin ya lo revisa AdminRoute
     if (isEditing) {
         fetchProductById(id!)
-        .then((data) => setFormData(data))
+        // los perfumes del inventario de la tienda llegan sin notas ni descripción (null):
+        // el formulario los recibe como texto vacío
+        .then((data) => setFormData({
+            ...data,
+            description: data.description ?? "",
+            brand: data.brand ?? "",
+            notes: {
+                salida: data.notes?.salida ?? "",
+                corazon: data.notes?.corazon ?? "",
+                fondo: data.notes?.fondo ?? "",
+            },
+        }))
         .catch(() => setError("No se pudo cargar el producto."))
         .finally(() => setLoading(false));
     }

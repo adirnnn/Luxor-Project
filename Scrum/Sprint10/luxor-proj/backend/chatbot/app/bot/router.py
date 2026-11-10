@@ -62,5 +62,13 @@ async def chat(request: ChatRequest, http: Request):
             timeout=CHAT_TIMEOUT
         )
     except Exception as err:
-        logger.error("El chatbot no pudo responder: %s", type(err).__name__)
+        # el código de Groq dice la causa: 413 = mensaje demasiado grande, 429 = límite por minuto
+        # o por día. No se registra el texto del cliente.
+        respuesta = getattr(err, "response", None)
+        codigo = getattr(respuesta, "status_code", None)
+        logger.error(
+            "El chatbot no pudo responder: %s%s",
+            type(err).__name__,
+            f" (código {codigo})" if codigo else "",
+        )
         return ChatResponse(response=MENSAJE_SIN_SERVICIO)

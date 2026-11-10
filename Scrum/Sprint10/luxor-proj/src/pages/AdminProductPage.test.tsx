@@ -1,18 +1,19 @@
 // SFTWRKEY-457: subir la foto del perfume desde el panel
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { vi } from "vitest";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
 import { SearchProvider } from "../context/SearchContext";
 import AdminProductPage from "./AdminProductPage";
-import { uploadProductImage } from "../services/productService";
+import { uploadProductImage, fetchProductById } from "../services/productService";
 
 vi.mock("../services/productService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../services/productService")>()),
   fetchCategories: vi.fn().mockResolvedValue([]),
   uploadProductImage: vi.fn(),
+  fetchProductById: vi.fn(),
 }));
 const subir = vi.mocked(uploadProductImage);
 
@@ -106,5 +107,38 @@ describe("uploadProductImage", () => {
     );
 
     await expect(real(foto("image/png"))).rejects.toThrow("La foto pesa más de 5 MB.");
+  });
+});
+
+describe("AdminProductPage: editar un perfume sin notas", () => {
+  it("los campos que llegan en null del inventario se muestran vacíos", async () => {
+    vi.mocked(fetchProductById).mockResolvedValue({
+      id: "asad", name: "Asad", price: 450, stock: 2, image: "/a.webp", brand: null,
+      description: null, notes: { salida: null, corazon: null, fondo: null },
+    } as unknown as Awaited<ReturnType<typeof fetchProductById>>);
+    const errores = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(
+      <AuthProvider>
+        <CartProvider>
+          <SearchProvider>
+            <MemoryRouter initialEntries={["/admin/editar/asad"]}>
+              <Routes>
+                <Route path="/admin/editar/:id" element={<AdminProductPage />} />
+              </Routes>
+            </MemoryRouter>
+          </SearchProvider>
+        </CartProvider>
+      </AuthProvider>
+    );
+
+    expect(await screen.findByDisplayValue("Asad")).toBeInTheDocument();
+    // marca, salida, corazón y fondo
+    for (const ejemplo of ["Ej: Chanel, Lattafa...", "Ej: Limón, bergamota", "Ej: Rosa, jazmín", "Ej: Madera, ámbar"]) {
+      expect(screen.getByPlaceholderText(ejemplo)).toHaveValue("");
+    }
+    // React avisa en la consola cuando un campo recibe null
+    expect(errores.mock.calls.flat().join(" ")).not.toMatch(/value.+null/);
+    errores.mockRestore();
   });
 });

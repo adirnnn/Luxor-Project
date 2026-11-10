@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { catalogo, CATEGORIAS, SIN_FOTO } from './data/catalogo.js';
-import { INSERT_CATALOGO, UPDATE_FOTOS, DELETE_RETIRADOS, seedCatalog, removeRetired } from './services/catalogSeed.js';
+import { INSERT_CATALOGO, UPDATE_FOTOS, UPDATE_NOTAS, DELETE_RETIRADOS, seedCatalog, removeRetired } from './services/catalogSeed.js';
 import { retirados } from './data/catalogoRetirados.js';
 import { inventario } from './data/catalogoInventario.js';
 import { isSafeImage } from './services/imageValidation.js';
@@ -62,7 +62,7 @@ test('el seed manda todo el catálogo en una consulta y no toca los perfumes que
 
   const resultado = await seedCatalog(db);
 
-  assert.equal(consultas.length, 2);
+  assert.equal(consultas.length, 3);
   assert.equal(consultas[0].sql, INSERT_CATALOGO);
   assert.match(INSERT_CATALOGO, /ON CONFLICT \(id\) DO NOTHING/);
   // la categoría se busca por nombre, no por un id fijo
@@ -103,4 +103,34 @@ test('los retirados se borran solo si siguen sin foto y no están en ningún ped
   assert.deepEqual(consultas[0].params, [['a', 'b', 'c'], SIN_FOTO]);
   assert.match(DELETE_RETIRADOS, /p\.image IS NULL OR p\.image = \$2/);
   assert.match(DELETE_RETIRADOS, /NOT EXISTS \(SELECT 1 FROM order_items/);
+});
+
+test('las notas van completas (las tres) o vacías, y en el mismo formato corto', () => {
+  for (const p of catalogo) {
+    const notas = [p.salida, p.corazon, p.fondo];
+    const llenas = notas.filter((n) => n !== null).length;
+    assert.ok(llenas === 0 || llenas === 3, `${p.id}: tiene ${llenas} de 3 notas`);
+    for (const nota of notas.filter(Boolean)) {
+      assert.ok(nota.length <= 120, `${p.id}: nota muy larga`);
+      assert.doesNotMatch(nota, /[;|]|,\s*,|^\s|\s$/, `${p.id}: formato raro en "${nota}"`);
+    }
+  }
+  assert.ok(catalogo.filter((p) => p.salida).length >= 90, 'se perdieron notas del catálogo');
+});
+
+test('las notas del catálogo solo llegan a perfumes que no tienen ninguna en la base', async () => {
+  const consultas = [];
+  const db = { query: async (sql, params) => { consultas.push({ sql, params }); return { rowCount: 2 }; } };
+
+  const resultado = await seedCatalog(db, [{ id: 'x', salida: 'Limón', corazon: 'Rosa', fondo: 'Ámbar' }]);
+
+  assert.equal(consultas[2].sql, UPDATE_NOTAS);
+  assert.equal(JSON.parse(consultas[2].params[0])[0].salida, 'Limón');
+  assert.equal(resultado.notas, 2);
+  // un perfume sin notas en el catálogo no borra las de la base
+  assert.match(UPDATE_NOTAS, /p\.salida IS NOT NULL OR p\.corazon IS NOT NULL OR p\.fondo IS NOT NULL/);
+  // si el admin escribió alguna nota (aunque sea una), no se toca; "" cuenta como vacía
+  for (const campo of ['salida', 'corazon', 'fondo']) {
+    assert.match(UPDATE_NOTAS, new RegExp(`NULLIF\\(TRIM\\(pr\\.${campo}\\), ''\\) IS NULL`));
+  }
 });

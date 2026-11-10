@@ -28,11 +28,24 @@ export const UPDATE_FOTOS = `
     AND pr.image IS DISTINCT FROM p.image
     AND (pr.image IS NULL OR pr.image = $2 OR pr.image LIKE '/assets/products/%')`;
 
+// Notas del catálogo (salida, corazón, fondo) para los perfumes que ya están en la base: solo se
+// ponen si el perfume no tiene ninguna nota. Si el admin escribió alguna desde el panel, no se toca
+// (el panel guarda "" en las que deja vacías, por eso se comparan sin espacios).
+export const UPDATE_NOTAS = `
+  UPDATE products pr SET salida = p.salida, corazon = p.corazon, fondo = p.fondo
+  FROM jsonb_to_recordset($1::jsonb) AS p(${COLUMNAS})
+  WHERE pr.id = p.id
+    AND (p.salida IS NOT NULL OR p.corazon IS NOT NULL OR p.fondo IS NOT NULL)
+    AND NULLIF(TRIM(pr.salida), '') IS NULL
+    AND NULLIF(TRIM(pr.corazon), '') IS NULL
+    AND NULLIF(TRIM(pr.fondo), '') IS NULL`;
+
 export async function seedCatalog(db, catalogo = CATALOGO) {
   const datos = JSON.stringify(catalogo);
   const insertados = await db.query(INSERT_CATALOGO, [datos, SIN_FOTO]);
   const fotos = await db.query(UPDATE_FOTOS, [datos, SIN_FOTO]);
-  return { total: catalogo.length, insertados: insertados.rowCount, fotos: fotos.rowCount };
+  const notas = await db.query(UPDATE_NOTAS, [datos]);
+  return { total: catalogo.length, insertados: insertados.rowCount, fotos: fotos.rowCount, notas: notas.rowCount };
 }
 
 // Perfumes que se quitaron del sitio por no tener foto (data/catalogoRetirados.js). Se borran solo si
