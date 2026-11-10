@@ -1,0 +1,51 @@
+// Catálogo base de la tienda. seed.js lo carga en cada arranque del backend (services/catalogSeed.js):
+// - Un perfume que no está en la base se crea con estos datos.
+// - Un perfume que ya está en la base NO se toca (precio, stock, notas y categoría los maneja el admin).
+// - image: null = sin foto todavía (se usa sin-imagen.svg). Para usar Cloudinary se pega el link https
+//   (https://res.cloudinary.com/...; se recomienda f_auto,q_auto,w_800 después de /upload/). En el
+//   siguiente deploy la foto se actualiza en la base solo si allá sigue la de relleno o una local del
+//   sitio (/assets/products/...), así nunca se pisa una foto que el admin cambió desde el panel.
+// - category: nombre de la categoría (Árabe, Oriental, Femenino, Masculino, Fresco o Dulce).
+// - stock: solo el inicial; después lo maneja el panel.
+
+export const SIN_FOTO = '/assets/products/sin-imagen.svg';
+
+export const CATEGORIAS = ['Árabe', 'Oriental', 'Femenino', 'Masculino', 'Fresco', 'Dulce'];
+
+export const catalogo = [
+  // Catálogo inicial
+  { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', brand: 'Armaf', price: 550, stock: 5, category: 'Masculino', image: '/assets/products/cdnIntense.webp', description: 'Fragancia intensa.', salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar' },
+  { id: 'khamrah', name: 'Lattafa Khamrah', brand: 'Lattafa', price: 650, stock: 3, category: 'Dulce', image: '/assets/products/lattafaKhamrah.webp', description: 'Dulce, cálida.', salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar' },
+  { id: 'yara', name: 'Lattafa Yara', brand: 'Lattafa', price: 520, stock: 10, category: 'Femenino', image: '/assets/products/lattafaYara.webp', description: 'Suave, femenina.', salida: 'Frutas tropicales', corazon: 'Rosa, jazmín', fondo: 'Vainilla, almizcle' },
+  { id: 'oud-mood', name: 'Lattafa Oud Mood', brand: 'Lattafa', price: 228, stock: 7, category: 'Oriental', image: '/assets/products/lattafaOudMood.webp', description: 'Intenso y profundo con esencia oriental.', salida: 'Especias', corazon: 'Oud', fondo: 'Ámbar' },
+  { id: '9pm', name: 'Afnan 9PM', brand: 'Afnan', price: 650, stock: 2, category: 'Dulce', image: '/assets/products/afnan9PM.webp', description: 'Dulce, nocturna y seductora.', salida: 'Manzana, canela', corazon: 'Lavanda', fondo: 'Vainilla' },
+  { id: 'hawas', name: 'Rasasi Hawas', brand: 'Rasasi', price: 650, stock: 4, category: 'Fresco', image: '/assets/products/rasawiHawas.webp', description: 'Fresca y moderna con gran proyección.', salida: 'Bergamota', corazon: 'Canela', fondo: 'Almizcle' },
+  { id: 'amber-oud', name: 'Al Haramain Amber Oud', brand: 'Al Haramain', price: 1050, stock: 6, category: 'Árabe', image: '/assets/products/amberOudHaramain.webp', description: 'Lujo puro con carácter fuerte.', salida: 'Cítricos', corazon: 'Ámbar', fondo: 'Oud' },
+  { id: 'fakhar', name: 'Lattafa Fakhar', brand: 'Lattafa', price: 390, stock: 8, category: 'Oriental', image: '/assets/products/lattafaFakhar.webp', description: 'Elegancia moderna con toque oriental.', salida: 'Manzana', corazon: 'Lavanda', fondo: 'Madera' },
+
+  // SFTWRKEY-402: perfumes y marcas nuevas (Maison Alhambra, Swiss Arabian, French Avenue)
+  { id: 'asad', name: 'Lattafa Asad', brand: 'Lattafa', price: 500, stock: 6, category: 'Masculino', image: '/assets/products/asad.webp', description: 'Especiada y ambarada, muy masculina.', salida: 'Pimienta negra, tabaco', corazon: 'Café, iris', fondo: 'Ámbar, vainilla' },
+  { id: 'club-de-nuit-woman', name: 'Club de Nuit Woman', brand: 'Armaf', price: 500, stock: 5, category: 'Femenino', image: '/assets/products/Armaf-Club-de-Nuit-Woman.webp', description: 'Floral y elegante para la noche.', salida: 'Naranja, bergamota', corazon: 'Rosa, jazmín', fondo: 'Pachulí, vainilla' },
+  { id: 'mandarin-sky', name: 'Armaf Odyssey Mandarin Sky', brand: 'Armaf', price: 520, stock: 8, category: 'Dulce', image: '/assets/products/Armaf-Odyssey-Mandarin-Sky.webp', description: 'Dulce y cítrica, fácil de llevar.', salida: 'Mandarina, naranja', corazon: 'Caramelo, haba tonka', fondo: 'Ámbar, vetiver' },
+  { id: 'laventure', name: "Al Haramain L'Aventure", brand: 'Al Haramain', price: 360, stock: 5, category: 'Fresco', image: '/assets/products/Al-Haramain-LAventure.webp', description: 'Fresca y cítrica para el día.', salida: 'Limón, bergamota', corazon: 'Elemí, jazmín', fondo: 'Almizcle, ámbar' },
+  { id: 'salvo', name: 'Maison Alhambra Salvo', brand: 'Maison Alhambra', price: 260, stock: 10, category: 'Fresco', image: '/assets/products/Maison-Alhambra-Salvo.webp', description: 'Fresca y aromática, buena para diario.', salida: 'Bergamota, pimienta', corazon: 'Lavanda, geranio', fondo: 'Ambroxan, cedro' },
+  { id: 'shaghaf-oud', name: 'Swiss Arabian Shaghaf Oud', brand: 'Swiss Arabian', price: 480, stock: 4, category: 'Árabe', image: '/assets/products/Swiss-Arabian-Shaghaf-Oud.webp', description: 'Oud dulce con azafrán y rosa.', salida: 'Azafrán, rosa', corazon: 'Praliné, oud', fondo: 'Vainilla, ámbar' },
+  { id: 'liquid-brun', name: 'French Avenue Liquid Brun', brand: 'French Avenue', price: 380, stock: 6, category: 'Dulce', image: '/assets/products/liquid-brun.webp', description: 'Cálida y especiada con vainilla.', salida: 'Canela, cardamomo', corazon: 'Vainilla, elemí', fondo: 'Praliné, guayaco' },
+
+  // Reporte de existencias de enero 2026 (LISTADO DE PERFUME VIC.): precio y stock salen del reporte
+  { id: 'khamrah-qahwa', name: 'Lattafa Khamrah Qahwa', brand: 'Lattafa', price: 600, stock: 47, category: 'Dulce', image: null, description: 'La Khamrah con café: dulce, especiada y envolvente.', salida: 'Canela, cardamomo, jengibre', corazon: 'Praliné, frutas confitadas', fondo: 'Café, vainilla, haba tonka' },
+  { id: 'yara-moi', name: 'Lattafa Yara Moi', brand: 'Lattafa', price: 500, stock: 12, category: 'Femenino', image: null, description: 'Floral y cremosa, más elegante que la Yara clásica.', salida: 'Jazmín, champaca', corazon: 'Ámbar, pachulí', fondo: 'Caramelo, vainilla, almizcle' },
+  { id: 'yara-tous', name: 'Lattafa Yara Tous', brand: 'Lattafa', price: 500, stock: 11, category: 'Dulce', image: null, description: 'Tropical y dulce, ideal para el calor.', salida: 'Mango, coco, maracuyá', corazon: 'Jazmín, azahar', fondo: 'Vainilla, almizcle' },
+  { id: 'eclaire', name: 'Lattafa Eclaire', brand: 'Lattafa', price: 600, stock: 2, category: 'Dulce', image: null, description: 'Gourmand de caramelo y leche, muy dulce.', salida: 'Caramelo, leche, azúcar', corazon: 'Miel, flores blancas', fondo: 'Vainilla, praliné, almizcle' },
+  { id: 'oud-for-glory', name: 'Lattafa Badee Al Oud for Glory', brand: 'Lattafa', price: 500, stock: 13, category: 'Árabe', image: null, description: 'Oud oscuro y especiado de gran duración.', salida: 'Azafrán, nuez moscada, lavanda', corazon: 'Oud, pachulí', fondo: 'Oud, almizcle' },
+  { id: 'club-de-nuit-untold', name: 'Armaf Club de Nuit Untold', brand: 'Armaf', price: 750, stock: 26, category: 'Oriental', image: null, description: 'Ambarada y luminosa, se nota a distancia.', salida: 'Azafrán, jazmín', corazon: 'Amberwood, ámbar gris', fondo: 'Resina de abeto, cedro' },
+  { id: 'club-de-nuit-iconic', name: 'Armaf Club de Nuit Iconic', brand: 'Armaf', price: 750, stock: 9, category: 'Masculino', image: null, description: 'Fresca y amaderada, versátil para todo el día.', salida: 'Toronja, limón, menta', corazon: 'Jengibre, nuez moscada, jazmín', fondo: 'Incienso, vetiver, cedro' },
+  { id: 'supremacy-silver', name: 'Afnan Supremacy Silver', brand: 'Afnan', price: 650, stock: 5, category: 'Masculino', image: null, description: 'Afrutada y ahumada con mucho carácter.', salida: 'Bergamota, piña, grosella negra', corazon: 'Abedul, pachulí, jazmín', fondo: 'Almizcle, ámbar gris, vainilla' },
+  { id: 'eros-parfum', name: 'Versace Eros Parfum', brand: 'Versace', price: 1350, stock: 6, category: 'Masculino', image: null, description: 'Versión más profunda y especiada de Eros.', salida: 'Menta, limón, pimienta', corazon: 'Geranio, ambroxan', fondo: 'Vainilla, cedro, vetiver' },
+  { id: 'one-million', name: 'Paco Rabanne 1 Million', brand: 'Paco Rabanne', price: 1450, stock: 2, category: 'Masculino', image: null, description: 'Especiada y cuerosa, un clásico de noche.', salida: 'Toronja, menta, mandarina', corazon: 'Rosa, canela', fondo: 'Cuero, ámbar, pachulí' },
+  { id: '212-men', name: 'Carolina Herrera 212 Men', brand: 'Carolina Herrera', price: 1250, stock: 12, category: 'Fresco', image: null, description: 'Fresca y limpia para el día a día.', salida: 'Toronja, limón, notas verdes', corazon: 'Jengibre, violeta, gardenia', fondo: 'Almizcle, sándalo, incienso' },
+  { id: 'light-blue', name: 'Dolce & Gabbana Light Blue', brand: 'Dolce & Gabbana', price: 1100, stock: 6, category: 'Femenino', image: null, description: 'Cítrica y fresca, perfecta para el verano.', salida: 'Limón siciliano, manzana, cedro', corazon: 'Bambú, jazmín, rosa blanca', fondo: 'Cedro, ámbar, almizcle' },
+  { id: 'dior-homme-intense', name: 'Dior Homme Intense', brand: 'Dior', price: 2100, stock: 2, category: 'Masculino', image: null, description: 'Iris empolvado y elegante para la noche.', salida: 'Lavanda', corazon: 'Iris, ambreta, pera', fondo: 'Vetiver, cedro' },
+  { id: 'sauvage-elixir', name: 'Dior Sauvage Elixir', brand: 'Dior', price: 4200, stock: 1, category: 'Oriental', image: null, description: 'La versión más concentrada y especiada de Sauvage.', salida: 'Canela, nuez moscada, cardamomo, toronja', corazon: 'Lavanda', fondo: 'Regaliz, sándalo, ámbar, pachulí' },
+  { id: 'erba-pura', name: 'Xerjoff Erba Pura', brand: 'Xerjoff', price: 3500, stock: 1, category: 'Dulce', image: null, description: 'Afrutada y luminosa, de perfumería nicho.', salida: 'Naranja, limón, bergamota', corazon: 'Frutas mediterráneas', fondo: 'Almizcle blanco, vainilla, ámbar' },
+];
