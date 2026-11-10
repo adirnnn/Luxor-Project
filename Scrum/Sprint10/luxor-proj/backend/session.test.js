@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken';
 process.env.JWT_SECRET = 'test-secret';
 process.env.PAYMENT_GATEWAY_API_KEY = 'test_key_for_unit_tests';
 process.env.GOOGLE_CLIENT_ID = 'cliente-de-prueba.apps.googleusercontent.com';
+// otra dirección del mismo sitio (como www o la de Vercel junto al dominio propio)
+process.env.EXTRA_FRONTEND_URLS = 'https://otra-direccion-del-sitio.test';
 
 const { OAuth2Client } = await import('google-auth-library');
 const { default: bcrypt } = await import('bcryptjs');
@@ -233,4 +235,19 @@ test('CSRF no aplica al webhook de Recurrente: lo valida su firma, no el origen'
   // lo atiende el webhook (que sin su clave o sin firma válida no procesa nada), no la protección CSRF
   assert.notEqual(res.status, 403);
   assert.notEqual((await res.json()).message, 'Origen no permitido.');
+});
+
+// Google y la compra como invitado tienen su propio control de origen: tiene que aceptar todas las
+// direcciones del sitio, no solo FRONTEND_URL (con el dominio propio, desde las otras daba 403)
+test('la compra como invitado y Google aceptan todas las direcciones del sitio y rechazan las ajenas', async (t) => {
+  const { restore } = fakeDb();
+  t.after(restore);
+  for (const origin of [FRONTEND, 'https://otra-direccion-del-sitio.test']) {
+    const invitado = await pedir('POST', '/guest-checkout', { origin, body: {} });
+    assert.notEqual(invitado.status, 403, `invitado desde ${origin}`);
+    const google = await pedir('POST', '/auth/google', { origin, body: { credential: 'token-falso', nonce: 'n' } });
+    assert.notEqual(google.status, 403, `google desde ${origin}`);
+  }
+  const ajeno = await pedir('POST', '/guest-checkout', { origin: 'https://sitio-ajeno.test', body: {} });
+  assert.equal(ajeno.status, 403);
 });

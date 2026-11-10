@@ -26,6 +26,7 @@ import {
 } from './services/checkoutSessions.js';
 import { sendCheckoutError } from './routes/checkout.js';
 import { clientIp } from './services/clientIp.js';
+import { allowedOrigins } from './services/csrf.js';
 
 const router = Router();
 const google = new OAuth2Client();
@@ -151,12 +152,14 @@ router.use(async (_req, res, next) => {
   }
 });
 
+// el navegador tiene que venir del sitio: la misma lista de direcciones que acepta el resto del
+// backend (dominio propio, www y Vercel; services/csrf.js). Antes solo aceptaba FRONTEND_URL y el
+// acceso con Google fallaba desde cualquier otra dirección del sitio.
 function sameOrigin(req, res, next) {
-  const origin =
-    process.env.FRONTEND_URL || 'http://localhost:5173';
+  const origin = (req.get('origin') || '').replace(/\/+$/, '');
 
   if (
-    req.get('origin') !== origin ||
+    !allowedOrigins().includes(origin) ||
     !req.is('application/json')
   ) {
     return res.status(403).json({
