@@ -67,8 +67,26 @@ describe("vista previa para bots (api/product-preview)", () => {
     ["/assets/products/asad.jpg", "/assets/products/og/asad.jpg"],
     ["/product-images/12.webp", "/product-images/12.jpg"],
     ["/otra/foto.webp", "/otra/foto.webp"],
+    // fotos en Cloudinary: la misma foto en JPEG (WhatsApp no siempre muestra WebP)
+    [
+      "https://res.cloudinary.com/demo/image/upload/v1794269592/afnan9PM.webp",
+      "https://res.cloudinary.com/demo/image/upload/f_jpg/v1794269592/afnan9PM.webp",
+    ],
+    [
+      "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_limit,w_800/v1794271434/qahwa.webp",
+      "https://res.cloudinary.com/demo/image/upload/f_jpg,q_auto,c_limit,w_800/v1794271434/qahwa.webp",
+    ],
+    ["https://cdn.otra-tienda.com/foto.webp", "https://cdn.otra-tienda.com/foto.webp"],
   ])("la foto %s se comparte como %s", (image, esperada) => {
     expect(shareImage(image)).toBe(esperada);
+  });
+
+  it("un perfume con foto en Cloudinary se comparte con su foto en JPEG", () => {
+    const image = "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_limit,w_800/v1/yara-moi.jpg";
+    const html = buildPreviewHtml({ ...khamrah, image }, origin, "/producto/khamrah");
+    expect(html).toContain(
+      '<meta property="og:image" content="https://res.cloudinary.com/demo/image/upload/f_jpg,q_auto,c_limit,w_800/v1/yara-moi.jpg" />',
+    );
   });
 
   it("un perfume sin foto (imagen de relleno SVG) se comparte con la imagen de la tienda", () => {

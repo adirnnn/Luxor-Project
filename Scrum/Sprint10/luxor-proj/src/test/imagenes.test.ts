@@ -1,6 +1,7 @@
 // SFTWRKEY-457: las fotos de productos son WebP. Revisa que no falte ninguna foto, que cada una tenga
 // su JPEG para compartir en redes y que las rutas viejas (.png/.jpg) sigan llegando a la foto nueva.
-import seed from "../../backend/seed.js?raw";
+// el catálogo del seed vive en backend/data/catalogo.js
+import seed from "../../backend/data/catalogo.js?raw";
 import productosEstaticos from "../data/products.ts?raw";
 import vercelConfig from "../../vercel.json";
 
@@ -8,7 +9,9 @@ const archivos = Object.keys(
   import.meta.glob("/public/assets/products/**/*", { query: "?url", import: "default", eager: true })
 ).map((ruta) => ruta.replace(/^\/public/, ""));
 
-const rutasEn = (codigo: string) => [...codigo.matchAll(/\/assets\/products\/[\w.-]+/g)].map((m) => m[0]);
+// solo rutas que terminan en un archivo de imagen (los comentarios pueden decir "/assets/products/...")
+const rutasEn = (codigo: string) =>
+  [...codigo.matchAll(/\/assets\/products\/[\w-][\w.-]*\.(?:webp|svg|png|jpe?g)\b/g)].map((m) => m[0]);
 
 describe("fotos de productos (SFTWRKEY-457)", () => {
   it("cada foto que usan el seed y data/products.ts existe en public/", () => {

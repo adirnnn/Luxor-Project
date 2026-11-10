@@ -54,12 +54,27 @@ export function shareImage(image: string): string {
   if (delSitio) return `/assets/products/og/${delSitio[1]}.jpg`;
   const subida = image.match(/^\/product-images\/(\d+)\.webp$/);
   if (subida) return `/product-images/${subida[1]}.jpg`;
-  return image;
+  return cloudinaryJpg(image) ?? image;
 }
 
-// las imágenes del catálogo son rutas del frontend (/assets/...) o URLs externas (PerfumAPI)
+// Fotos en Cloudinary (catálogo del seed): se pide la misma foto en JPEG con f_jpg. Si el link ya trae
+// transformaciones (f_auto,q_auto,...), se cambia su formato por f_jpg y se dejan las demás.
+const CLOUDINARY = /^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/i;
+
+function cloudinaryJpg(image: string): string | null {
+  const partes = image.match(CLOUDINARY);
+  if (!partes) return null;
+  const [, base, resto] = partes;
+  const [primero, ...demas] = resto.split("/");
+  const esTransformacion = demas.length > 0 && !/^v\d+$/.test(primero) && /^[a-z]{1,3}_/i.test(primero);
+  if (!esTransformacion) return `${base}f_jpg/${resto}`;
+  const otras = primero.split(",").filter((t) => !/^f_/i.test(t));
+  return `${base}${["f_jpg", ...otras].join(",")}/${demas.join("/")}`;
+}
+
+// las imágenes del catálogo son rutas del frontend (/assets/...) o URLs externas (Cloudinary, PerfumAPI)
 function absoluteImage(image: string | null | undefined, origin: string): string {
-  if (image && /^https:\/\//i.test(image)) return image;
+  if (image && /^https:\/\//i.test(image)) return shareImage(image);
   // la imagen de relleno es SVG y las redes no muestran SVG: se usa la de la tienda
   if (image && image.startsWith("/") && !/\.svg$/i.test(image)) return `${origin}${shareImage(image)}`;
   return `${origin}/og-image.jpg`;
