@@ -28,20 +28,17 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             .catch(() => setCatalog([]));
     }, []);
 
-    const normalize = (str: string) =>
-        str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    // los perfumes del inventario de la tienda no traen notas (llegan en null): un dato vac\u00edo
+    // cuenta como texto vac\u00edo, si no la b\u00fasqueda se cae y la p\u00e1gina queda en negro
+    const normalize = (str?: string | null) =>
+        (str ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-    const results: Product[] = query.trim().length > 0
+    const q = normalize(query.trim());
+    const results: Product[] = q.length > 0
         ? catalog.filter((p) => {
             if (!p.stock || p.stock <= 0) return false;
-            const q = normalize(query);
-            return (
-                normalize(p.name).includes(q) ||
-                normalize(p.description).includes(q) ||
-                normalize(p.notes.salida).includes(q) ||
-                normalize(p.notes.corazon).includes(q) ||
-                normalize(p.notes.fondo).includes(q)
-            );
+            return [p.name, p.brand, p.description, p.notes?.salida, p.notes?.corazon, p.notes?.fondo]
+                .some((campo) => normalize(campo).includes(q));
             })
         : [];
     const setQuery = useCallback((q: string) => {

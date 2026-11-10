@@ -9,6 +9,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "../../utils/formatPrice";
 import { AccountMenu } from "./AccountMenu";
 import { ACCOUNT_LINKS, ADMIN_LINKS } from "./accountLinks";
+import type { Product } from "../../services/productService";
+
+// debajo del nombre: las notas que tenga el perfume y, si no trae ninguna, su marca
+const detalleResultado = (product: Product) => {
+  const notas = [product.notes?.salida, product.notes?.corazon].filter((nota) => nota?.trim());
+  return notas.length > 0 ? notas.join(" · ") : product.brand ?? "";
+};
 
 const navLinks = [
   { label: "Inicio", href: "/" },
@@ -204,7 +211,7 @@ export const Navbar = () => {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-primary-champagne truncate">{product.name}</p>
-                                    <p className="text-xs text-primary-champagne/40 truncate italic">{product.notes.salida} · {product.notes.corazon}</p>
+                                    <p className="text-xs text-primary-champagne/40 truncate italic">{detalleResultado(product)}</p>
                                   </div>
                                   <span className="text-sm font-light text-primary-gold shrink-0">{formatPrice(product.price)}</span>
                                 </button>
