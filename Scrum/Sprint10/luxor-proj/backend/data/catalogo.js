@@ -8,11 +8,13 @@
 // - category: nombre de la categoría (Árabe, Oriental, Femenino, Masculino, Fresco o Dulce).
 // - stock: solo el inicial; después lo maneja el panel.
 
+import { inventario } from './catalogoInventario.js';
+
 export const SIN_FOTO = '/assets/products/sin-imagen.svg';
 
 export const CATEGORIAS = ['Árabe', 'Oriental', 'Femenino', 'Masculino', 'Fresco', 'Dulce'];
 
-export const catalogo = [
+const base = [
   // Catálogo inicial
   { id: 'club-de-nuit-intense', name: 'Club de Nuit Intense Man', brand: 'Armaf', price: 550, stock: 5, category: 'Masculino', image: '/assets/products/cdnIntense.webp', description: 'Fragancia intensa.', salida: 'Limón, piña', corazon: 'Abedul, jazmín', fondo: 'Almizcle, ámbar' },
   { id: 'khamrah', name: 'Lattafa Khamrah', brand: 'Lattafa', price: 650, stock: 3, category: 'Dulce', image: '/assets/products/lattafaKhamrah.webp', description: 'Dulce, cálida.', salida: 'Canela, dátiles', corazon: 'Praliné, vainilla', fondo: 'Madera, ámbar' },
@@ -49,3 +51,6 @@ export const catalogo = [
   { id: 'sauvage-elixir', name: 'Dior Sauvage Elixir', brand: 'Dior', price: 4200, stock: 1, category: 'Oriental', image: 'https://res.cloudinary.com/lqn88krq/image/upload/f_auto,q_auto,c_limit,w_800/v1794274400/POSTER_CAPSULE_Elixir_VA_916.jpg', description: 'La versión más concentrada y especiada de Sauvage.', salida: 'Canela, nuez moscada, cardamomo, toronja', corazon: 'Lavanda', fondo: 'Regaliz, sándalo, ámbar, pachulí' },
   { id: 'erba-pura', name: 'Xerjoff Erba Pura', brand: 'Xerjoff', price: 3500, stock: 1, category: 'Dulce', image: 'https://res.cloudinary.com/lqn88krq/image/upload/f_auto,q_auto,c_limit,w_800/v1794274428/xerjoff-erba-pura-edp.webp', description: 'Afrutada y luminosa, de perfumería nicho.', salida: 'Naranja, limón, bergamota', corazon: 'Frutas mediterráneas', fondo: 'Almizcle blanco, vainilla, ámbar' },
 ];
+
+// los perfumes del catálogo de existencias de la tienda (data/catalogoInventario.js)
+export const catalogo = [...base, ...inventario];

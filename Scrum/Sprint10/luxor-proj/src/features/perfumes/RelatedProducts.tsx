@@ -38,7 +38,7 @@ export const RelatedProducts: FC<{ productId: string }> = ({ productId }) => {
                 stock={p.stock}
                 ratingAvg={p.rating_avg}
                 ratingCount={p.rating_count}
-                description={p.notes?.corazon}
+                description={p.notes?.corazon || p.description}
               />
             ))}
           </div>

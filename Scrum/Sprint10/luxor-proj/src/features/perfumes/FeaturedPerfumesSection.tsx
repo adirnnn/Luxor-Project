@@ -96,7 +96,7 @@ export const FeaturedPerfumesSection = () => {
                     stock={product.stock}
                     ratingAvg={product.rating_avg}
                     ratingCount={product.rating_count}
-                    description={product.notes ? `${product.notes.salida} · ${product.notes.corazon}` : product.description}
+                    description={[product.notes?.salida, product.notes?.corazon].filter(Boolean).join(" · ") || product.description}
                   />
                 ))}
               </div>

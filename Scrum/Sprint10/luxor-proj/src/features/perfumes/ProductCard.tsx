@@ -101,9 +101,10 @@ export const ProductCard: FC<ProductCardProps> = ({
 
         {/* Info */}
         <div className="flex flex-col gap-3 px-1 mt-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            {/* en móvil el nombre usa todo el ancho y hasta 2 líneas; desde sm va junto al precio en una */}
-            <H3 className="w-full text-lg md:text-xl font-light tracking-tight leading-tight text-primary-champagne line-clamp-2 break-words sm:w-auto sm:leading-none sm:line-clamp-none sm:truncate sm:max-w-[70%]">{name}</H3>
+          <div className="flex flex-col items-start gap-2">
+            {/* el nombre completo (marca y perfume) usa todo el ancho y hasta 2 líneas, el precio va abajo:
+                junto al precio se cortaba y solo se leía la marca ("LATTAFA ...") */}
+            <H3 className="w-full min-h-[2.5em] text-lg md:text-xl font-light tracking-tight leading-tight text-primary-champagne line-clamp-2 break-words">{name}</H3>
             <span className="text-xl md:text-2xl font-light text-primary-gold shrink-0">
               {formatPrice(price)}
             </span>

@@ -269,7 +269,7 @@ export default function PerfumesPage() {
                         stock={product.stock}
                         ratingAvg={product.rating_avg}
                         ratingCount={product.rating_count}
-                        description={product.notes?.corazon}
+                        description={product.notes?.corazon || product.description}
                       />
                     ))}
                   </div>

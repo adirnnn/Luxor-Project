@@ -13,6 +13,7 @@ import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { formatPrice } from "../utils/formatPrice";
 import { fetchAdminOrders } from "../services/orderService";
+import { filtrarPerfumes } from "../features/admin/filtrarPerfumes";
 
 // Psicología del color (feedback del cliente): rojo = agotado, ámbar = queda poco, verde = bien.
 // 3 es el mismo umbral de stock bajo del backend (LOW_STOCK_THRESHOLD).
@@ -29,6 +30,8 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    // buscar perfumes del inventario por nombre, marca o referencia
+    const [busqueda, setBusqueda] = useState("");
     // pedidos pagados que todavía no se preparan: se resaltan en naranja en el botón Pedidos
     const [porPreparar, setPorPreparar] = useState(0);
 
@@ -64,6 +67,8 @@ export default function AdminDashboard() {
             alert("No se pudo eliminar el producto.");
         }
     };
+
+    const visibles = filtrarPerfumes(products, busqueda);
 
     return (
         <MainLayout>
@@ -140,6 +145,25 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
+                        {!loading && !error && products.length > 0 && (
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8 md:mb-12">
+                                <label htmlFor="admin-buscar" className="sr-only">Buscar perfume</label>
+                                <input
+                                    id="admin-buscar"
+                                    type="search"
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                    placeholder="Buscar perfume, marca o referencia…"
+                                    className="w-full sm:max-w-md px-6 py-4 rounded-2xl border-none text-base text-primary-champagne bg-secondary-charcoal/50 placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary-gold"
+                                />
+                                <span className="text-xs text-primary-champagne/50" aria-live="polite">
+                                    {busqueda.trim()
+                                        ? `${visibles.length} de ${products.length} perfumes`
+                                        : `${products.length} perfumes`}
+                                </span>
+                            </div>
+                        )}
+
                         {loading ? (
                             <LoadingSpinner message="Cargando inventario..." />
                         ) : error ? (
@@ -147,9 +171,13 @@ export default function AdminDashboard() {
                                 <ErrorMessage message={error} />
                                 <Button onClick={loadProducts} className="-mt-20 px-12" variant="outline">Reintentar</Button>
                             </div>
+                        ) : busqueda.trim() && visibles.length === 0 ? (
+                            <p className="text-center text-primary-champagne/60 py-16">
+                                Ningún perfume coincide con “{busqueda.trim()}”.
+                            </p>
                         ) : viewMode === 'grid' ? (
                             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-12">
-                                {products.map(product => (
+                                {visibles.map(product => (
                                     <div key={product.id} className="glass-card p-4 md:p-10 flex flex-col gap-4 md:gap-8 hover:scale-[1.03] transition-all duration-700 group relative overflow-hidden border-white/5">
                                         <div className="absolute top-0 right-0 p-3 md:p-6">
                                             <span className="hidden md:inline text-[10px] font-black text-primary-gold/20 tracking-[0.4em] uppercase">Ref: {product.id.slice(-4)}</span>
@@ -165,7 +193,7 @@ export default function AdminDashboard() {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1 md:gap-2">
-                                                <H3 className="text-xs md:text-2xl font-light text-primary-champagne uppercase tracking-tight truncate">{product.name}</H3>
+                                                <H3 className="text-xs md:text-2xl font-light text-primary-champagne uppercase tracking-tight leading-tight line-clamp-2 break-words min-h-[2.5em]">{product.name}</H3>
                                                 <div className="flex items-center justify-between flex-wrap gap-1">
                                                     <span className="text-sm md:text-2xl font-light text-primary-gold">{formatPrice(product.price)}</span>
                                                     <span className={`px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${stockStyle(product.stock ?? 0).className}`}>
@@ -212,7 +240,7 @@ export default function AdminDashboard() {
                             </div>
                         ) : (
                             <div className="flex flex-col gap-4 md:gap-6">
-                                {products.map(product => (
+                                {visibles.map(product => (
                                     <div key={product.id} className="glass-card border-white/5 hover:bg-white/[0.02] transition-all duration-700 group">
                                         <div className="flex items-center gap-3 md:gap-10 p-3 md:p-6">
                                             <div className="w-14 h-14 md:w-24 md:h-24 bg-primary-black/40 rounded-xl md:rounded-2xl overflow-hidden p-2 md:p-4 border border-white/5 shadow-inner shrink-0">
@@ -225,7 +253,7 @@ export default function AdminDashboard() {
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0 flex flex-col gap-0.5 md:gap-1">
-                                                <H3 className="text-sm md:text-xl font-light text-primary-champagne uppercase tracking-tight truncate">{product.name}</H3>
+                                                <H3 className="text-sm md:text-xl font-light text-primary-champagne uppercase tracking-tight leading-tight line-clamp-2 break-words">{product.name}</H3>
                                                 <div className="flex items-center gap-2 md:gap-6">
                                                     <span className="text-sm md:text-xl font-light text-primary-gold">{formatPrice(product.price)}</span>
                                                     <span className="hidden md:inline text-[10px] font-bold text-primary-champagne/20 uppercase tracking-[0.3em] italic">Ref: {product.id}</span>

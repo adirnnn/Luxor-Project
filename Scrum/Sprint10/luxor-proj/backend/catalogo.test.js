@@ -17,10 +17,20 @@ test('cada perfume tiene un id válido y no se repite', () => {
   assert.equal(new Set(ids).size, ids.length, 'hay ids repetidos');
 });
 
+test('incluye el inventario de la tienda y ningún nombre se repite', () => {
+  assert.ok(catalogo.length >= 550, `solo hay ${catalogo.length} perfumes`);
+  const nombres = catalogo.map((p) => p.name.toLowerCase());
+  assert.equal(new Set(nombres).size, nombres.length, 'hay nombres repetidos');
+});
+
 test('cada perfume trae sus datos completos', () => {
   for (const p of catalogo) {
-    for (const campo of ['name', 'brand', 'description', 'salida', 'corazon', 'fondo']) {
+    for (const campo of ['name', 'brand', 'description']) {
       assert.ok(typeof p[campo] === 'string' && p[campo].trim(), `${p.id}: falta ${campo}`);
+    }
+    // las notas son opcionales: el catálogo de existencias de la tienda no las trae
+    for (const campo of ['salida', 'corazon', 'fondo']) {
+      assert.ok(p[campo] === null || (typeof p[campo] === 'string' && p[campo].trim()), `${p.id}: ${campo} vacío`);
     }
     assert.ok(p.name.length <= 200, `${p.id}: nombre muy largo`);
     assert.ok(Number.isFinite(p.price) && p.price > 0, `${p.id}: precio inválido`);

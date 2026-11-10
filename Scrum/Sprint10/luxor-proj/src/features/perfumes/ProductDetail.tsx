@@ -23,6 +23,7 @@ export type ProductDetailProps = {
   // SFTWRKEY-431: llegan tal cual del producto ({...product} en ProductPage)
   rating_avg?: number | string | null;
   rating_count?: number;
+  // los perfumes del inventario de la tienda (y los importados por CSV) pueden venir sin notas (null)
   notes: {
     salida: string;
     corazon: string;
@@ -47,6 +48,10 @@ export const ProductDetail: FC<ProductDetailProps> = ({
   const [qty, setQty] = useState(1);
   const max = maxQuantityFor({ stock });
   const agotado = max === 0;
+  const notasVisibles: [string, string][] = [];
+  for (const [etiqueta, valor] of [["Salida", notes?.salida], ["Corazón", notes?.corazon], ["Fondo", notes?.fondo]]) {
+    if (valor?.trim()) notasVisibles.push([etiqueta as string, valor]);
+  }
 
   const handleAdd = () => {
     const result = addToCart({ id, name, price, image, description, stock, notes }, qty);
@@ -83,20 +88,17 @@ export const ProductDetail: FC<ProductDetailProps> = ({
           <div className="[grid-area:body] flex flex-col gap-10 max-w-2xl">
             <Text className="max-w-xl text-xl md:text-2xl leading-tight text-primary-champagne/60 font-medium">{description}</Text>
             
-            <div className="flex flex-col gap-6 py-8 border-y border-white/5">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">Salida</span>
-                <span className="text-lg text-primary-champagne font-bold">{notes.salida}</span>
+            {/* solo las notas que el perfume tiene; sin ninguna no se muestra el bloque */}
+            {notasVisibles.length > 0 && (
+              <div className="flex flex-col gap-6 py-8 border-y border-white/5">
+                {notasVisibles.map(([etiqueta, valor]) => (
+                  <div key={etiqueta} className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">{etiqueta}</span>
+                    <span className="text-lg text-primary-champagne font-bold">{valor}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">Corazón</span>
-                <span className="text-lg text-primary-champagne font-bold">{notes.corazon}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black text-primary-gold uppercase tracking-[0.3em]">Fondo</span>
-                <span className="text-lg text-primary-champagne font-bold">{notes.fondo}</span>
-              </div>
-            </div>
+            )}
 
             <div className="pt-8 flex flex-col gap-5">
               <QuantitySelector value={Math.min(qty, Math.max(max, 1))} max={Math.max(max, 1)} onChange={setQty} disabled={agotado} />
