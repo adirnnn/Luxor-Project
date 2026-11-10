@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
@@ -70,7 +70,7 @@ export default function AdminCreateUserPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setSuccess(true);
-        setTimeout(() => navigate("/admin"), 1500);
+        setTimeout(() => navigate("/admin/clientes"), 1500);
       } else {
         // SFTWRKEY-223: Mostrar error de email duplicado
         setServerError(data.message || "No se pudo crear el usuario.");
@@ -83,7 +83,7 @@ export default function AdminCreateUserPage() {
   };
 
   return (
-    <MainLayout>
+    <AdminLayout>
       <PageMeta title="Registrar cliente" noindex />
       <Section className="min-h-screen pt-0 pb-20">
         <Container>
@@ -171,7 +171,7 @@ export default function AdminCreateUserPage() {
                 <Button type="submit" className="flex-1 py-6 shadow-[0_20px_50px_rgba(212,175,55,0.2)]" disabled={loading}>
                   {loading ? "Registrando..." : "Crear Usuario"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate("/admin")} className="px-12 py-6">
+                <Button type="button" variant="outline" onClick={() => navigate("/admin/clientes")} className="px-12 py-6">
                   Cancelar
                 </Button>
               </div>
@@ -179,6 +179,6 @@ export default function AdminCreateUserPage() {
           </div>
         </Container>
       </Section>
-    </MainLayout>
+    </AdminLayout>
   );
 }

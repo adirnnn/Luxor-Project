@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { rememberPendingPayment } from '../services/pendingPayment';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -647,6 +648,8 @@ export function GuestCheckoutPage() {
       if (result.status === 'pagado') {
         window.location.assign(`/pago/resultado?ref=${result.reference}`);
       } else {
+        // si vuelve a la tienda sin terminar de pagar, el stock apartado se libera (pendingPayment.ts)
+        rememberPendingPayment(result.reference);
         window.location.assign(result.checkoutUrl);
       }
     } catch (e) {

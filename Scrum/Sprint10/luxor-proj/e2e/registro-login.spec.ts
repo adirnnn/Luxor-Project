@@ -16,10 +16,12 @@ test("el admin registra un cliente y el cliente inicia sesión con su cuenta", a
   await page.locator('input[name="password"]').fill(cliente.password);
   await page.getByRole("button", { name: "Crear Usuario" }).click();
   await expect(page.getByText("¡Usuario creado exitosamente!")).toBeVisible();
-  await expect(page).toHaveURL(/\/admin$/);
-  // el panel se carga aparte (lazy): la URL cambia antes de que aparezca, y si se abre el menú
-  // en ese momento, el panel nuevo lo reemplaza cerrado y "Salir" nunca vuelve a salir
-  await expect(page.getByRole("heading", { name: "Panel Maestro" })).toBeVisible();
+  // vuelve a la lista de clientes de la consola, con la cuenta nueva
+  await expect(page).toHaveURL(/\/admin\/clientes$/);
+  await expect(page.getByRole("heading", { name: "Clientes" })).toBeVisible();
+  await expect(page.getByText(cliente.email)).toBeVisible();
+  // la consola no tiene el menú de la tienda: se sale desde la tienda
+  await page.goto("/");
   await cerrarSesion(page);
 
   // 2. con una contraseña equivocada no entra

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
@@ -100,7 +100,7 @@ export default function ReportPage() {
     };
 
     return (
-        <MainLayout>
+        <AdminLayout>
             <PageMeta title="Reportes" noindex />
             <Section size="lg" className="pt-0">
                 <Container>
@@ -332,6 +332,6 @@ export default function ReportPage() {
                     </div>
                 </Container>
             </Section>
-        </MainLayout>
+        </AdminLayout>
     );
 }

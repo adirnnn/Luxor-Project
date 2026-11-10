@@ -2,20 +2,20 @@
 
 Esta guía es para el personal de la tienda. Todo lo que aquí se explica solo lo puede hacer una cuenta con rol **Administrador**.
 
-**Actualizado:** 8 de noviembre de 2026 (Sprint 10).
+**Actualizado:** 10 de noviembre de 2026 (Sprint 10).
 
 ---
 
 ## 0. Entrar como administrador
 
 1. Toca **Entrar** y escribe el correo y la contraseña de administrador.
-2. Arriba a la derecha tocas tu nombre y verás los accesos **Panel**, **Pedidos** y **Reporte**.
+2. Arriba a la derecha tocas tu nombre y eliges **Panel**: se abre la **consola del administrador**.
 
 ![Inicio de sesión](img/07-login.png)
 
 > Nunca compartas la contraseña del administrador. Si crees que alguien la conoce, cámbiala de inmediato.
 
-> Por seguridad la sesión dura 8 horas. Si dejaste el panel abierto más tiempo, aparece el aviso **Tu sesión expiró**: toca **Inicia sesión** y vuelves a donde estabas.
+> Por seguridad la sesión dura 8 horas. Si dejaste la consola abierta más tiempo, aparece el aviso **Tu sesión expiró**: toca **Inicia sesión** y vuelves a donde estabas.
 
 ---
 
@@ -23,28 +23,45 @@ Esta guía es para el personal de la tienda. Todo lo que aquí se explica solo l
 
 Los clientes pueden crear su cuenta solos desde **Entrar → Crear cuenta**. Si un cliente te pide que se la crees tú (por ejemplo, un mayorista):
 
-1. En el Panel toca **Nuevo cliente**.
+1. En el menú de la consola toca **Clientes** y luego **Nuevo cliente**.
 2. Llena el formulario **Registrar cliente**: nombre, correo y una contraseña de al menos 12 caracteres.
 3. Toca **Crear Usuario**.
 4. Dale al cliente su correo y su contraseña; puede cambiarla después desde **Mi cuenta**.
 
-Las cuentas creadas así, o por el cliente, siempre son de cliente normal. Para que sea mayorista, ve al punto 6.
+Las cuentas creadas así, o por el cliente, siempre son de cliente normal. Para que sea mayorista, ve al punto 7.
 
 Cuando el cliente crea su cuenta solo, le llega un correo para confirmarla y no puede pagar con su cuenta hasta hacerlo (sí puede comprar como invitado). Las cuentas que creas tú desde **Nuevo cliente** ya quedan confirmadas.
 
 ---
 
-## 1. Panel: productos y fotos
+## 1. La consola
 
-El **Panel Maestro** muestra todos los perfumes con su precio y su stock, y arriba los botones para cada tarea: **Pedidos**, **Reseñas**, **Mayoristas**, **Cupones**, **Nuevo cliente**, **Importar CSV** y **Nuevo perfume**.
+La consola tiene un **menú a la izquierda** con todo agrupado: **Ventas** (Pedidos, Cupones, Reportes), **Catálogo** (Inventario, Nuevo perfume, Importar CSV, Reseñas), **Clientes** (Clientes, Mayoristas) y **Sistema** (Seguridad). En el celular el menú se abre con el botón ☰.
 
-El número naranja sobre **Pedidos** dice cuántos pedidos pagados esperan que los prepares.
+- **Modo claro u oscuro:** el botón de arriba a la derecha cambia el tema. La consola lo recuerda para la próxima vez.
+- **Avisos en el menú:** el número naranja junto a **Pedidos** dice cuántos pedidos pagados esperan que los prepares; el rojo junto a **Inventario**, cuántos perfumes están agotados.
+- **Colores:** naranja = hay que actuar ya; rojo = agotado o cancelado; ámbar = última unidad; verde = todo bien; violeta = en camino.
 
-![Panel del administrador](img/20-admin-panel.png)
+**Resumen.** Es la primera pantalla. Muestra lo que necesita tu atención: pedidos por preparar, agotados, perfumes con su última unidad, ventas de hoy, pedidos en camino y clientes. **Cada tarjeta se puede tocar** y abre la lista ya filtrada (por ejemplo, **Agotados** abre el inventario solo con los agotados). Abajo están las acciones rápidas y los últimos pedidos.
+
+![Resumen de la consola](img/20-admin-panel.png)
+
+---
+
+## 2. Inventario: buscar, filtrar y cambiar el stock
+
+1. En el menú toca **Inventario**.
+2. Arriba están las pestañas **Todos**, **Agotados**, **Última unidad** y **Disponibles**, cada una con su cantidad. Toca una para ver solo esos perfumes.
+3. Para buscar, escribe el nombre, la marca o la referencia. También puedes filtrar por **categoría** y **marca**, y ordenar por nombre, stock, precio o marca. **Limpiar filtros** quita la búsqueda y los filtros.
+4. **Cambiar el stock:** escribe el número nuevo en la columna **Stock** y presiona **Enter** (o toca fuera del campo). Se guarda en ese momento. Con **Escape** vuelves al número anterior.
+5. Si un perfume estaba agotado y le pones stock, la tienda manda sola el correo de **Avísame cuando vuelva** a quien lo pidió, y la consola te lo confirma.
+6. Abajo eliges cuántos perfumes ver por página (25, 50 o 100) y pasas de página con las flechas.
+
+![Inventario filtrado por agotados](img/29-admin-inventario.png)
 
 **Agregar un perfume**
 
-1. En el Panel toca **Nuevo perfume**.
+1. En el menú toca **Nuevo perfume** (o el botón **Nuevo perfume** del inventario).
 2. Llena: ID de referencia (sin espacios, por ejemplo `noir-oud`), Nombre, Marca, Precio (Q), Stock y Descripción. Opcional: Salida, Corazón y Fondo (las notas del perfume).
 3. En **Imagen** toca **Subir foto** y elige la foto del perfume (PNG, JPG o WebP de hasta 5 MB). La tienda la achica y la guarda en WebP para que cargue rápido; al terminar aparece la vista previa. También puedes pegar la dirección de una foto que ya está en el sitio (por ejemplo `/assets/products/noir-oud.webp`) o el enlace de una imagen en internet.
 4. Toca **Crear perfume**.
@@ -53,8 +70,8 @@ El número naranja sobre **Pedidos** dice cuántos pedidos pagados esperan que l
 
 **Editar o eliminar**
 
-- En la lista del Panel, toca el ícono del lápiz (**Editar**), cambia lo que necesites y toca **Guardar cambios**.
-- El ícono de basura (**Eliminar**) borra el perfume. Aparece la pregunta "¿Seguro que quieres eliminar este producto?": léela antes de aceptar.
+- En el **Inventario**, toca el ícono del lápiz (**Editar**), cambia lo que necesites y toca **Guardar cambios**. Al guardar vuelves al inventario.
+- El ícono de basura (**Eliminar**) borra el perfume y pide confirmarlo. Si el perfume ya se vendió, mejor ponle stock 0 en vez de borrarlo.
 
 **Reponer un perfume agotado**
 
@@ -62,11 +79,11 @@ Cuando un perfume llega a 0 unidades, los clientes pueden pedir que se les avise
 
 ---
 
-## 2. Importar perfumes con un archivo CSV
+## 3. Importar perfumes con un archivo CSV
 
 Sirve para cargar muchos perfumes de una sola vez.
 
-1. En el Panel toca **Importar CSV**.
+1. En el menú toca **Importar CSV**.
 2. Toca **Descargar plantilla** y ábrela con Excel o Google Sheets.
 3. Llena una fila por perfume con las columnas: `id, name, price, image, description, stock, salida, corazon, fondo`. No cambies los nombres ni el orden de las columnas.
 4. Guarda el archivo como **CSV UTF-8** (en Excel: *Guardar como → CSV UTF-8*).
@@ -77,7 +94,7 @@ Sirve para cargar muchos perfumes de una sola vez.
 
 ---
 
-## 3. Pedidos y estados
+## 4. Pedidos y estados
 
 1. Toca **Pedidos**. Verás todas las compras (de cuenta y de invitado) con su estado, cliente y total. Cada pedido tiene una barra de color a la izquierda según su estado, para ver de un vistazo qué falta atender.
 2. Usa **Estado**, **Desde** y **Hasta** para filtrar. **Limpiar filtros** vuelve a mostrar todo.
@@ -104,9 +121,9 @@ Un pedido se puede **Cancelar** si está en *Pagado* o *En preparación*. Al can
 
 ---
 
-## 4. Cupones de descuento
+## 5. Cupones de descuento
 
-1. En el Panel toca **Cupones**.
+1. En el menú toca **Cupones**.
 2. En **Nuevo cupón** llena:
     - **Código:** de 3 a 30 letras, números, guiones o guiones bajos (por ejemplo `VERANO10`). El cliente lo escribe tal cual.
     - **Tipo:** **Porcentaje (%)** o **Monto fijo (Q)**, y su valor.
@@ -122,11 +139,11 @@ Un pedido se puede **Cancelar** si está en *Pagado* o *En preparación*. Al can
 
 ---
 
-## 5. Reseñas de los clientes
+## 6. Reseñas de los clientes
 
 Los clientes califican con estrellas los perfumes de sus pedidos entregados. Las reseñas se publican solas en la página del perfume.
 
-1. En el Panel toca **Reseñas**.
+1. En el menú toca **Reseñas**.
 2. Con **Mostrar** filtras **Todas**, **Visibles** u **Ocultas**.
 3. Si una reseña tiene groserías, datos personales o no habla del perfume, toca **Ocultar**: deja de verse en la tienda (y no cuenta en el promedio de estrellas). Con **Mostrar** la vuelves a publicar.
 
@@ -134,11 +151,11 @@ Los clientes califican con estrellas los perfumes de sus pedidos entregados. Las
 
 ---
 
-## 6. Clientes mayoristas
+## 7. Clientes mayoristas
 
 Los mayoristas pagan todos los perfumes con un descuento fijo que defines tú. No usan cupones.
 
-1. En el Panel toca **Mayoristas**.
+1. En el menú toca **Mayoristas**.
 2. En **Descuento de mayorista (%)** escribe el porcentaje y toca **Guardar**. Aplica a todos los mayoristas desde su siguiente compra.
 3. Para agregar uno, en **Agregar un mayorista** busca al cliente por su nombre o correo, toca **Buscar** y luego **Hacer mayorista**. Primero debe tener su cuenta: la crea él en **Crear cuenta** o tú con **Nuevo cliente**.
 4. En **Mayoristas actuales** está la lista. Toca **Quitar mayorista** para que vuelva a ser cliente normal.
@@ -149,7 +166,21 @@ Los mayoristas pagan todos los perfumes con un descuento fijo que defines tú. N
 
 ---
 
-## 7. Reportes
+## 8. Clientes: buscar y borrar cuentas
+
+1. En el menú toca **Clientes**.
+2. Verás cada cuenta con su rol (**Cliente**, **Mayorista** o **Admin**), cuántos pedidos ha hecho, cuánto ha comprado, su último pedido y cuándo se registró. **Sin confirmar** quiere decir que todavía no confirmó su correo.
+3. Arriba filtras por rol y buscas por nombre o correo.
+4. **Borrar una cuenta:** toca **Borrar** y confirma. Se borran su cuenta, carrito, favoritos y reseñas; sus pedidos se quedan en los reportes y en **Pedidos** aparecen como **Cuenta eliminada**. No se puede deshacer.
+5. Las cuentas de administrador dicen **Protegida**: nunca se pueden borrar, ni desde aquí ni desde Mi cuenta.
+
+Los clientes también pueden borrar su propia cuenta desde **Mi cuenta → Borrar mi cuenta**, confirmando con su contraseña.
+
+![Clientes](img/30-admin-clientes.png)
+
+---
+
+## 9. Reportes
 
 1. Toca **Reporte**.
 2. Verás el resumen del negocio: ventas totales, número de pedidos, perfumes más vendidos, **Ventas por mes** y **Ventas por categoría**.
@@ -161,9 +192,9 @@ Los mayoristas pagan todos los perfumes con un descuento fijo que defines tú. N
 
 ---
 
-## 8. Alertas de seguridad
+## 10. Alertas de seguridad
 
-En el **Panel**, abajo, está la sección **Alertas de seguridad**. Muestra intentos de inicio de sesión fallidos: fecha, tipo de evento, dirección IP y cuenta.
+En el menú toca **Seguridad**: ahí están las **Alertas de seguridad**. Muestra intentos de inicio de sesión fallidos: fecha, tipo de evento, dirección IP y cuenta.
 
 - Si ves **muchos intentos seguidos desde la misma IP o contra la misma cuenta**, alguien puede estar adivinando contraseñas. El sistema ya bloquea esa IP después de 10 intentos fallidos por minuto.
 - Qué hacer: cambia la contraseña de la cuenta afectada y avisa al equipo técnico.

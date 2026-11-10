@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend-local",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--env-file=C:/Users/28adr/AppData/Local/Temp/claude/764d3be950ff6407/62b09241-6187-4465-8d5a-af644c8eba2f/scratchpad/local.env", "luxor-proj/backend/server.js"],
+      "port": 3000
+    },
+    {
+      "name": "tienda-local",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "luxor-proj", "run", "dev", "--", "--port", "5173", "--strictPort"],
+      "port": 5173
+    }
+  ]
+}

@@ -71,6 +71,7 @@ router.get('/admin/orders', authenticate, requireRoles('ADMIN'), async (req, res
     const ordersResult = await pool.query(
       `SELECT o.id, o.created_at, o.total, o.status,
               u.name AS user_name, u.email AS user_email,
+              COALESCE((to_jsonb(o) ->> 'cuenta_eliminada')::boolean, FALSE) AS cuenta_eliminada,
               g.guest_name, g.guest_email,
               (SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.order_id = o.id)::int AS items_count
        FROM orders o
@@ -90,7 +91,7 @@ router.get('/admin/orders', authenticate, requireRoles('ADMIN'), async (req, res
       total: Number(o.total),
       status: o.status,
       is_guest: !o.user_name,
-      customer_name: o.user_name ?? (o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
+      customer_name: o.user_name ?? (o.cuenta_eliminada ? "Cuenta eliminada" : o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
       customer_email: o.user_email ?? o.guest_email ?? null,
       items_count: o.items_count,
     }));
@@ -114,6 +115,7 @@ router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req,
       `SELECT o.id, o.created_at, o.total, o.status,
               o.shipping_cost, o.delivery_method, o.delivery_address, o.discount, o.coupon_code,
               u.name AS user_name, u.email AS user_email,
+              COALESCE((to_jsonb(o) ->> 'cuenta_eliminada')::boolean, FALSE) AS cuenta_eliminada,
               g.guest_name, g.guest_email, g.address
        FROM orders o
        LEFT JOIN users u ON u.id = o.user_id
@@ -152,7 +154,7 @@ router.get('/admin/orders/:id', authenticate, requireRoles('ADMIN'), async (req,
         total: Number(o.total),
         status: o.status,
         is_guest: !o.user_name,
-        customer_name: o.user_name ?? (o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
+        customer_name: o.user_name ?? (o.cuenta_eliminada ? "Cuenta eliminada" : o.guest_name ? `Invitado · ${o.guest_name}` : "Invitado"),
         customer_email: o.user_email ?? o.guest_email ?? null,
         // SFTWRKEY-449: a dónde se entrega (o en qué local se recoge) y cuánto fue el envío
         shipping: Number(o.shipping_cost ?? 0),

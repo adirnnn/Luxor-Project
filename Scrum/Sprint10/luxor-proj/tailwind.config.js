@@ -3,34 +3,38 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      // Colores como variables (globals.css): la tienda usa siempre los valores oscuros y la consola
+      // del admin los cambia en modo claro (.admin-console[data-theme="light"]). Así todas las
+      // pantallas del admin cambian de tema sin reescribir cada una.
       colors: {
+        white: "rgb(var(--c-white) / <alpha-value>)",
         primary: {
-          black: "#1A1614", // Warm Desert Dusk (Deep Coffee/Earthy)
-          gold: "#D4AF37",  // Metallic Gold
-          champagne: "#FDFCFB", // Bone White / Warm Ivory
-          sand: "#E5D3B3", 
-          amber: "#9B673C",
+          black: "rgb(var(--c-black) / <alpha-value>)", // Warm Desert Dusk (Deep Coffee/Earthy)
+          gold: "rgb(var(--c-gold) / <alpha-value>)", // Metallic Gold
+          champagne: "rgb(var(--c-champagne) / <alpha-value>)", // Bone White / Warm Ivory
+          sand: "rgb(var(--c-sand) / <alpha-value>)",
+          amber: "rgb(var(--c-amber) / <alpha-value>)",
         },
         secondary: {
-          charcoal: "#2A2522", // Warmer charcoal for cards
-          tan: "#C2A17E",
+          charcoal: "rgb(var(--c-charcoal) / <alpha-value>)", // Warmer charcoal for cards
+          tan: "rgb(var(--c-tan) / <alpha-value>)",
         },
         // SFTWRKEY-353: Colores semánticos únicos para estados (éxito/error/advertencia/info),
         // en vez de que cada pantalla improvise su propio verde/rojo/amarillo genérico de Tailwind.
         status: {
-          success: "#4C9A6A",       // Verde cálido, coherente con la paleta tierra
+          success: "rgb(var(--c-success) / <alpha-value>)", // Verde cálido, coherente con la paleta tierra
           "success-bg": "#4C9A6A26", // 15% opacidad para fondos de badges/alertas
-          error: "#C0524A",         // Rojo terracota, no un rojo puro/frío
+          error: "rgb(var(--c-error) / <alpha-value>)", // Rojo terracota, no un rojo puro/frío
           "error-bg": "#C0524A26",
-          warning: "#C79A3B",       // Ámbar dorado, cercano al primary-gold
+          warning: "rgb(var(--c-warning) / <alpha-value>)", // Ámbar dorado, cercano al primary-gold
           "warning-bg": "#C79A3B26",
-          info: "#5B7C99",
+          info: "rgb(var(--c-info) / <alpha-value>)",
           "info-bg": "#5B7C9926",
           // feedback del cliente (psicología del color en el panel): naranja = requiere acción ya,
           // violeta = en camino. Se distinguen del dorado de la marca.
-          attention: "#D9822B",
+          attention: "rgb(var(--c-attention) / <alpha-value>)",
           "attention-bg": "#D9822B26",
-          transit: "#8A6FB0",
+          transit: "rgb(var(--c-transit) / <alpha-value>)",
           "transit-bg": "#8A6FB026",
         },
       },

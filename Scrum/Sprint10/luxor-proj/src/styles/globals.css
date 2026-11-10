@@ -11,6 +11,48 @@
 }
 
 @layer base {
+  /* colores de Tailwind (tailwind.config.js) en canales RGB: mismos valores de siempre */
+  :root {
+    --c-white: 255 255 255;
+    --c-black: 26 22 20;        /* #1A1614 */
+    --c-gold: 212 175 55;       /* #D4AF37 */
+    --c-champagne: 253 252 251; /* #FDFCFB */
+    --c-sand: 229 211 179;      /* #E5D3B3 */
+    --c-amber: 155 103 60;      /* #9B673C */
+    --c-charcoal: 42 37 34;     /* #2A2522 */
+    --c-tan: 194 161 126;       /* #C2A17E */
+    --c-success: 76 154 106;    /* #4C9A6A */
+    --c-error: 192 82 74;       /* #C0524A */
+    --c-warning: 199 154 59;    /* #C79A3B */
+    --c-info: 91 124 153;       /* #5B7C99 */
+    --c-attention: 217 130 43;  /* #D9822B */
+    --c-transit: 138 111 176;   /* #8A6FB0 */
+  }
+
+  /* Consola del admin en modo claro: fondo claro, tarjetas blancas, texto casi negro y los colores
+     de estado más oscuros para que se lean sobre blanco. "white" pasa a ser tinta: los bordes y
+     fondos suaves (border-white/10, bg-white/5) siguen viéndose sobre el fondo claro. */
+  .admin-console[data-theme="light"] {
+    --c-white: 33 28 25;
+    --c-black: 245 242 237;
+    --c-gold: 128 98 18;
+    --c-champagne: 33 28 25;
+    --c-sand: 92 74 50;
+    --c-amber: 140 90 45;
+    --c-charcoal: 255 255 255;
+    --c-tan: 110 90 66;
+    --c-success: 38 120 72;
+    --c-error: 178 52 44;
+    --c-warning: 150 104 18;
+    --c-info: 52 92 130;
+    --c-attention: 186 96 14;
+    --c-transit: 108 76 160;
+    color-scheme: light;
+  }
+  .admin-console[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
   :root {
     --color-noir: #1A1614;
     --color-sand: #FDFCFB;
@@ -92,6 +134,54 @@ html {
 /* Modern Card Effect */
 .glass-card {
   @apply bg-secondary-charcoal/40 backdrop-blur-2xl border border-white/[0.05] rounded-card shadow-2xl;
+}
+/* La consola es una herramienta de trabajo: una sola letra sin adornos, sin cursivas, con
+   espaciado normal y esquinas menos redondas, aunque la pantalla se haya hecho para la tienda.
+   (El logo conserva su letra.) */
+.admin-console,
+.admin-console *:not(.font-brand) {
+  font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+}
+.admin-console .italic {
+  font-style: normal;
+}
+.admin-console h1,
+.admin-console h2 {
+  text-transform: none;
+}
+.admin-console [class*="tracking-"],
+.admin-console .text-xs {
+  letter-spacing: 0.02em;
+}
+.admin-console .uppercase {
+  letter-spacing: 0.06em;
+}
+.admin-console .rounded-card,
+.admin-console .glass-card {
+  border-radius: 14px;
+}
+.admin-console .font-light {
+  font-weight: 500;
+}
+
+/* títulos de las pantallas del admin hechas para la tienda: dentro de la consola se ven como el
+   resto (letra sin adornos, tamaño de título de sección) */
+.admin-console main h1 {
+  font-family: Montserrat, sans-serif;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  font-style: normal;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  color: rgb(var(--c-champagne));
+}
+
+/* en la consola clara las tarjetas son blancas con borde y sombra suave */
+.admin-console[data-theme="light"] .glass-card {
+  background-color: rgb(255 255 255);
+  border-color: rgb(33 28 25 / 0.08);
+  box-shadow: 0 1px 2px rgb(33 28 25 / 0.06), 0 8px 24px rgb(33 28 25 / 0.05);
 }
 
 /* Immersive Background */

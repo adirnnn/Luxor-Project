@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
@@ -43,7 +43,11 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<AdminOrder[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
-    const [status, setStatus] = useState("");
+    // ?estado=pagado (por ejemplo desde el Resumen de la consola) abre la lista ya filtrada
+    const [status, setStatus] = useState(() => {
+        const inicial = new URLSearchParams(window.location.search).get("estado") ?? "";
+        return (ORDER_STATUSES as readonly string[]).includes(inicial) ? inicial : "";
+    });
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
     const [loading, setLoading] = useState(true);
@@ -85,7 +89,7 @@ export default function AdminOrdersPage() {
     const hasFilters = status !== "" || from !== "" || to !== "";
 
     return (
-        <MainLayout>
+        <AdminLayout>
             <PageMeta title="Pedidos" noindex />
             <Section className="min-h-screen pt-0 pb-20">
                 <Container>
@@ -238,7 +242,7 @@ export default function AdminOrdersPage() {
                     onStatusChanged={() => void loadOrders()}
                 />
             )}
-        </MainLayout>
+        </AdminLayout>
     );
 }
 

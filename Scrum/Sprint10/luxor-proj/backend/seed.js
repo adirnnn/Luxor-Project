@@ -242,6 +242,8 @@ const seedUsers = async () => {
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_cost NUMERIC(10, 2) NOT NULL DEFAULT 0;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method VARCHAR(10);
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address JSONB;
+      -- el pedido de una cuenta que se borró: se queda para los reportes, sin la persona
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS cuenta_eliminada BOOLEAN NOT NULL DEFAULT FALSE;
     `);
 
     await pool.query(`

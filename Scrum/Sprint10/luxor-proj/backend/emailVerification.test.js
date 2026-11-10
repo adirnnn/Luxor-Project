@@ -126,3 +126,15 @@ test('el correo de verificación lleva el enlace y escapa el nombre', () => {
   assert.ok(html.includes('&lt;b&gt;Ana&lt;/b&gt;'));
   assert.ok(text.includes('https://tienda.test/verificar-correo?token=abc'));
 });
+
+test('el error del proveedor dice el motivo para saber qué arreglar', async () => {
+  const fetchImpl = async () => ({
+    ok: false,
+    status: 403,
+    json: async () => ({ name: 'validation_error', message: 'The perfumesvictoria.shop domain is not verified.' }),
+  });
+  await assert.rejects(
+    deliverEmail({ to: 'a@b.com', subject: 's', text: 't', html: 'h', env: { RESEND_API_KEY: 're_x' }, fetchImpl }),
+    /403: The perfumesvictoria\.shop domain is not verified\./
+  );
+});

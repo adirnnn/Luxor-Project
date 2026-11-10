@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { Button } from "../components/ui/Button";
@@ -44,7 +44,7 @@ export default function ImportPerfumesPage() {
     finally { setImporting(false); }
   };
 
-  return <MainLayout><PageMeta title="Importar perfumes" noindex /><Section className="min-h-screen pt-0 pb-20"><Container>
+  return <AdminLayout><PageMeta title="Importar perfumes" noindex /><Section className="min-h-screen pt-0 pb-20"><Container>
     <div className="max-w-5xl mx-auto flex flex-col gap-8">
       <div className="flex items-center justify-between gap-4"><div><PageTitle>Importar perfumes</PageTitle><Text className="text-primary-champagne/40 text-xs uppercase tracking-[.25em]">Carga masiva de inventario</Text></div><Button variant="outline" onClick={() => navigate("/admin")}>Volver</Button></div>
       <div className="glass-card p-6 md:p-8 rounded-[28px] flex flex-col gap-5 border-white/5">
@@ -57,5 +57,5 @@ export default function ImportPerfumesPage() {
       {summary && <div className="glass-card p-6 rounded-[28px] border-white/5"><h2 className="text-primary-gold text-xl">Resumen de importación</h2><div className="grid grid-cols-3 gap-4 mt-4 text-center"><div><b className="text-primary-champagne text-2xl">{summary.total_rows}</b><p className="text-xs text-primary-champagne/50">Leídas</p></div><div><b className="text-status-success text-2xl">{summary.imported_rows}</b><p className="text-xs text-primary-champagne/50">Importadas</p></div><div><b className="text-status-error text-2xl">{summary.rejected_rows}</b><p className="text-xs text-primary-champagne/50">Rechazadas</p></div></div>{summary.errors.length > 0 && <ul className="mt-5 space-y-2 text-sm text-status-error">{summary.errors.map((item, index) => <li key={`${item.row}-${item.field}-${index}`}>Fila {item.row}, {item.field}: {item.message}</li>)}</ul>}</div>}
       <div className="glass-card p-6 rounded-[28px] border-white/5"><h2 className="text-primary-gold text-xl mb-4">Historial de importaciones</h2>{loading ? <Text>Cargando historial...</Text> : history.length === 0 ? <Text className="text-primary-champagne/50">Aún no hay importaciones registradas.</Text> : <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="text-primary-champagne/50"><tr><th className="pb-3">Archivo</th><th>Fecha</th><th>Importadas</th><th>Rechazadas</th></tr></thead><tbody>{history.map((item) => <tr key={item.id} className="border-t border-white/5 text-primary-champagne"><td className="py-3">{item.file_name}</td><td>{new Date(item.created_at).toLocaleString()}</td><td className="text-status-success">{item.imported_rows}/{item.total_rows}</td><td className="text-status-error">{item.rejected_rows}</td></tr>)}</tbody></table></div>}</div>
     </div>
-  </Container></Section></MainLayout>;
+  </Container></Section></AdminLayout>;
 }

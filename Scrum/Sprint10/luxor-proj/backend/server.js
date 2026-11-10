@@ -24,6 +24,7 @@ import chatbotRouter from './routes/chatbot.js';
 import ordersRouter from './routes/orders.js';
 import passwordResetRouter from './routes/passwordReset.js';
 import emailVerificationRouter from './routes/emailVerification.js';
+import adminConsoleRouter from './routes/adminConsole.js';
 import { validatePassword } from './services/passwordPolicy.js';
 import wishlistRouter from './routes/wishlist.js';
 import relatedRouter from './routes/related.js';
@@ -95,6 +96,8 @@ app.use(ordersRouter);
 app.use(passwordResetRouter);
 // verificación del correo de las cuentas nuevas
 app.use(emailVerificationRouter);
+// consola del admin (resumen, inventario, clientes) y borrar cuentas
+app.use(adminConsoleRouter);
 
 // SFTWRKEY-429: lista de deseos
 app.use(wishlistRouter);

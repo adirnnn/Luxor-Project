@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { rememberPendingPayment } from "../services/pendingPayment";
 import { EmailVerificationNotice } from "../components/auth/EmailVerificationNotice";
 import { Navigate, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/MainLayout";
@@ -68,7 +69,9 @@ export default function PaymentPage() {
         setIsProcessing(true);
 
         try {
-            const { checkoutUrl } = await startCheckout(Number(user.id), values, wholesalePercent ? null : coupon.coupon?.code ?? null);
+            const { checkoutUrl, reference } = await startCheckout(Number(user.id), values, wholesalePercent ? null : coupon.coupon?.code ?? null);
+            // si vuelve a la tienda sin terminar de pagar, el stock apartado se libera (pendingPayment.ts)
+            rememberPendingPayment(reference);
             setCompleted(true);
             window.location.assign(checkoutUrl);
         } catch (err) {

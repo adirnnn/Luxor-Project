@@ -17,6 +17,19 @@ export const parseFrom = (from) => {
   return m ? { name: m[1].replace(/^"|"$/g, '') || undefined, email: m[2].trim() } : { email: String(from).trim() };
 };
 
+// el error con el motivo que da el proveedor (por ejemplo "The perfumesvictoria.shop domain is not
+// verified"), para que el log diga qué arreglar. Ese texto no trae llaves ni datos del cliente.
+async function providerError(response) {
+  let motivo = '';
+  try {
+    const body = await response.json();
+    motivo = String(body?.message || body?.error?.message || body?.code || '').slice(0, 200);
+  } catch {
+    // sin cuerpo JSON: solo el código
+  }
+  return new Error(`El proveedor de correo respondió ${response.status}${motivo ? `: ${motivo}` : ''}`);
+}
+
 // un solo lugar que habla con el proveedor
 export async function deliverEmail({ to, subject, text, html, env = process.env, fetchImpl = fetch }) {
   if (env.BREVO_API_KEY) {
@@ -31,7 +44,7 @@ export async function deliverEmail({ to, subject, text, html, env = process.env,
         htmlContent: html,
       }),
     });
-    if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
+    if (!response.ok) throw await providerError(response);
     return { sent: true };
   }
 
@@ -40,7 +53,7 @@ export async function deliverEmail({ to, subject, text, html, env = process.env,
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: env.MAIL_FROM || REMITENTE, to: [to], subject, text, html }),
   });
-  if (!response.ok) throw new Error(`El proveedor de correo respondió ${response.status}`);
+  if (!response.ok) throw await providerError(response);
   return { sent: true };
 }
 

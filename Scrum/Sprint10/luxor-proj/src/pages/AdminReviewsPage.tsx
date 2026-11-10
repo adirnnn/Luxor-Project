@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
@@ -80,7 +80,7 @@ export default function AdminReviewsPage() {
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     return (
-        <MainLayout>
+        <AdminLayout>
             <PageMeta title="Reseñas" noindex />
             <Section className="min-h-screen pt-0 pb-20">
                 <Container>
@@ -190,6 +190,6 @@ export default function AdminReviewsPage() {
                     </div>
                 </Container>
             </Section>
-        </MainLayout>
+        </AdminLayout>
     );
 }

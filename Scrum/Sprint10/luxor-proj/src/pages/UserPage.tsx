@@ -15,6 +15,7 @@ import { validatePassword } from "../validation/passwordPolicy";
 import { fetchMyReviews, type MyReview } from "../services/reviewService";
 import { OrderItemReview } from "../features/reviews/OrderItemReview";
 import { UserAvatar } from "../components/account/UserAvatar";
+import { DeleteAccountSection } from "../components/account/DeleteAccountSection";
 import { AVATAR_MAX_BYTES, AVATAR_TYPES, deleteAvatar, uploadAvatar } from "../services/avatarService";
 
 interface OrderItem {
@@ -541,6 +542,14 @@ export default function UserPage() {
                   </p>
                 )}
               </div>
+
+              {/* borrar la cuenta (no aparece para administradores) */}
+              {user?.role !== "ADMIN" && (
+                <>
+                  <div className="h-px bg-white/10" />
+                  <DeleteAccountSection />
+                </>
+              )}
             </div>
           </div>
 

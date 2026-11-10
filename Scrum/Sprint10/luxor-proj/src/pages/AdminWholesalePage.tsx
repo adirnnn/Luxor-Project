@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
@@ -108,7 +108,7 @@ export default function AdminWholesalePage() {
     );
 
     return (
-        <MainLayout>
+        <AdminLayout>
             <PageMeta title="Mayoristas" noindex />
             <Section className="min-h-screen pt-0 pb-20">
                 <Container className="flex flex-col gap-10">
@@ -183,6 +183,6 @@ export default function AdminWholesalePage() {
                     </div>
                 </Container>
             </Section>
-        </MainLayout>
+        </AdminLayout>
     );
 }

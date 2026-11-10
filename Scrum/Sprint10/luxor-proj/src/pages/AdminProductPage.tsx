@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { PageTitle, Text } from "../components/ui/Typography";
@@ -185,7 +185,7 @@ const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
         } else {
         await createProduct(formData);
         }
-        navigate("/admin");
+        navigate("/admin/inventario");
     } catch (err) {
         setError(err instanceof Error ? err.message : "Error al guardar producto.");
         setSaving(false);
@@ -194,7 +194,7 @@ const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
 
 if (loading) {
     return (
-        <MainLayout>
+        <AdminLayout>
         <PageMeta title={isEditing ? "Editar perfume" : "Nuevo perfume"} noindex />
         <Section>
             <Container>
@@ -204,12 +204,12 @@ if (loading) {
             </div>
         </Container>
         </Section>
-    </MainLayout>
+    </AdminLayout>
     );
 }
 
 return (
-    <MainLayout>
+    <AdminLayout>
         <PageMeta title={isEditing ? "Editar perfume" : "Nuevo perfume"} noindex />
         <Section className="min-h-screen pt-0 pb-20">
         <Container>
@@ -218,7 +218,7 @@ return (
             {/* Header */}
             <div className="flex items-center gap-4">
             <button
-                onClick={() => navigate("/admin")}
+                onClick={() => navigate("/admin/inventario")}
                 className="text-primary-champagne/30 hover:text-primary-gold transition-all p-2 -ml-2"
                 aria-label="Volver"
             >
@@ -447,7 +447,7 @@ return (
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate("/admin")}
+                    onClick={() => navigate("/admin/inventario")}
                     className="sm:px-12 py-5 text-sm"
                 >
                     Cancelar
@@ -458,6 +458,6 @@ return (
             </div>
         </Container>
         </Section>
-    </MainLayout>
+    </AdminLayout>
     );
 }

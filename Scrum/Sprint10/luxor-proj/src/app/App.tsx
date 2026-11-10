@@ -1,4 +1,6 @@
 import { lazy, Suspense } from "react";
+import { AccountDeletedNotice } from "../components/account/AccountDeletedNotice";
+import { PendingPaymentWatcher } from "../components/routing/PendingPaymentWatcher";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import HomePage from "../pages/HomePage";
@@ -28,7 +30,11 @@ const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const VerifyEmailPage = lazy(() => import("../pages/VerifyEmailPage"));
 const WishlistPage = lazy(() => import("../pages/WishlistPage"));
 const ReportPage = lazy(() => import("../pages/ReportPage"));
-const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
+// consola del admin: resumen, inventario con filtros, clientes y seguridad
+const AdminHomePage = lazy(() => import("../pages/AdminHomePage"));
+const AdminInventoryPage = lazy(() => import("../pages/AdminInventoryPage"));
+const AdminClientsPage = lazy(() => import("../pages/AdminClientsPage"));
+const AdminSecurityPage = lazy(() => import("../pages/AdminSecurityPage"));
 const AdminProductPage = lazy(() => import("../pages/AdminProductPage"));
 const AdminCreateUserPage = lazy(() => import("../pages/AdminCreateUserPage"));
 const AdminOrdersPage = lazy(() => import("../pages/AdminOrdersPage"));
@@ -104,7 +110,10 @@ function AnimatedRoutes() {
         {/* SFTWRKEY-422: solo ADMIN. Las rutas nuevas de admin (como /admin/pedidos) van aqui dentro */}
         <Route element={<AdminRoute />}>
           <Route path="/reporte" element={<PageWrapper><ReportPage /></PageWrapper>} />
-          <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
+          <Route path="/admin" element={<PageWrapper><AdminHomePage /></PageWrapper>} />
+          <Route path="/admin/inventario" element={<PageWrapper><AdminInventoryPage /></PageWrapper>} />
+          <Route path="/admin/clientes" element={<PageWrapper><AdminClientsPage /></PageWrapper>} />
+          <Route path="/admin/seguridad" element={<PageWrapper><AdminSecurityPage /></PageWrapper>} />
           <Route path="/admin/nuevo" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
           <Route path="/admin/editar/:id" element={<PageWrapper><AdminProductPage /></PageWrapper>} />
           <Route path="/admin/nuevo-usuario" element={<PageWrapper><AdminCreateUserPage /></PageWrapper>} />
@@ -148,8 +157,11 @@ export default function App() {
             <SearchProvider>
               <BrowserRouter>
                 <ScrollToTop />
+                {/* libera el stock de un pago que el cliente dejó sin terminar */}
+                <PendingPaymentWatcher />
                 <SessionExpiredNotice />
                 <EmailVerificationToast />
+              <AccountDeletedNotice />
                 <AnimatedRoutes />
               </BrowserRouter>
             </SearchProvider>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { MainLayout } from "../components/layout/MainLayout";
+import { AdminLayout } from "../components/admin/AdminLayout";
 import { Section } from "../components/ui/Section";
 import { Container } from "../components/ui/Container";
 import { H3, PageTitle, Text } from "../components/ui/Typography";
@@ -115,7 +115,7 @@ export default function AdminCouponsPage() {
     };
 
     return (
-        <MainLayout>
+        <AdminLayout>
             <PageMeta title="Cupones" noindex />
             <Section className="min-h-screen pt-0 pb-20">
                 <Container>
@@ -260,6 +260,6 @@ export default function AdminCouponsPage() {
                     </div>
                 </Container>
             </Section>
-        </MainLayout>
+        </AdminLayout>
     );
 }

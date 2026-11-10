@@ -2,7 +2,7 @@
 
 Esta guía te explica, paso a paso, cómo comprar en la tienda. No necesitas saber de computadoras: solo seguir los pasos.
 
-**Actualizado:** 8 de noviembre de 2026 (Sprint 10).
+**Actualizado:** 10 de noviembre de 2026 (Sprint 10).
 
 ---
 
@@ -167,6 +167,7 @@ Solo puedes calificar los perfumes de un pedido que ya está **Entregado**.
 1. En **Mi cuenta**, toca **Subir foto** (o **Cambiar foto** si ya tienes una) y elige una imagen PNG, JPG o WebP de hasta 5 MB. Tu foto aparece también arriba, junto a tu nombre.
 2. Para quitarla, toca **Quitar foto**.
 3. Con **Editar información** cambias tu nombre y tu correo. Con **Cambiar contraseña** pones una nueva (al guardarla, vuelves a iniciar sesión).
+4. **Borrar mi cuenta:** al final de tus datos toca **Borrar mi cuenta**, escribe tu contraseña (si entras con Google, escribe ELIMINAR) y toca **Sí, borrar mi cuenta**. Se borran tu cuenta, tu carrito, tus favoritos, tu foto y tus reseñas. Tus pedidos se quedan en la tienda sin tus datos. No se puede deshacer.
 
 ---
 
