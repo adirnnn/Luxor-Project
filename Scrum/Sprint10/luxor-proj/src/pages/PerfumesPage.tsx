@@ -17,7 +17,8 @@ import { ErrorMessage } from "../components/ui/ErrorMessage";
 // Los filtros viven en la URL (?q=&category=&brand=&minPrice=&maxPrice=&sort=&page=)
 // para que se puedan compartir y para que el botón "atrás" funcione.
 
-const PAGE_SIZE = 12;
+// 24 llena filas completas con 2, 3 o 4 columnas (móvil, tablet y escritorio).
+const PAGE_SIZE = 24;
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Más recientes" },
@@ -282,18 +283,22 @@ export default function PerfumesPage() {
                 )}
 
                 {/* ── Paginación ── */}
+                {/* En móvil todo va en una sola fila: Anterior y Siguiente se vuelven flechas
+                    del mismo alto que los números para que no queden a distinto nivel. */}
                 {totalPages > 1 && (
-                  <nav aria-label="Paginación del catálogo" className="flex flex-wrap items-center justify-center gap-2">
+                  <nav aria-label="Paginación del catálogo" className="flex flex-nowrap items-center justify-center gap-1.5 sm:gap-2">
                     <button
                       type="button"
                       onClick={() => goToPage(page - 1)}
                       disabled={page <= 1}
-                      className="px-4 py-2 rounded-xl border border-primary-gold/40 text-xs uppercase tracking-[0.2em] text-primary-champagne disabled:opacity-30 hover:border-primary-gold transition-colors"
+                      aria-label="Página anterior"
+                      className="h-9 sm:h-10 min-w-9 sm:min-w-10 px-2 sm:px-4 shrink-0 rounded-xl border border-primary-gold/40 text-xs uppercase tracking-[0.2em] text-primary-champagne disabled:opacity-30 hover:border-primary-gold transition-colors"
                     >
-                      Anterior
+                      <span aria-hidden="true" className="sm:hidden text-base leading-none">‹</span>
+                      <span aria-hidden="true" className="hidden sm:inline">Anterior</span>
                     </button>
                     {pageNumbers.map((n, i) => (
-                      <span key={n} className="flex items-center gap-2">
+                      <span key={n} className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                         {i > 0 && n - pageNumbers[i - 1] > 1 && <span className="text-primary-champagne/40">…</span>}
                         <button
                           type="button"
@@ -301,8 +306,8 @@ export default function PerfumesPage() {
                           aria-current={n === page ? "page" : undefined}
                           className={
                             n === page
-                              ? "w-10 h-10 rounded-xl bg-primary-gold text-primary-black text-sm font-bold"
-                              : "w-10 h-10 rounded-xl border border-white/[0.08] text-sm text-primary-champagne hover:border-primary-gold transition-colors"
+                              ? "w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-gold text-primary-black text-sm font-bold"
+                              : "w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-white/[0.08] text-sm text-primary-champagne hover:border-primary-gold transition-colors"
                           }
                         >
                           {n}
@@ -313,9 +318,11 @@ export default function PerfumesPage() {
                       type="button"
                       onClick={() => goToPage(page + 1)}
                       disabled={page >= totalPages}
-                      className="px-4 py-2 rounded-xl border border-primary-gold/40 text-xs uppercase tracking-[0.2em] text-primary-champagne disabled:opacity-30 hover:border-primary-gold transition-colors"
+                      aria-label="Página siguiente"
+                      className="h-9 sm:h-10 min-w-9 sm:min-w-10 px-2 sm:px-4 shrink-0 rounded-xl border border-primary-gold/40 text-xs uppercase tracking-[0.2em] text-primary-champagne disabled:opacity-30 hover:border-primary-gold transition-colors"
                     >
-                      Siguiente
+                      <span aria-hidden="true" className="sm:hidden text-base leading-none">›</span>
+                      <span aria-hidden="true" className="hidden sm:inline">Siguiente</span>
                     </button>
                   </nav>
                 )}
